@@ -1,0 +1,1785 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jarvis &amp; Co. — Hotel PMS HQ × HostGate HQ</title>
+<style>
+  :root {
+    --pron-tile-a: #c9a878;
+    --pron-tile-b: #b08c5f;
+    --pron-wall:   #4a3424;
+    --pron-wall-l: #6b4a30;
+    --geff-tile-a: #6a78b0;
+    --geff-tile-b: #4a5890;
+    --geff-wall:   #1f1a3a;
+    --geff-wall-l: #322a55;
+    --gold: #ffd96b;
+    --silver: #cde0ff;
+    --frame: #2a1810;
+    --speech: #fff8e1;
+    --speech-border: #5a3a1a;
+    --panel-bg: #1a0e06;
+    --panel-edge: #d4a85a;
+    --good: #4ade80;
+    --warn: #fbbf24;
+    --busy: #ff80a0;
+    --think: #80c0ff;
+    --text: #f5d68a;
+    --muted: #a08868;
+    --portal-a: #80a0ff;
+    --portal-b: #c080ff;
+  }
+  * { box-sizing: border-box; image-rendering: pixelated; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #0a0604;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Noto Sans Thai", "Helvetica Neue", Arial, sans-serif;
+    height: 100%;
+    overflow: hidden;
+  }
+  .pixel-font { font-family: 'Courier New', 'Menlo', monospace; }
+  .app {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    height: 100vh;
+  }
+  @media (max-width: 1100px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: 1fr 260px; }
+  }
+
+  /* ======= STAGE ======= */
+  .stage-wrap { position: relative; overflow: hidden; background: #0a0604; }
+  .stage {
+    position: absolute; inset: 0;
+    border: 5px solid var(--frame);
+    box-shadow: inset 0 0 0 2px #8a6a3a, 0 0 60px rgba(0,0,0,0.8);
+  }
+
+  /* Two offices split by a center seam */
+  .office {
+    position: absolute; top: 0; bottom: 0; width: 50%;
+    overflow: hidden;
+  }
+  .office.left  { left: 0; }
+  .office.right { right: 0; }
+
+  /* Real Prontera + Geffen interior FLOOR textures from RO data.grf, tiled
+     at native pixel size so they never distort when the window resizes.
+     Plus a single-row wall strip at the top so it reads as "room with floor + wall". */
+  .office.left {
+    background:
+      /* slight overall dim so agents stand out */
+      linear-gradient(rgba(20, 12, 4, 0.20), rgba(20, 12, 4, 0.20)),
+      /* Prontera single-row wall (256×128 native, displayed 2:1) */
+      url('maps_out/prt_wall_top.png') 0 0 / 320px 160px repeat-x,
+      /* Prontera red+grey checker FLOOR (256×256), tiled below the wall */
+      url('maps_out/prt_bot01.png') 0 160px / 280px 280px;
+    background-repeat: no-repeat, repeat-x, repeat;
+    background-color: #4a3424;
+  }
+  .office.right {
+    background:
+      linear-gradient(rgba(8, 6, 24, 0.20), rgba(8, 6, 24, 0.20)),
+      /* Geffen single-row wall (256×128 native, displayed 2:1) */
+      url('maps_out/gef_wall_top.png') 0 0 / 320px 160px repeat-x,
+      /* Geffen blue stone checker FLOOR (256×128) */
+      url('maps_out/gef_top_tile02.png') 0 160px / 280px 140px;
+    background-repeat: no-repeat, repeat-x, repeat;
+    background-color: #1f1a3a;
+  }
+
+  /* ===== Upper deck (CEO + Iris elevated platform, left office) =====
+     Wood floor — RO Prontera interior herringbone parquet
+     (prt_in_bot01.bmp from data.grf, saved as wood_floor.png). */
+  .upper-deck {
+    position: absolute;
+    top: 160px;                     /* just below the wall strip */
+    left: 1.5%;
+    width: 46%;
+    height: 22%;                    /* extends down to ~y=40% */
+    z-index: 1;
+    pointer-events: none;
+    background: url('maps_out/wood_floor.png') repeat;
+    background-size: 140px 140px;
+    image-rendering: pixelated;
+    /* darker bottom edge = visible "front face" of the raised step */
+    border-bottom: 8px solid #1a0e06;
+    border-radius: 0 0 4px 4px;
+    box-shadow:
+      inset 0 4px 0 rgba(255, 220, 140, 0.3),    /* warm wood highlight */
+      0 10px 14px rgba(0, 0, 0, 0.6);            /* shadow cast below */
+    filter: brightness(1.05) saturate(1.05);
+  }
+  /* Stairs descending from the upper deck to the lower floor — CSS-drawn */
+  .stairs {
+    position: absolute;
+    top: calc(160px + 22%);
+    left: 23%;
+    transform: translate(-50%, 0);
+    width: 78px;
+    height: 30px;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(180deg,
+      #b8884a 0%   25%,
+      #1a0e06 25%  28%,
+      #8a5a28 28%  53%,
+      #1a0e06 53%  56%,
+      #6a4218 56%  82%,
+      #1a0e06 82%  85%,
+      #4a2e18 85% 100%);
+    border: 2px solid #1a0e06;
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.45);
+  }
+  .stairs::before, .stairs::after {
+    content: "";
+    position: absolute;
+    top: -2px; bottom: -2px;
+    width: 4px;
+    background: linear-gradient(180deg, #8a6a3a, #2a1810);
+    border: 1.5px solid #1a0e06;
+  }
+  .stairs::before { left: -3px; }
+  .stairs::after  { right: -3px; }
+
+  /* Seam pillar dividing the offices */
+  .seam {
+    position: absolute; left: 50%; top: 0; bottom: 0;
+    width: 14px; transform: translateX(-50%);
+    background:
+      linear-gradient(180deg, #8a6a3a, #5a3a1a 50%, #322a55);
+    border-left: 2px solid #1a0e06;
+    border-right: 2px solid #1a0e06;
+    z-index: 2;
+  }
+
+  /* Banners per office */
+  .banner {
+    position: absolute; top: 10px;
+    background: linear-gradient(180deg, #6a3a1a 0%, #3a1a08 100%);
+    border: 3px solid var(--gold);
+    color: var(--gold);
+    padding: 6px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 0 #000;
+    box-shadow: 0 0 0 2px #000, 3px 3px 0 #000;
+    z-index: 10;
+    white-space: nowrap;
+    font-family: 'Courier New', monospace;
+  }
+  .banner small { display: block; font-size: 10px; color: #f5d68a; letter-spacing: 2px; margin-top: 2px; font-weight: 500; }
+  .banner.left  { left: 24%; transform: translateX(-50%); }
+  .banner.right {
+    right: 24%; transform: translateX(50%);
+    background: linear-gradient(180deg, #2a2068 0%, #1a1438 100%);
+    border-color: var(--silver);
+    color: var(--silver);
+  }
+
+  /* Clock */
+  .clock {
+    position: absolute; top: 14px; right: 18px;
+    background: rgba(0,0,0,0.7);
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    padding: 5px 12px;
+    font-size: 13px;
+    z-index: 10;
+    letter-spacing: 1px;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+  }
+
+  /* ======= PORTAL (warp between offices) ======= */
+  /* Classic RO warp portal — concentric blue rings, white well center,
+     4 sparkle stars, soft purple ambient. Reference: rathena.org. */
+  .portal {
+    position: absolute;
+    left: 50%; top: 84%;
+    transform: translate(-50%, -50%);
+    width: 130px; height: 100px;
+    z-index: 4;
+    pointer-events: none;
+    filter: drop-shadow(0 0 16px rgba(150, 140, 255, 0.45));
+  }
+  /* Concentric rings (ellipses to match floor perspective) */
+  .portal::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 50% / 40%;
+    background:
+      radial-gradient(ellipse at 50% 50%,
+        rgba(10, 8, 28, 0.92)     0%,
+        rgba(10, 8, 28, 0.92)     7%,
+        rgba(255, 255, 255, 0.95) 8%,
+        rgba(255, 255, 255, 0.95) 10.5%,
+        rgba(60, 40, 80, 0.4)     11%,
+        rgba(60, 40, 80, 0.4)     20%,
+        rgba(190, 200, 255, 0.55) 21%,
+        rgba(190, 200, 255, 0.55) 25%,
+        rgba(70, 60, 110, 0.3)    26%,
+        rgba(70, 60, 110, 0.3)    38%,
+        rgba(170, 185, 255, 0.4)  39%,
+        rgba(170, 185, 255, 0.4)  44%,
+        rgba(80, 70, 130, 0.22)   45%,
+        rgba(80, 70, 130, 0.22)   58%,
+        rgba(160, 175, 255, 0.28) 59%,
+        rgba(160, 175, 255, 0.28) 66%,
+        rgba(100, 90, 160, 0.15)  67%,
+        rgba(140, 155, 250, 0.18) 78%,
+        transparent              92%);
+    animation: portalPulse 2.6s ease-in-out infinite;
+    filter: blur(0.6px);
+  }
+  /* Bright white well at the very center */
+  .portal::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px; height: 11px;
+    border-radius: 50% / 40%;
+    background: radial-gradient(circle, #ffffff 0%, rgba(220, 230, 255, 0.95) 35%, rgba(160, 180, 255, 0.5) 65%, transparent 92%);
+    filter: blur(0.5px);
+    animation: portalCore 1.6s ease-in-out infinite;
+  }
+  /* Light beams — STATIC slanted planes radiating outward.
+     Square container + circular mask → no rectangle ever shows.
+     No rotation — just shimmer (scale + opacity) so they "breathe"
+     instead of spinning. conic-gradient origin is offset from true
+     center so each beam leans slightly off-radial → "เฉียง" effect. */
+  .portal .beams {
+    position: absolute;
+    /* Square + just slightly larger than the ring halo (portal is 130×100). */
+    width: 170px; height: 170px;
+    left: 50%; top: 50%;
+    margin-left: -85px; margin-top: -85px;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    filter: blur(1.4px);
+    background: conic-gradient(
+      from 0deg at 54% 48%,
+      transparent 0deg 8deg,
+      rgba(225, 235, 255, 0.55) 8deg 16deg,
+      transparent 16deg 60deg,
+      rgba(225, 235, 255, 0.55) 60deg 68deg,
+      transparent 68deg 120deg,
+      rgba(225, 235, 255, 0.55) 120deg 128deg,
+      transparent 128deg 180deg,
+      rgba(225, 235, 255, 0.55) 180deg 188deg,
+      transparent 188deg 240deg,
+      rgba(225, 235, 255, 0.55) 240deg 248deg,
+      transparent 248deg 300deg,
+      rgba(225, 235, 255, 0.55) 300deg 308deg,
+      transparent 308deg 360deg);
+    /* Circle mask pinned to closest-side so it ends at the half-width
+       radius (not the diagonal corner). Without "closest-side" the
+       gradient default = farthest-corner, leaving visible color in the
+       square corners → that's the rectangular border bleed. */
+    -webkit-mask: radial-gradient(circle closest-side at 50% 50%,
+      transparent 14%,
+      rgba(0,0,0,0.35) 22%,
+      black 36%,
+      black 60%,
+      rgba(0,0,0,0.55) 80%,
+      rgba(0,0,0,0.15) 92%,
+      transparent 100%);
+            mask: radial-gradient(circle closest-side at 50% 50%,
+      transparent 14%,
+      rgba(0,0,0,0.35) 22%,
+      black 36%,
+      black 60%,
+      rgba(0,0,0,0.55) 80%,
+      rgba(0,0,0,0.15) 92%,
+      transparent 100%);
+    animation: beamSpin 18s linear infinite;
+  }
+  /* Secondary thinner rays at a different angular offset → shimmer */
+  .portal .beams::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: conic-gradient(
+      from 22deg at 47% 52%,
+      transparent 0deg 32deg,
+      rgba(200, 215, 255, 0.42) 32deg 36deg,
+      transparent 36deg 92deg,
+      rgba(200, 215, 255, 0.42) 92deg 96deg,
+      transparent 96deg 156deg,
+      rgba(200, 215, 255, 0.42) 156deg 160deg,
+      transparent 160deg 220deg,
+      rgba(200, 215, 255, 0.42) 220deg 224deg,
+      transparent 224deg 284deg,
+      rgba(200, 215, 255, 0.42) 284deg 288deg,
+      transparent 288deg 348deg,
+      rgba(200, 215, 255, 0.42) 348deg 352deg,
+      transparent 352deg 360deg);
+    -webkit-mask: radial-gradient(circle closest-side at 50% 50%,
+      transparent 14%,
+      rgba(0,0,0,0.4) 22%,
+      black 34%,
+      black 58%,
+      rgba(0,0,0,0.5) 78%,
+      rgba(0,0,0,0.15) 92%,
+      transparent 100%);
+            mask: radial-gradient(circle closest-side at 50% 50%,
+      transparent 14%,
+      rgba(0,0,0,0.4) 22%,
+      black 34%,
+      black 58%,
+      rgba(0,0,0,0.5) 78%,
+      rgba(0,0,0,0.15) 92%,
+      transparent 100%);
+    filter: blur(0.7px);
+    animation: beamSpin 26s linear infinite reverse;
+  }
+  @keyframes beamSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* 4 sparkle stars (cross-shaped lens flares) */
+  .portal .spark {
+    position: absolute;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow:
+      0 0 4px 1px rgba(255, 255, 255, 0.95),
+      0 0 10px 3px rgba(200, 220, 255, 0.55);
+    animation: sparkTwinkle 1.8s ease-in-out infinite;
+  }
+  .portal .spark::before,
+  .portal .spark::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    background: linear-gradient(to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.9) 50%,
+      transparent 100%);
+  }
+  .portal .spark::before {
+    width: 18px; height: 1px;
+    transform: translate(-50%, -50%);
+  }
+  .portal .spark::after {
+    width: 1px; height: 18px;
+    transform: translate(-50%, -50%);
+  }
+  .portal .spark.s1 { top: 12%; left: 68%; animation-delay: 0s; }
+  .portal .spark.s2 { top: 78%; left: 28%; animation-delay: 0.45s; }
+  .portal .spark.s3 { top: 82%; left: 72%; animation-delay: 0.9s; }
+  .portal .spark.s4 { top: 36%; left: 10%; animation-delay: 1.35s; }
+  @keyframes portalPulse {
+    0%, 100% { transform: scale(1);    opacity: 0.88; }
+    50%      { transform: scale(1.05); opacity: 1; }
+  }
+  @keyframes portalCore {
+    0%, 100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+    50%      { opacity: 1;   transform: translate(-50%, -50%) scale(1.4); }
+  }
+  @keyframes sparkTwinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.7); }
+    50%      { opacity: 1;    transform: scale(1.25); }
+  }
+  .portal-label {
+    position: absolute; left: 50%; top: calc(52% + 65px);
+    transform: translateX(-50%);
+    font-size: 9px; color: var(--portal-a);
+    letter-spacing: 2px;
+    text-shadow: 0 0 6px var(--portal-b);
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  /* ======= AGENTS ======= */
+  .agent {
+    position: absolute;
+    width: 120px;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    user-select: none;
+    transition: left 2.0s ease-in-out, top 2.0s ease-in-out, opacity 0.35s ease;
+    z-index: 5;
+  }
+  .agent.cross { transition: left 1.6s ease-in-out, top 1.6s ease-in-out, opacity 0.35s ease; }
+  .agent:hover { transform: translate(-50%, -52%); z-index: 9; }
+  .agent.warping { opacity: 0; }
+
+  .agent.walking .sprite img { animation: walkBob 0.5s ease-in-out infinite; }
+  @keyframes walkBob {
+    0%,100% { transform: translateY(0) rotate(-2deg) scaleX(var(--flip, 1)); }
+    50%     { transform: translateY(-3px) rotate(2deg) scaleX(var(--flip, 1)); }
+  }
+
+  .sprite {
+    width: 90px; height: 110px;
+    margin: 0 auto;
+    position: relative;
+    display: flex; align-items: flex-end; justify-content: center;
+    filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.7));
+  }
+  .sprite > img.body {
+    max-height: 100%; max-width: 100%;
+    image-rendering: pixelated;
+    display: block;
+    transform: scaleX(var(--flip, 1));
+    transition: transform 0.3s;
+    position: relative;
+    z-index: 2;
+  }
+  /* Back-compat: sprite imgs without a class still work like .body */
+  .sprite > img:not(.wings-img) {
+    max-height: 100%; max-width: 100%;
+    image-rendering: pixelated;
+    display: block;
+    transform: scaleX(var(--flip, 1));
+    transition: transform 0.3s;
+    position: relative;
+    z-index: 2;
+  }
+  /* Wings render behind the body, anchored near the shoulders, spread out wide */
+  .sprite img.wings-img {
+    --wing-bottom: 45%;
+    --wing-y: 18%;
+    position: absolute;
+    left: 50%;
+    bottom: var(--wing-bottom);
+    max-width: 105px;
+    max-height: 85px;
+    transform: translate(-50%, var(--wing-y)) scaleX(var(--flip, 1));
+    image-rendering: pixelated;
+    z-index: 1;
+    pointer-events: none;
+    filter: drop-shadow(0 0 4px rgba(255, 220, 120, 0.45));
+  }
+  /* Per-agent fine-tuning (sprite heights vary, so anchor varies) */
+  #agent-reno .sprite img.wings-img,
+  #agent-vex  .sprite img.wings-img { --wing-bottom: 55%; --wing-y: 4%; }
+  #agent-iris .sprite img.wings-img { --wing-bottom: 38%; --wing-y: 30%; }
+  #agent-jarvis .sprite img.wings-img {
+    --wing-bottom: 55%; --wing-y: 0%;
+    max-width: 130px; max-height: 110px;
+  }
+  /* CEO always on top — never obscured by other agents */
+  #agent-jarvis { z-index: 10; }
+  #agent-jarvis:hover { z-index: 11; }
+  /* ===== Level 99 aura (RO trans-job glow) ===== */
+  .aura99 {
+    position: absolute;
+    left: 50%; bottom: -8px;
+    width: 145px; height: 125px;
+    transform: translateX(-50%);
+    z-index: 0;             /* below wings (1) and body (2) */
+    pointer-events: none;
+  }
+  /* Soft upward light column (static, flickering) */
+  .aura99-beams {
+    position: absolute;
+    left: 50%; bottom: 0;
+    width: 60px; height: 102px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg,
+      rgba(220, 250, 255, 0)    0%,
+      rgba(220, 250, 255, 0.18) 30%,
+      rgba(255, 200, 240, 0.32) 60%,
+      rgba(255, 255, 255, 0.6)  92%,
+      rgba(255, 255, 255, 0.85) 100%);
+    filter: blur(4px);
+    mix-blend-mode: screen;
+    animation: columnFlicker 1.1s ease-in-out infinite;
+    border-radius: 50% / 30%;
+  }
+  /* Bright white-cyan core at the feet */
+  .aura99::before {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: 0;
+    transform: translateX(-50%);
+    width: 118px; height: 50px;
+    background: radial-gradient(ellipse at 50% 70%,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(200, 240, 255, 0.85) 18%,
+      rgba(140, 210, 255, 0.6) 38%,
+      rgba(255, 180, 230, 0.35) 58%,
+      rgba(100, 160, 255, 0) 82%);
+    filter: blur(3px);
+    animation: auraGlow 1.4s ease-in-out infinite;
+  }
+  /* Rising sparkle particles (cyan + magenta mix) */
+  .aura99::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: 16%;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow:
+      -42px  -3px 0  0   rgba(200, 240, 255, 0.95),
+       34px  -8px 0 -0.5px rgba(255, 180, 230, 0.9),
+      -26px -21px 0 -1px rgba(220, 250, 255, 0.95),
+       44px -26px 0 -1px rgba(255, 160, 220, 0.85),
+      -16px -39px 0 -1px rgba(255, 255, 255, 0.95),
+       24px -44px 0 -1.5px rgba(255, 200, 240, 0.8),
+      -36px -57px 0 -2px rgba(200, 240, 255, 0.75),
+       32px -68px 0 -2px rgba(255, 180, 230, 0.7),
+       -8px -78px 0 -2.5px rgba(220, 250, 255, 0.6);
+    animation: auraRise 1.5s linear infinite;
+    filter: drop-shadow(0 0 6px rgba(180, 230, 255, 0.95));
+  }
+  @keyframes auraGlow {
+    0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+    50%      { opacity: 1;   transform: translateX(-50%) scale(1.18); }
+  }
+  @keyframes auraRise {
+    0%   { transform: translate(-50%,   0); opacity: 0; }
+    15%  { opacity: 1; }
+    100% { transform: translate(-50%, -92px); opacity: 0; }
+  }
+  @keyframes columnFlicker {
+    0%, 100% { opacity: 0.55; transform: translateX(-50%) scaleY(0.95); }
+    50%      { opacity: 1;    transform: translateX(-50%) scaleY(1.08); }
+  }
+
+  /* ===== Iris aura (smaller, yellow→red — Soul Reaper warmth) ===== */
+  .aura-iris {
+    position: absolute;
+    left: 50%; bottom: -4px;
+    width: 78px; height: 68px;
+    transform: translateX(-50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .aura-iris-beams {
+    position: absolute;
+    left: 50%; bottom: 0;
+    width: 30px; height: 56px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg,
+      rgba(255, 220, 90, 0)    0%,
+      rgba(255, 170, 50, 0.22) 30%,
+      rgba(255, 95, 40, 0.36)  62%,
+      rgba(255, 75, 25, 0.7)   95%);
+    filter: blur(3px);
+    mix-blend-mode: screen;
+    animation: columnFlicker 1.0s ease-in-out infinite;
+    border-radius: 50% / 30%;
+  }
+  .aura-iris::before {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: 0;
+    transform: translateX(-50%);
+    width: 60px; height: 26px;
+    background: radial-gradient(ellipse at 50% 70%,
+      rgba(255, 240, 170, 0.95) 0%,
+      rgba(255, 195, 70, 0.85) 22%,
+      rgba(255, 110, 40, 0.6) 46%,
+      rgba(190, 30, 25, 0.35) 70%,
+      rgba(100, 12, 0, 0) 92%);
+    filter: blur(2px);
+    animation: irisAuraGlow 1.4s ease-in-out infinite;
+  }
+  .aura-iris::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: 14%;
+    width: 2.5px; height: 2.5px;
+    border-radius: 50%;
+    background: #fff4c0;
+    box-shadow:
+      -18px  -4px 0  0   rgba(255, 220, 80, 0.95),
+       14px  -8px 0 -0.5px rgba(255, 120, 50, 0.9),
+      -10px -16px 0 -1px rgba(255, 180, 60, 0.9),
+       20px -20px 0 -1px rgba(255, 80, 35, 0.85),
+       -6px -28px 0 -1px rgba(255, 220, 80, 0.85),
+       12px -32px 0 -1.5px rgba(255, 105, 45, 0.75),
+      -14px -42px 0 -2px rgba(255, 180, 60, 0.7),
+       16px -50px 0 -2px rgba(255, 75, 25, 0.6),
+       -4px -58px 0 -2.5px rgba(255, 200, 80, 0.5);
+    animation: irisAuraRise 1.3s linear infinite;
+    filter: drop-shadow(0 0 4px rgba(255, 150, 60, 0.95));
+  }
+  @keyframes irisAuraGlow {
+    0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
+    50%      { opacity: 1;    transform: translateX(-50%) scale(1.14); }
+  }
+  @keyframes irisAuraRise {
+    0%   { transform: translate(-50%,   0); opacity: 0; }
+    18%  { opacity: 1; }
+    100% { transform: translate(-50%, -60px); opacity: 0; }
+  }
+
+  /* Wing flutter on idle/talking/thinking */
+  .agent .sprite img.wings-img { animation: wingFlap 2.4s ease-in-out infinite; }
+  .agent.walking .sprite img.wings-img,
+  .agent.talking .sprite img.wings-img { animation: wingFlap 0.9s ease-in-out infinite; }
+  @keyframes wingFlap {
+    0%,100% { transform: translate(-50%, var(--wing-y)) scaleX(var(--flip, 1)) scaleY(1); }
+    50%     { transform: translate(-50%, var(--wing-y)) scaleX(calc(var(--flip, 1) * 0.92)) scaleY(0.98); }
+  }
+
+  /* CEO carpet + desk — real Prontera interior textures from RO data.grf */
+  .ceo-carpet {
+    position: absolute;
+    width: 170px; height: 85px;
+    transform: translate(-50%, -50%);
+    z-index: 2;                /* above floor, below desk/agents */
+    pointer-events: none;
+    background: url('maps_out/prt_carpet03.png') center / contain no-repeat;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 4px 0 rgba(0,0,0,0.5));
+  }
+  .ceo-desk {
+    position: absolute;
+    width: 140px; height: 48px;
+    transform: translate(-50%, -50%);
+    z-index: 4;                /* in front of carpet, behind agent (10) */
+    pointer-events: none;
+    background: url('maps_out/ceo_desk.png') center / cover no-repeat;
+    image-rendering: pixelated;
+    border: 2px solid #1a0e06;
+    box-shadow: 0 5px 0 #1a0e06, 3px 4px 0 rgba(0,0,0,0.55);
+    border-radius: 3px 3px 1px 1px;
+  }
+
+  /* Background NPCs — non-interactive decoration */
+  .npc {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .npc img {
+    max-width: 68px;
+    max-height: 92px;
+    width: auto;
+    height: auto;
+    image-rendering: pixelated;
+    filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.55)) saturate(0.9);
+    display: block;
+    margin: 0 auto;
+  }
+  .npc .npc-label {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .npc.bob img { animation: bob 3.2s ease-in-out infinite; }
+
+  .agent.thinking .sprite img { animation: bob 1.6s ease-in-out infinite; }
+  .agent.working  .sprite img { animation: bob 2.4s ease-in-out infinite; }
+  .agent.talking  .sprite img { animation: bob 0.7s ease-in-out infinite; }
+  @keyframes bob {
+    0%,100% { transform: translateY(0) scaleX(var(--flip, 1)); }
+    50%     { transform: translateY(-4px) scaleX(var(--flip, 1)); }
+  }
+
+  /* Cast effects */
+  .agent.thinking .sprite::after {
+    content: '✦';
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    color: var(--warn); font-size: 16px;
+    text-shadow: 0 0 8px var(--warn);
+    animation: spin 1.6s linear infinite;
+  }
+  .agent.working .sprite::after {
+    content: '⚒';
+    position: absolute; top: -10px; right: 4px;
+    color: var(--good); font-size: 14px;
+    text-shadow: 0 0 6px var(--good);
+    animation: bob 0.6s ease-in-out infinite;
+  }
+  @keyframes spin {
+    0%   { transform: translateX(-50%) rotate(0deg); }
+    100% { transform: translateX(-50%) rotate(360deg); }
+  }
+
+  .nameplate {
+    margin-top: 2px;
+    background: #2a1810;
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    padding: 2px 8px;
+    font-size: 11px;
+    box-shadow: 2px 2px 0 #000;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    font-weight: 500;
+  }
+  .nameplate b { display: block; font-size: 13px; color: #fff8e1; font-weight: 700; letter-spacing: 1px; }
+  .agent.office-2 .nameplate { border-color: var(--silver); color: var(--silver); }
+  .nameplate .model-badge {
+    display: block;
+    width: fit-content;
+    margin: 3px auto 0;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1.35;
+    padding: 0 5px;
+    border-radius: 7px;
+    border: 1px solid currentColor;
+    background: rgba(0,0,0,0.4);
+  }
+  .nameplate .model-badge[data-family="opus"]   { color: #d8a0ff; }
+  .nameplate .model-badge[data-family="sonnet"] { color: #88c0ff; }
+  .nameplate .model-badge[data-family="haiku"]  { color: #88ff9c; }
+  .nameplate .model-badge[data-family="gemini"] { color: #4dd6c0; }
+  .nameplate .model-badge[data-family="other"]  { color: var(--gold); }
+
+  .bars { margin-top: 2px; width: 70px; margin-left: auto; margin-right: auto; }
+  .bar { height: 3px; background: #1a0e06; border: 1px solid #000; margin-bottom: 1px; }
+  .bar > div { height: 100%; transition: width 0.4s; }
+  .hp > div { background: linear-gradient(90deg, #ff5050, #ffa050); width: 100%; }
+  .sp > div { background: linear-gradient(90deg, #5080ff, #80c0ff); width: 100%; }
+
+  .status-pill {
+    display: inline-block;
+    margin-top: 3px;
+    font-size: 10px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    padding: 2px 7px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .agent.idle     .status-pill { color: var(--good);  border-color: var(--good); }
+  .agent.working  .status-pill { color: var(--good);  border-color: var(--good); animation: pulseB 1s infinite; }
+  .agent.thinking .status-pill { color: var(--warn);  border-color: var(--warn); animation: pulseB 0.8s infinite; }
+  .agent.talking  .status-pill { color: var(--busy);  border-color: var(--busy); animation: pulseB 0.6s infinite; }
+  .agent.delegating .status-pill { color: var(--portal-b); border-color: var(--portal-b); animation: pulseB 0.5s infinite; }
+  @keyframes pulseB { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+  /* Speech bubble */
+  .bubble {
+    position: absolute;
+    bottom: 100%; left: 50%;
+    transform: translate(-50%, -2px) scale(0.85);
+    background: var(--speech); color: #2a1810;
+    padding: 7px 11px;
+    border: 3px solid var(--speech-border);
+    border-radius: 8px;
+    font-size: 13px;
+    max-width: 240px;
+    box-shadow: 3px 3px 0 #000;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    line-height: 1.4;
+    font-weight: 600;
+    white-space: normal;
+  }
+  .bubble.show { opacity: 1; transform: translate(-50%, -8px) scale(1); }
+  .bubble::after {
+    content: ""; position: absolute; left: 50%; bottom: -10px;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--speech-border);
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: 50%; bottom: -7px;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--speech);
+    z-index: 1;
+  }
+
+  /* Porings */
+  .poring {
+    position: absolute;
+    width: 26px; height: 22px;
+    z-index: 3;
+    transition: left 4s linear, top 4s linear;
+    filter: drop-shadow(1px 1px 0 #000);
+  }
+
+  /* Popups */
+  .popup {
+    position: absolute;
+    font-weight: bold; font-size: 13px;
+    text-shadow: 2px 2px 0 #000;
+    pointer-events: none;
+    animation: floatUp 1.2s ease-out forwards;
+    z-index: 20;
+  }
+  .popup.xp   { color: var(--gold); }
+  .popup.heal { color: var(--good); }
+  .popup.warp { color: var(--portal-b); }
+  @keyframes floatUp {
+    0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+    20%  { opacity: 1; transform: translateY(-10px) scale(1.2); }
+    100% { opacity: 0; transform: translateY(-46px) scale(1); }
+  }
+
+  /* ======= SIDE PANEL ======= */
+  .panel {
+    background: var(--panel-bg);
+    border-left: 3px solid var(--panel-edge);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  @media (max-width: 1100px) {
+    .panel { border-left: 0; border-top: 3px solid var(--panel-edge); }
+  }
+  .panel-head {
+    padding: 10px 14px;
+    background: linear-gradient(180deg, #3a1a08, #1a0a04);
+    border-bottom: 2px solid var(--panel-edge);
+    color: var(--gold);
+  }
+  .panel-head h2 { margin: 0; font-size: 15px; letter-spacing: 2px; text-shadow: 1px 1px 0 #000; font-weight: 700; }
+  .panel-head .sub { color: var(--muted); font-size: 12px; margin-top: 4px; letter-spacing: 0.5px; }
+
+  .log {
+    flex: 1; overflow-y: auto;
+    padding: 10px 14px;
+    font-size: 14px; line-height: 1.55;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,217,107,0.03) 0 28px, transparent 28px 56px),
+      var(--panel-bg);
+  }
+  .log::-webkit-scrollbar { width: 8px; }
+  .log::-webkit-scrollbar-track { background: #0a0604; }
+  .log::-webkit-scrollbar-thumb { background: var(--panel-edge); border: 1px solid #000; }
+
+  .log .row { margin-bottom: 7px; animation: slideIn 0.3s ease; }
+  .log .who { font-weight: 700; }
+  .log .who.jarvis { color: #ffd96b; }
+  .log .who.iris   { color: #c080ff; }
+  .log .who.mira   { color: #a0a0ff; }
+  .log .who.bolt   { color: #ffb060; }
+  .log .who.echo   { color: #80ff80; }
+  .log .who.sage   { color: #ffffff; }
+  .log .who.shade  { color: #ff6060; }
+  .log .who.lumen  { color: #ffd0d0; }
+  .log .who.aria   { color: #ffe080; }
+  .log .who.vex    { color: #ffaa55; }
+  .log .who.nyx    { color: #ff80c0; }
+  .log .who.pino   { color: #80ffd0; }
+  .log .who.kira   { color: #ffffa0; }
+  .log .who.reno   { color: #ff9080; }
+  .log .who.tao    { color: #80e0ff; }
+  .log .who.cass   { color: #ffc0a0; }
+  .log .who.zara   { color: #d0b0ff; }
+  .log .who.system { color: var(--muted); font-style: italic; }
+  .log .what { color: var(--text); }
+  .log .ts   { color: var(--muted); font-size: 11px; margin-right: 5px; font-family: 'Courier New', monospace; }
+  .log .tag  { font-size: 10px; padding: 1px 5px; border: 1px solid; margin-right: 4px; letter-spacing: 1px; font-weight: 700; }
+  .log .tag.hp { color: #ffd96b; border-color: #ffd96b; }
+  .log .tag.hg { color: #c0d0ff; border-color: #c0d0ff; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(4px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .input-row {
+    border-top: 2px solid var(--panel-edge);
+    padding: 8px;
+    display: flex; gap: 6px;
+    background: #0a0604;
+  }
+  .input-row input {
+    flex: 1;
+    background: #1a0e06;
+    border: 2px solid var(--panel-edge);
+    color: var(--gold);
+    padding: 9px 12px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+  }
+  .input-row input::placeholder { color: var(--muted); }
+  .input-row input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,217,107,0.3); }
+  .input-row button {
+    background: linear-gradient(180deg, #d4a85a, #8a6a3a);
+    color: #2a1810;
+    border: 2px solid #2a1810;
+    box-shadow: 2px 2px 0 #000;
+    padding: 0 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+  }
+  .input-row button:hover  { filter: brightness(1.1); }
+  .input-row button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #000; }
+
+  .statusbar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(180deg, #3a1a08, #1a0a04);
+    border-top: 2px solid var(--gold);
+    color: var(--text);
+    padding: 6px 16px;
+    font-size: 12px;
+    display: flex; justify-content: space-between;
+    letter-spacing: 1px;
+    z-index: 8;
+    font-family: 'Courier New', monospace;
+  }
+  .statusbar b { color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="office left"></div>
+      <div class="office right"></div>
+      <div class="seam"></div>
+
+      <div class="banner left">⚔ HOTEL PMS HQ<small>PRONTERA · PRODUCT</small></div>
+      <div class="banner right">✦ HOSTGATE HQ<small>GEFFEN · MARKETING</small></div>
+      <div class="clock" id="clock">--:--:--</div>
+
+      <!-- Upper deck for CEO + Iris (left office only) + stairs down -->
+      <div class="upper-deck"></div>
+      <div class="stairs"></div>
+
+      <div class="portal" id="portal"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div>
+
+      <!-- ===== Office 1: Hotel PMS ===== -->
+      <div class="agent idle office-1" id="agent-jarvis" style="left:22%; top:28%;">
+        <div class="bubble" id="bubble-jarvis"></div>
+        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><img class="wings-img" src="sprites_out/v2/wing_valkyrie.png" alt=""><img src="sprites_out/jarvis.png" alt="Jarvis"></div>
+        <div class="nameplate"><b>PORNCHAI</b>Lord Knight · CEO</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-1" id="agent-iris" style="left:34%; top:30%;">
+        <div class="bubble" id="bubble-iris"></div>
+        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><img class="wings-img" src="sprites_out/v2/wing_archangel.png" alt=""><img src="sprites_out/iris.png" alt="Iris"></div>
+        <div class="nameplate"><b>IRIS</b>Soul Reaper · CoS</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-1" id="agent-mira" style="left:9%; top:42%;">
+        <div class="bubble" id="bubble-mira"></div>
+        <div class="sprite"><img src="sprites_out/mira.png" alt="Mira"></div>
+        <div class="nameplate"><b>MIRA</b>Wizard · FE</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-1" id="agent-bolt" style="left:40%; top:42%;">
+        <div class="bubble" id="bubble-bolt"></div>
+        <div class="sprite"><img src="sprites_out/bolt.png" alt="Bolt"></div>
+        <div class="nameplate"><b>BOLT</b>Whitesmith · BE</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-1" id="agent-echo" style="left:10%; top:72%;">
+        <div class="bubble" id="bubble-echo"></div>
+        <div class="sprite"><img src="sprites_out/echo.png" alt="Echo"></div>
+        <div class="nameplate"><b>ECHO</b>Minstrel · CS</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-1" id="agent-sage" style="left:40%; top:72%;">
+        <div class="bubble" id="bubble-sage"></div>
+        <div class="sprite"><img src="sprites_out/sage.png" alt="Sage"></div>
+        <div class="nameplate"><b>SAGE</b>Professor · Data</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-1" id="agent-shade" style="left:28%; top:52%;">
+        <div class="bubble" id="bubble-shade"></div>
+        <div class="sprite"><img class="wings-img" src="sprites_out/v2/wing_devil.png" alt=""><img src="sprites_out/shade.png" alt="Shade"></div>
+        <div class="nameplate"><b>SHADE</b>Assassin X · Sec</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-1" id="agent-lumen" style="left:24%; top:82%;">
+        <div class="bubble" id="bubble-lumen"></div>
+        <div class="sprite"><img src="sprites_out/lumen.png" alt="Lumen"></div>
+        <div class="nameplate"><b>LUMEN</b>High Priest · QA</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-1" id="agent-cass" style="left:16%; top:58%;">
+        <div class="bubble" id="bubble-cass"></div>
+        <div class="sprite"><img src="sprites_out/cass.png" alt="Cass"></div>
+        <div class="nameplate"><b>CASS</b>Royal Guard · PM</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <!-- ===== Office 2: HostGate.app ===== -->
+      <div class="agent idle office-2" id="agent-aria" style="left:77%; top:38%;">
+        <div class="bubble" id="bubble-aria"></div>
+        <div class="sprite"><img class="wings-img" src="sprites_out/v2/wing_fairy_big.png" alt=""><img src="sprites_out/aria.png" alt="Aria"></div>
+        <div class="nameplate"><b>ARIA</b>Bard · Brand</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-2" id="agent-vex" style="left:77%; top:30%;">
+        <div class="bubble" id="bubble-vex"></div>
+        <div class="sprite"><img class="wings-img" src="sprites_out/v2/wing_dragon.png" alt=""><img src="sprites_out/vex.png" alt="Vex"></div>
+        <div class="nameplate"><b>VEX</b>Crusader · SEO</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-2" id="agent-nyx" style="left:60%; top:42%;">
+        <div class="bubble" id="bubble-nyx"></div>
+        <div class="sprite"><img src="sprites_out/nyx.png" alt="Nyx"></div>
+        <div class="nameplate"><b>NYX</b>Stalker · Growth</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-2" id="agent-pino" style="left:94%; top:42%;">
+        <div class="bubble" id="bubble-pino"></div>
+        <div class="sprite"><img src="sprites_out/pino.png" alt="Pino"></div>
+        <div class="nameplate"><b>PINO</b>Alchemist · Demo</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-2" id="agent-kira" style="left:61%; top:72%;">
+        <div class="bubble" id="bubble-kira"></div>
+        <div class="sprite"><img src="sprites_out/kira.png" alt="Kira"></div>
+        <div class="nameplate"><b>KIRA</b>Wanderer · Social</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-2" id="agent-reno" style="left:77%; top:72%;">
+        <div class="bubble" id="bubble-reno"></div>
+        <div class="sprite"><img class="wings-img" src="sprites_out/v2/wing_phoenix.png" alt=""><img src="sprites_out/reno.png" alt="Reno"></div>
+        <div class="nameplate"><b>RENO</b>Champion · Sales</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-2" id="agent-tao" style="left:93%; top:72%;">
+        <div class="bubble" id="bubble-tao"></div>
+        <div class="sprite"><img src="sprites_out/tao.png" alt="Tao"></div>
+        <div class="nameplate"><b>TAO</b>Sniper · Support</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <div class="agent idle office-2" id="agent-zara" style="left:84%; top:58%;">
+        <div class="bubble" id="bubble-zara"></div>
+        <div class="sprite"><img src="sprites_out/zara.png" alt="Zara"></div>
+        <div class="nameplate"><b>ZARA</b>Genetic · PM</div>
+        <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
+        <span class="status-pill"><span class="state">idle</span></span>
+      </div>
+
+      <!-- ===== Background NPCs (decoration) ===== -->
+      <div class="npc bob" style="left:5%; top:24%;">
+        <img src="sprites_out/v2/npc_pubmaster.png" alt="">
+        <div class="npc-label">JANITOR-01</div>
+      </div>
+      <div class="npc bob" style="left:44%; top:25%;">
+        <img src="sprites_out/v2/npc_merchant_f1.png" alt="">
+        <div class="npc-label">GM STAFF</div>
+      </div>
+      <div class="npc bob" style="left:56%; top:25%;">
+        <img src="sprites_out/v2/npc_merchant_f2.png" alt="">
+        <div class="npc-label">RECEPTION</div>
+      </div>
+      <div class="npc bob" style="left:95%; top:24%;">
+        <img src="sprites_out/v2/npc_merchant_m.png" alt="">
+        <div class="npc-label">JANITOR-02</div>
+      </div>
+      <div class="npc bob" style="left:5%; top:94%;">
+        <img src="sprites_out/v2/npc_pubgirl.png" alt="">
+        <div class="npc-label">PANTRY</div>
+      </div>
+      <div class="npc bob" style="left:95%; top:94%;">
+        <img src="sprites_out/v2/npc_oldsage.png" alt="">
+        <div class="npc-label">ADMIN</div>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <span><b>STATUS:</b> 17/17 ONLINE</span>
+      <span><b>HP:</b> hotel-pms · <b>HG:</b> hostgate.app</span>
+      <span><b>QUEUE:</b> <span id="queue">0</span></span>
+      <span><b>EXP:</b> <span id="exp">████████░░ 82%</span></span>
+    </div>
+  </div>
+
+  <aside class="panel">
+    <div class="panel-head">
+      <h2>💬 GUILD CHAT</h2>
+      <div class="sub">Hotel PMS HQ × HostGate HQ · 17 members</div>
+    </div>
+    <div class="log" id="log"></div>
+    <div class="input-row">
+      <input id="prompt" placeholder="พิมพ์ quest ให้ Iris…" />
+      <button id="send">⚔ BRIEF</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+// ============= AGENT DATA =============
+const AGENTS = {
+  // Office 1: Hotel PMS
+  jarvis: { name: "Pornchai", role: "Lord Knight · CEO",          office: 1 },
+  iris:   { name: "Iris",   role: "Soul Reaper · Chief of Staff", office: 1 },
+  mira:   { name: "Mira",   role: "Wizard · Frontend",            office: 1 },
+  bolt:   { name: "Bolt",   role: "Whitesmith · Backend",         office: 1 },
+  echo:   { name: "Echo",   role: "Minstrel · Customer Success",  office: 1 },
+  sage:   { name: "Sage",   role: "Professor · Data",             office: 1 },
+  shade:  { name: "Shade",  role: "Assassin X · Security",        office: 1 },
+  lumen:  { name: "Lumen",  role: "High Priest · QA",             office: 1 },
+  cass:   { name: "Cass",   role: "Royal Guard · PM",             office: 1 },
+  // Office 2: HostGate.app
+  aria:   { name: "Aria",   role: "Bard · Brand",                 office: 2 },
+  vex:    { name: "Vex",    role: "Crusader · SEO",               office: 2 },
+  nyx:    { name: "Nyx",    role: "Stalker · Growth",             office: 2 },
+  pino:   { name: "Pino",   role: "Alchemist · Demo",             office: 2 },
+  kira:   { name: "Kira",   role: "Wanderer · Social",            office: 2 },
+  reno:   { name: "Reno",   role: "Champion · Sales",             office: 2 },
+  tao:    { name: "Tao",    role: "Sniper · Support",             office: 2 },
+  zara:   { name: "Zara",   role: "Genetic · PM",                 office: 2 },
+};
+
+// Model assignment per agent — static fallback (works on file://),
+// live-refreshed from /__agents__ at boot so it stays in sync with agents.py.
+const MODEL_FALLBACK = {
+  iris: "opus",
+  jarvis: "sonnet", cass: "sonnet", zara: "sonnet", mira: "sonnet",
+  bolt: "sonnet", sage: "sonnet", shade: "sonnet", aria: "sonnet",
+  echo: "haiku", lumen: "haiku", vex: "haiku", nyx: "haiku",
+  pino: "haiku", kira: "haiku", reno: "haiku", tao: "haiku",
+};
+
+// Home zones per office (percent coords)
+const HOMES = {
+  // Office 1
+  jarvis: { x: 22, y: 28, rx: 5, ry: 4, office: 1 },
+  iris:   { x: 34, y: 30, rx: 4, ry: 4, office: 1 },
+  mira:   { x:  9, y: 42, rx: 5, ry: 6, office: 1 },
+  bolt:   { x: 40, y: 42, rx: 4, ry: 6, office: 1 },
+  echo:   { x: 10, y: 72, rx: 5, ry: 6, office: 1 },
+  sage:   { x: 40, y: 72, rx: 4, ry: 6, office: 1 },
+  shade:  { x: 28, y: 52, rx: 6, ry: 4, office: 1 },
+  lumen:  { x: 24, y: 82, rx: 6, ry: 4, office: 1 },
+  cass:   { x: 16, y: 58, rx: 5, ry: 5, office: 1 },
+  // Office 2
+  aria:   { x: 77, y: 38, rx: 5, ry: 5, office: 2 },
+  vex:    { x: 77, y: 30, rx: 6, ry: 4, office: 2 },
+  nyx:    { x: 60, y: 42, rx: 4, ry: 6, office: 2 },
+  pino:   { x: 94, y: 42, rx: 4, ry: 6, office: 2 },
+  kira:   { x: 61, y: 72, rx: 4, ry: 6, office: 2 },
+  reno:   { x: 77, y: 72, rx: 5, ry: 6, office: 2 },
+  tao:    { x: 93, y: 72, rx: 4, ry: 6, office: 2 },
+  zara:   { x: 84, y: 58, rx: 5, ry: 5, office: 2 },
+};
+
+const PORTAL = { x: 50, y: 84 };
+
+const $ = (id) => document.getElementById(id);
+const log = $("log");
+const clk = $("clock");
+const stage = $("stage");
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function tickClock() {
+  const d = new Date();
+  clk.textContent = '🕐 ' + d.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit"});
+}
+setInterval(tickClock, 1000); tickClock();
+
+function setStatus(id, state) {
+  const el = $(`agent-${id}`);
+  el.classList.remove("idle", "working", "thinking", "talking", "delegating");
+  el.classList.add(state);
+  el.querySelector(".state").textContent = state;
+}
+
+function setPos(id, x, y) {
+  const a = $(`agent-${id}`);
+  const ox = parseFloat(a.style.left) || x;
+  if (x < ox - 0.4)      a.style.setProperty('--flip', '-1');
+  else if (x > ox + 0.4) a.style.setProperty('--flip', '1');
+  a.classList.add('walking');
+  a.style.left = x + '%';
+  a.style.top  = y + '%';
+}
+
+async function walkTo(id, x, y, ms = 2200) {
+  setPos(id, x, y);
+  await sleep(ms);
+  $(`agent-${id}`).classList.remove('walking');
+}
+
+function spawnPopup(agentId, text, type = 'xp') {
+  const a = $(`agent-${agentId}`);
+  if (!a) return;
+  const rect = a.getBoundingClientRect();
+  const stageRect = stage.getBoundingClientRect();
+  const p = document.createElement('div');
+  p.className = `popup ${type}`;
+  p.textContent = text;
+  p.style.left = (rect.left - stageRect.left + rect.width/2) + 'px';
+  p.style.top  = (rect.top  - stageRect.top  - 10) + 'px';
+  stage.appendChild(p);
+  setTimeout(() => p.remove(), 1200);
+}
+
+function say(id, text, ms = 2800) {
+  const a = AGENTS[id];
+  setStatus(id, "talking");
+  const b = $(`bubble-${id}`);
+  b.textContent = text;
+  b.classList.add("show");
+
+  const t = new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+  const tag = a.office === 1 ? '<span class="tag hp">HP</span>' : '<span class="tag hg">HG</span>';
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<span class="ts">[${t}]</span>${tag}<span class="who ${id}">${a.name}:</span> <span class="what"></span>`;
+  row.querySelector(".what").textContent = text;
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      b.classList.remove("show");
+      setStatus(id, "idle");
+      resolve();
+    }, ms);
+  });
+}
+
+function systemLog(text) {
+  const t = new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<span class="ts">[${t}]</span> <span class="who system">* ${text}</span>`;
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function think(id, ms = 1600) { setStatus(id, "thinking"); await sleep(ms); }
+async function work(id, ms = 2200)  { setStatus(id, "working");  await sleep(ms); setStatus(id, "idle"); }
+
+// =================== STAY-AT-DESK ===================
+// Agents stay at their workstation. They only move when delegated to (Iris
+// quest flow) or on rare cross-office visits. No ambient wander.
+// Only the CEO (Pornchai) gets a workstation — carpet underneath + ornate desk
+// in front, both extracted from data.grf (Prontera interior textures).
+function spawnCeoArea() {
+  const home = HOMES.jarvis;  // CEO slot
+  const carpet = document.createElement('div');
+  carpet.className = 'ceo-carpet';
+  carpet.style.left = home.x + '%';
+  carpet.style.top  = (home.y + 4) + '%';
+  stage.appendChild(carpet);
+
+  const desk = document.createElement('div');
+  desk.className = 'ceo-desk';
+  desk.style.left = home.x + '%';
+  desk.style.top  = (home.y + 6.5) + '%';
+  stage.appendChild(desk);
+}
+spawnCeoArea();
+
+// =================== MODEL BADGES ===================
+function prettyModel(m) {
+  const s = String(m || "").toLowerCase();
+  if (s.includes("opus"))   return "OPUS";
+  if (s.includes("sonnet")) return "SONNET";
+  if (s.includes("haiku"))  return "HAIKU";
+  if (s.includes("gemini")) {
+    if (s.includes("flash")) return "GEMINI FLASH";
+    if (s.includes("pro"))   return "GEMINI PRO";
+    return "GEMINI";
+  }
+  return s ? s.toUpperCase() : "";
+}
+function modelFamily(m) {
+  const s = String(m || "").toLowerCase();
+  if (s.includes("opus"))   return "opus";
+  if (s.includes("sonnet")) return "sonnet";
+  if (s.includes("haiku"))  return "haiku";
+  if (s.includes("gemini")) return "gemini";
+  return "other";
+}
+function setModelBadge(id, model) {
+  const np = document.querySelector(`#agent-${id} .nameplate`);
+  if (!np || !model) return;
+  let badge = np.querySelector('.model-badge');
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.className = 'model-badge';
+    np.appendChild(badge);
+  }
+  badge.textContent = prettyModel(model);
+  badge.dataset.family = modelFamily(model);
+}
+function stampModels() {
+  // static fallback first — shows even when opened as file://
+  Object.entries(MODEL_FALLBACK).forEach(([id, m]) => setModelBadge(id, m));
+  // then refresh from the live roster (auto-syncs with agents.py)
+  fetch('/__agents__')
+    .then(r => (r.ok ? r.json() : null))
+    .then(roster => {
+      if (!roster) return;
+      Object.entries(roster).forEach(([id, info]) => setModelBadge(id, info && info.model));
+    })
+    .catch(() => {});
+}
+stampModels();
+
+// =================== CROSS-OFFICE VISIT ===================
+async function crossPortal(id) {
+  const a = $(`agent-${id}`);
+  // Direction is detected from CURRENT position — not the agent's home office.
+  // (Old logic used AGENTS[id].office which broke return-trips: an office-1 agent
+  // crossing back from office 2 would re-emerge on the office-2 side.)
+  const incomingX = parseFloat(a.style.left);
+  const incomingOffice = incomingX < 50 ? 1 : 2;
+  const targetOffice = incomingOffice === 1 ? 2 : 1;
+
+  a.classList.add('cross');
+  setPos(id, PORTAL.x, PORTAL.y);
+  await sleep(1500);
+  a.classList.add('warping');
+  spawnPopup(id, '✦ WARP', 'warp');
+  await sleep(380);
+  a.classList.remove('warping');
+  a.classList.remove('cross');
+  // Step out on the target side, no transition so it pops cleanly.
+  const side = targetOffice === 1 ? PORTAL.x - 4 : PORTAL.x + 4;
+  a.style.transition = 'none';
+  setPos(id, side, PORTAL.y);
+  void a.offsetHeight;
+  a.style.transition = '';
+  a.classList.add('cross');
+  await sleep(120);
+}
+
+// Any cross-office movement MUST go through the warp portal — never a
+// direct walk across the seam. This wrapper auto-detects whether the
+// target is in a different office and routes via portal first.
+async function walkAcross(id, x, y, ms = 1800) {
+  const a = $(`agent-${id}`);
+  if (!a) return;
+  const curX = parseFloat(a.style.left);
+  const curOffice = curX < 50 ? 1 : 2;
+  const tgtOffice = x < 50 ? 1 : 2;
+  if (curOffice !== tgtOffice) {
+    const approach = curOffice === 1 ? PORTAL.x - 4 : PORTAL.x + 4;
+    await walkTo(id, approach, PORTAL.y, Math.min(1800, ms));
+    await crossPortal(id);
+  }
+  await walkTo(id, x, y, ms);
+}
+
+async function visitOther(id, partner) {
+  if (!partner) return;
+  const a = $(`agent-${id}`);
+  if (!a.classList.contains('idle')) return;
+  const partnerHome = HOMES[partner];
+  // 1. walk to portal on own side
+  await walkTo(id, AGENTS[id].office === 1 ? PORTAL.x - 4 : PORTAL.x + 4, PORTAL.y, 2000);
+  // 2. cross
+  await crossPortal(id);
+  // 3. walk to partner area
+  await walkTo(id, partnerHome.x + (Math.random()*4 - 2), partnerHome.y + 2, 2000);
+  // 4. brief chat
+  await say(id, pickVisitLine(id, partner), 2400);
+  // 5. return
+  await walkTo(id, AGENTS[id].office === 1 ? PORTAL.x + 4 : PORTAL.x - 4, PORTAL.y, 1800);
+  await crossPortal(id);
+  // 6. back home
+  const h = HOMES[id];
+  await walkTo(id, h.x, h.y, 1800);
+  $(`agent-${id}`).classList.remove('cross');
+}
+
+const VISIT_LINES = {
+  // Office 1 → Office 2
+  echo:  ["Tao, ลูกค้าโรงแรม X อยากได้ feature นี้ ↗", "ส่งต่อ feedback จาก field 📋"],
+  jarvis:["Aria, brand messaging review ☕", "Sales pipeline เป็นไงบ้าง?"],
+  sage:  ["Nyx, ขอ funnel data ของสัปดาห์นี้ 📊", "Conversion rate ดูยังไง?"],
+  mira:  ["Pino, demo screen ใหม่ผมแก้แล้ว ลองดู 🔮"],
+  shade: ["Vex, มี perf issue บน landing page นะ 🔒"],
+  bolt:  ["Pino, API endpoint สำหรับ demo พร้อมแล้ว ⚒"],
+  lumen: ["Tao, bug ที่ลูกค้าเจอ ผม fix แล้ว ✨"],
+  // Office 2 → Office 1
+  tao:   ["Echo, มีลูกค้าใหม่ถาม feature นี้ 🏹", "ลูกค้าเจอ bug ส่งให้ Lumen นะ"],
+  aria:  ["Pornchai, marketing brief ส่งแล้ว 🎵", "Mira, ขอ screenshot product ใหม่"],
+  nyx:   ["Sage, ขอ retention data 🌙", "A/B test ผลออกแล้ว"],
+  pino:  ["Mira, demo build ใช้ไม่ได้ ช่วยด้วย ⚗", "Bolt, API ใหม่ลองแล้ว ok ⚗"],
+  vex:   ["Shade, ขอ help เรื่อง CSP headers 🛡️"],
+  reno:  ["Pornchai, ปิดดีลแล้ว 💪", "Bolt, ลูกค้าใหม่ต้อง onboard"],
+  kira:  ["Echo, social feedback จากลูกค้า 💃"],
+  // PM cross-office syncs
+  cass:  ["Zara, sprint sync เผื่อ Q3 nice 🛡️", "Zara, dependency จาก Marketing ส่งเมื่อไหร่? 📋"],
+  zara:  ["Cass, campaign ต้องการ feature launch วันที่ 15 🧪", "Cass, timeline ใหม่ส่งทาง notion 📅"],
+};
+
+function pickVisitLine(id, partner) {
+  const lines = VISIT_LINES[id];
+  if (!lines || !lines.length) return `${AGENTS[partner].name}, มาคุยหน่อย`;
+  return lines[Math.floor(Math.random() * lines.length)];
+}
+
+const PARTNER_MAP = {
+  echo: ['tao'], tao: ['echo', 'lumen'],
+  jarvis: ['aria', 'reno'], aria: ['jarvis', 'mira'],
+  sage: ['nyx'], nyx: ['sage'],
+  mira: ['pino'], pino: ['mira', 'bolt'],
+  shade: ['vex'], vex: ['shade'],
+  bolt: ['pino'], reno: ['jarvis', 'bolt'],
+  lumen: ['tao'], kira: ['echo'],
+  iris: ['aria', 'reno', 'tao'], // Iris travels often
+  cass: ['zara'], zara: ['cass'], // PMs sync across offices
+};
+
+let ambientOn = true;
+// Cross-office casual visits disabled — agents walk only when delegated to
+// during a brief. visitOther() is still defined and used by runBrief().
+
+// =================== AMBIENT CHATTER ===================
+const AMBIENT = [
+  ["bolt",   "Recalibrating schema migrations..."],
+  ["mira",   "Tailwind class names give me a headache..."],
+  ["sage",   "Occupancy rate trending up this week 📈"],
+  ["echo",   "Hotel X said they love the calendar ♪"],
+  ["shade",  "RLS policies all green 🔒"],
+  ["lumen",  "All tests passing ✨"],
+  ["jarvis", "Reviewing investor deck 💰"],
+  ["iris",   "Tracking 4 open initiatives..."],
+  ["aria",   "Drafting blog: 'Why hotels lose money on OTA' 🎵"],
+  ["vex",    "Core Web Vitals: 98/100 🛡️"],
+  ["nyx",    "Funnel drop-off at /pricing — investigating 🌙"],
+  ["pino",   "Brewing a fresh demo video ⚗"],
+  ["kira",   "LINE OA followers +12 today 💃"],
+  ["reno",   "3 demos booked this week 💪"],
+  ["tao",    "Support tickets: 0 open 🏹"],
+  ["cass",   "Sprint board: 12 in-flight, 3 blocked 🛡️"],
+  ["cass",   "Standup ใน 10 นาทีนะทุกคน 📋"],
+  ["cass",   "Updating roadmap — Q3 deliverables green 📅"],
+  ["zara",   "Marketing calendar Q3 ลงตัวแล้ว 🧪"],
+  ["zara",   "Campaign timeline พร้อม — ใครติด blocker บ้าง?"],
+  ["zara",   "OKR review พรุ่งนี้ — เตรียม number ไว้ด้วย 📊"],
+];
+
+async function ambientLoop() {
+  while (true) {
+    await sleep(4500 + Math.random() * 3500);
+    if (!ambientOn) continue;
+    const [id, text] = AMBIENT[Math.floor(Math.random() * AMBIENT.length)];
+    if ($(`agent-${id}`).classList.contains("idle")) {
+      say(id, text, 2400);
+    }
+  }
+}
+// Ambient chatter disabled — agents speak only during real briefs.
+// ambientLoop();
+
+// =================== PORINGS ===================
+const PORING_SVG = (color, dark) => `<svg viewBox="0 0 28 24" shape-rendering="crispEdges">
+  <rect x="6" y="4" width="16" height="2" fill="${dark}"/>
+  <rect x="4" y="6" width="20" height="12" fill="${color}"/>
+  <rect x="6" y="18" width="16" height="2" fill="${dark}"/>
+  <rect x="9" y="10" width="3" height="3" fill="#000"/><rect x="16" y="10" width="3" height="3" fill="#000"/>
+  <rect x="10" y="11" width="1" height="1" fill="#fff"/><rect x="17" y="11" width="1" height="1" fill="#fff"/>
+  <rect x="11" y="15" width="6" height="1" fill="${dark}"/>
+</svg>`;
+
+function spawnPoring(color, dark, side = 'left') {
+  const p = document.createElement('div');
+  p.className = 'poring';
+  p.innerHTML = PORING_SVG(color, dark);
+  const baseX = side === 'left' ? 10 + Math.random() * 30 : 60 + Math.random() * 30;
+  p.style.left = baseX + '%';
+  p.style.top  = (50 + Math.random() * 30) + '%';
+  stage.appendChild(p);
+  setInterval(() => {
+    const x = side === 'left' ? 8 + Math.random() * 36 : 56 + Math.random() * 36;
+    p.style.left = x + '%';
+    p.style.top  = (48 + Math.random() * 32) + '%';
+  }, 4200);
+}
+spawnPoring('#ffb0c0', '#a04060', 'left');
+spawnPoring('#a0d0ff', '#4080a0', 'right');
+spawnPoring('#ffd080', '#a06030', 'left');
+
+// =================== IRIS DELEGATION WORKFLOW ===================
+// When a brief comes in, Iris walks to each relevant person and delivers the task.
+// She crosses the portal when the task spans both offices.
+
+function routeBrief(task) {
+  // Decide which agents are relevant based on keywords; default broad
+  const t = task.toLowerCase();
+  const hits = new Set();
+  const hint = (kw, ids) => { if (kw.some(k => t.includes(k))) ids.forEach(i => hits.add(i)); };
+  hint(['ui','frontend','calendar','tailwind','react','design'], ['mira']);
+  hint(['api','backend','schema','sql','migrat','supabase','db'], ['bolt']);
+  hint(['data','metric','report','analytics','occupancy','adr'],  ['sage']);
+  hint(['secur','rls','auth','pdpa','perm'],                       ['shade']);
+  hint(['test','qa','bug','fix','heal','reliab'],                  ['lumen']);
+  hint(['customer','support','hotel','client','feedback'],         ['echo','tao']);
+  hint(['seo','meta','sitemap','perf','vital','og'],               ['vex']);
+  hint(['blog','content','copy','brand','landing'],                ['aria']);
+  hint(['growth','funnel','ab','conversion','ads'],                ['nyx']);
+  hint(['demo','sandbox','screenshot','video'],                    ['pino']);
+  hint(['social','line','facebook','ig','community'],              ['kira']);
+  hint(['sale','pricing','deal','close','demo call'],              ['reno']);
+  hint(['plan','sprint','roadmap','timeline','schedule','deliver','milestone','okr','status'], ['cass']);
+  hint(['campaign','launch','calendar','marketing plan','okr','rollout','release plan'],       ['zara']);
+  // Fallback: pick a sensible default cross-office team
+  if (hits.size === 0) {
+    ['bolt','mira','sage','aria','tao'].forEach(i => hits.add(i));
+  }
+  return [...hits];
+}
+
+function assignLine(id, task) {
+  const role = AGENTS[id].role.split('·')[1].trim();
+  const templates = {
+    mira:  [`${AGENTS[id].name}, รบกวน UI ส่วน "${task}" 🔮`],
+    bolt:  [`${AGENTS[id].name}, schema/API สำหรับ "${task}" ⚒`],
+    sage:  [`${AGENTS[id].name}, ขอ data analysis: "${task}" 📊`],
+    shade: [`${AGENTS[id].name}, security review "${task}" 🔒`],
+    lumen: [`${AGENTS[id].name}, QA edge cases "${task}" ✨`],
+    echo:  [`${AGENTS[id].name}, นัด hotel client เรื่อง "${task}" ♪`],
+    aria:  [`${AGENTS[id].name}, brand copy "${task}" 🎵`],
+    vex:   [`${AGENTS[id].name}, SEO/perf "${task}" 🛡️`],
+    nyx:   [`${AGENTS[id].name}, growth angle "${task}" 🌙`],
+    pino:  [`${AGENTS[id].name}, demo "${task}" ⚗`],
+    kira:  [`${AGENTS[id].name}, social push "${task}" 💃`],
+    reno:  [`${AGENTS[id].name}, pitch "${task}" 💪`],
+    tao:   [`${AGENTS[id].name}, FAQ/support "${task}" 🏹`],
+    cass:  [`${AGENTS[id].name}, แตก ticket + timeline "${task}" 🛡️`],
+    zara:  [`${AGENTS[id].name}, plan + handoff "${task}" 🧪`],
+  };
+  return (templates[id] || [`${AGENTS[id].name}, take "${task}"`])[0];
+}
+
+let queueCount = 0;
+let irisOnDuty = false;
+
+function newDeferred() {
+  let resolve, reject;
+  const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+  return { promise, resolve, reject };
+}
+
+function sayMs(text) {
+  // Bubble visible time scales with text length, clamped to a sensible range.
+  return Math.min(9000, Math.max(2800, (text || "").length * 55));
+}
+
+async function runBrief(task) {
+  if (irisOnDuty) {
+    systemLog("Iris is currently delivering another quest...");
+    return;
+  }
+  irisOnDuty = true;
+  ambientOn = false;
+  queueCount++;
+  $("queue").textContent = queueCount;
+  systemLog(`📜 New quest: "${task}" — agents are thinking…`);
+
+  // ── Open SSE stream ───────────────────────────────────────────────
+  const url = "/brief?task=" + encodeURIComponent(task);
+  const es = new EventSource(url);
+
+  // ── Event state + deferred promises ───────────────────────────────
+  let jarvisIntroText = null, plan = null;
+  let summaryText = null, rewardText = null;
+  const workTexts = {};
+  const introD = newDeferred();
+  const planD = newDeferred();
+  const summaryD = newDeferred();
+  const rewardD = newDeferred();
+  const workDs = {}; // filled when plan arrives
+  let streamFailed = false;
+
+  es.addEventListener("jarvis_intro", (ev) => {
+    try { jarvisIntroText = JSON.parse(ev.data).text || ""; } catch (_) {}
+    introD.resolve();
+  });
+  es.addEventListener("iris_plan", (ev) => {
+    try { plan = JSON.parse(ev.data); } catch (_) { plan = { routes: [] }; }
+    for (const r of (plan.routes || [])) workDs[r.agent] = newDeferred();
+    planD.resolve();
+  });
+  es.addEventListener("agent_work", (ev) => {
+    let d; try { d = JSON.parse(ev.data); } catch (_) { return; }
+    workTexts[d.agent] = d.text || "";
+    if (workDs[d.agent]) workDs[d.agent].resolve(d.text || "");
+  });
+  es.addEventListener("iris_summary", (ev) => {
+    try { summaryText = JSON.parse(ev.data).text || ""; } catch (_) {}
+    summaryD.resolve();
+  });
+  es.addEventListener("jarvis_reward", (ev) => {
+    try { rewardText = JSON.parse(ev.data).text || ""; } catch (_) {}
+    rewardD.resolve();
+  });
+  es.addEventListener("done", () => { try { es.close(); } catch (_) {} });
+  es.onerror = () => {
+    streamFailed = true;
+    try { es.close(); } catch (_) {}
+    // Resolve any unresolved deferreds so awaits don't hang forever.
+    introD.resolve(); planD.resolve(); summaryD.resolve(); rewardD.resolve();
+    for (const k of Object.keys(workDs)) workDs[k].resolve("(stream lost)");
+  };
+
+  // ── 1. Jarvis announces the quest ─────────────────────────────────
+  await introD.promise;
+  if (jarvisIntroText) {
+    setStatus("jarvis", "talking");
+    await say("jarvis", jarvisIntroText, sayMs(jarvisIntroText));
+    setStatus("jarvis", "idle");
+  }
+
+  // ── 2. Wait for Iris's routing plan ───────────────────────────────
+  await planD.promise;
+  if (!plan || !plan.routes || plan.routes.length === 0) {
+    systemLog(streamFailed ? "⚠️ AI stream failed — no plan." : "⚠️ Iris returned no routes.");
+    ambientOn = true;
+    irisOnDuty = false;
+    queueCount = Math.max(0, queueCount - 1);
+    $("queue").textContent = queueCount;
+    return;
+  }
+
+  // ── 3. Iris speaks her intro line ─────────────────────────────────
+  setStatus("iris", "delegating");
+  await say("iris", plan.intro || "รับเรื่องค่ะ ✦", 2600);
+
+  // ── 4. Iris walks to each assignee (always via portal if crossing) ─
+  const irisHome = HOMES.iris;
+  for (const r of plan.routes) {
+    const id = r.agent;
+    if (!HOMES[id]) continue;
+    const target = HOMES[id];
+    const tx = target.x + (Math.random()*3 - 1.5);
+    const ty = target.y + 3;
+    await walkAcross("iris", tx, ty, 1800);
+    setStatus("iris", "delegating");
+    await say("iris", r.task, sayMs(r.task));
+    setStatus(id, "thinking");
+  }
+
+  // ── 5. Iris returns home (via portal if currently across) ─────────
+  await walkAcross("iris", irisHome.x, irisHome.y, 1800);
+  setStatus("iris", "idle");
+
+  // ── 6. Show each agent's real work output as it arrives ───────────
+  await Promise.all(plan.routes.map(async (r) => {
+    const text = await workDs[r.agent].promise;
+    if (!text) return;
+    setStatus(r.agent, "talking");
+    await say(r.agent, text, sayMs(text));
+    setStatus(r.agent, "idle");
+    spawnPopup(r.agent, '+1 STEP', 'xp');
+  }));
+
+  // ── 7. Iris summary + Jarvis reward ───────────────────────────────
+  await summaryD.promise;
+  setStatus("iris", "delegating");
+  await say("iris", summaryText || "Quest complete ✓", sayMs(summaryText));
+  setStatus("iris", "idle");
+
+  await rewardD.promise;
+  await say("jarvis", rewardText || "GG +1500 EXP 🏆", sayMs(rewardText));
+  spawnPopup("jarvis", "+1500 EXP", "xp");
+
+  queueCount = Math.max(0, queueCount - 1);
+  $("queue").textContent = queueCount;
+  ambientOn = true;
+  irisOnDuty = false;
+}
+
+function ackLine(id) {
+  const lines = {
+    mira:  "รับทราบค่ะ จะเริ่ม component เลย 🔮",
+    bolt:  "ได้ — migration เขียนเลย ⚒",
+    sage:  "ขอ pull data ก่อนนะ 📊",
+    shade: "Review เริ่มเลย 🔒",
+    lumen: "QA case list มาแล้ว ✨",
+    echo:  "ติดต่อโรงแรมเลย ♪",
+    aria:  "Copy draft อยู่ในหัวแล้ว 🎵",
+    vex:   "Lighthouse + sitemap จัดให้ 🛡️",
+    nyx:   "Funnel cohort อยู่ใน Mixpanel 🌙",
+    pino:  "Demo build เริ่ม brew ⚗",
+    kira:  "Schedule LINE OA post 💃",
+    reno:  "ติดต่อ leads เลย 💪",
+    tao:   "อัพ FAQ + macro reply 🏹",
+    cass:  "เปิด ticket + assign timeline เลย 🛡️",
+    zara:  "วาง campaign plan + คุย stakeholders 🧪",
+  };
+  return lines[id] || "รับทราบ ✓";
+}
+
+// =================== INPUT ===================
+const promptEl = $("prompt");
+$("send").addEventListener("click", trigger);
+promptEl.addEventListener("keydown", (e) => { if (e.key === "Enter") trigger(); });
+
+async function trigger() {
+  const t = promptEl.value.trim();
+  if (!t) return;
+  promptEl.value = "";
+  await runBrief(t);
+}
+
+// =================== JARVIS CLICK-TO-WALK ===================
+// Click anywhere on the floor — Jarvis walks there. Crossing the seam
+// is routed through the warp portal via walkAcross().
+let jarvisMoving = false;
+const stageEl = document.getElementById("stage");
+stageEl.addEventListener("click", async (e) => {
+  if (jarvisMoving) return;
+  // Skip clicks on interactive / informational overlays.
+  if (e.target.closest(".agent, .bubble, .nameplate, .bars, .status-pill, .banner, .clock, .portal-label, .popup")) return;
+  const rect = stageEl.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width) * 100;
+  const y = ((e.clientY - rect.top) / rect.height) * 100;
+  // Clamp to the walkable floor — full tile area, just keep clear of the
+  // top wall strip (~160px ≈ 18% of viewport) and the very bottom edge.
+  const cx = Math.max(3, Math.min(97, x));
+  const cy = Math.max(20, Math.min(92, y));
+  jarvisMoving = true;
+  setStatus("jarvis", "walking");
+  try {
+    await walkAcross("jarvis", cx, cy, 1800);
+  } finally {
+    setStatus("jarvis", "idle");
+    jarvisMoving = false;
+  }
+});
+stageEl.style.cursor = "pointer";
+
+// =================== BOOT ===================
+// Silent boot — agents speak only on real briefs / direct calls.
+setTimeout(() => systemLog("Jarvis & Co. HQ — 17/17 online. รอ brief ค่ะ."), 400);
+</script>
+</body>
+</html>

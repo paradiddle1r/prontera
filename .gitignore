@@ -1,0 +1,11 @@
+# never ship secrets or personal data
+*.key
+*.crt
+*.pem
+.env
+.env.*
+MEMORY.md
+USER.md
+SOUL.md
+memory/
+.openclaw/
