@@ -737,6 +737,8 @@
   .nameplate .model-badge[data-family="sonnet"] { color: #88c0ff; }
   .nameplate .model-badge[data-family="haiku"]  { color: #88ff9c; }
   .nameplate .model-badge[data-family="gemini"] { color: #4dd6c0; }
+  .nameplate .model-badge[data-family="codex"]  { color: #ff9e64; }
+  .nameplate .model-badge[data-family="cursor"] { color: #ff7eb6; }
   .nameplate .model-badge[data-family="other"]  { color: var(--gold); }
 
   .bars { margin-top: 2px; width: 70px; margin-left: auto; margin-right: auto; }
@@ -1138,6 +1140,16 @@
 </div>
 
 <script>
+// ============= BACKEND BASE =============
+// Locally (livereload server on :35729 or file://) the /brief + /__agents__
+// endpoints are same-origin, so BACKEND stays "". When served from the public
+// site (prontera.hostgate.app), point at the Tailscale Funnel that exposes the
+// local livereload server. Change this one line if the funnel host/port differs.
+const LOCAL_HOSTS = ["localhost", "127.0.0.1", ""];
+const BACKEND = (location.protocol === "file:" || LOCAL_HOSTS.includes(location.hostname))
+  ? ""
+  : "https://pornchais-mac-mini.tail62b220.ts.net:8443";
+
 // ============= AGENT DATA =============
 const AGENTS = {
   // Office 1: Hotel PMS
@@ -1165,10 +1177,12 @@ const AGENTS = {
 // live-refreshed from /__agents__ at boot so it stays in sync with agents.py.
 const MODEL_FALLBACK = {
   iris: "opus",
-  jarvis: "sonnet", cass: "sonnet", zara: "sonnet", mira: "sonnet",
-  bolt: "sonnet", sage: "sonnet", shade: "sonnet", aria: "sonnet",
-  echo: "haiku", lumen: "haiku", vex: "haiku", nyx: "haiku",
-  pino: "haiku", kira: "haiku", reno: "haiku", tao: "haiku",
+  jarvis: "sonnet", cass: "sonnet", zara: "sonnet", aria: "sonnet",
+  sage: "sonnet", shade: "sonnet", reno: "sonnet",
+  mira: "cursor", vex: "cursor",
+  bolt: "codex", pino: "codex",
+  echo: "gemini-2.5-flash", lumen: "gemini-2.5-flash",
+  nyx: "gemini-2.5-flash", kira: "gemini-2.5-flash", tao: "gemini-2.5-flash",
 };
 
 // Home zones per office (percent coords)
@@ -1314,6 +1328,8 @@ function prettyModel(m) {
     if (s.includes("pro"))   return "GEMINI PRO";
     return "GEMINI";
   }
+  if (s.includes("codex") || s.includes("gpt")) return "CODEX";
+  if (s.includes("cursor") || s.includes("composer")) return "CURSOR";
   return s ? s.toUpperCase() : "";
 }
 function modelFamily(m) {
@@ -1322,6 +1338,8 @@ function modelFamily(m) {
   if (s.includes("sonnet")) return "sonnet";
   if (s.includes("haiku"))  return "haiku";
   if (s.includes("gemini")) return "gemini";
+  if (s.includes("codex") || s.includes("gpt")) return "codex";
+  if (s.includes("cursor") || s.includes("composer")) return "cursor";
   return "other";
 }
 function setModelBadge(id, model) {
@@ -1340,7 +1358,7 @@ function stampModels() {
   // static fallback first — shows even when opened as file://
   Object.entries(MODEL_FALLBACK).forEach(([id, m]) => setModelBadge(id, m));
   // then refresh from the live roster (auto-syncs with agents.py)
-  fetch('/__agents__')
+  fetch(BACKEND + '/__agents__')
     .then(r => (r.ok ? r.json() : null))
     .then(roster => {
       if (!roster) return;
@@ -1605,7 +1623,7 @@ async function runBrief(task) {
   systemLog(`📜 New quest: "${task}" — agents are thinking…`);
 
   // ── Open SSE stream ───────────────────────────────────────────────
-  const url = "/brief?task=" + encodeURIComponent(task);
+  const url = BACKEND + "/brief?task=" + encodeURIComponent(task);
   const es = new EventSource(url);
 
   // ── Event state + deferred promises ───────────────────────────────
@@ -1738,6 +1756,106 @@ function ackLine(id) {
   return lines[id] || "รับทราบ ✓";
 }
 
+// =================== STAGE COMMANDS (direct movement, no AI) ===================
+// Literal stage directions ("เดินไปมา", "กลับโต๊ะ", "มารวมตัว", "เต้น") are
+// handled entirely client-side: instant, never routed through /brief, and
+// guaranteed to actually move the sprites. Anything that isn't a recognized
+// movement command falls through to the AI brief flow (runBrief).
+let stageBusy = false;
+const ALL_IDS = Object.keys(HOMES);
+
+function classifyStage(text) {
+  const t = text.toLowerCase();
+  const has = (...ws) => ws.some(w => t.includes(w));
+  // Order matters: most specific first.
+  if (has('กลับที่','กลับโต๊ะ','กลับประจำ','ประจำที่','เข้าที่','back to desk','to your desk','go home','return home','กลับไปนั่ง'))
+    return 'home';
+  if (has('รวมตัว','มารวม','รวมพล','รวมกันตรง','เข้าแถว','huddle','gather','assemble','line up','รวมพล'))
+    return 'gather';
+  if (has('เต้น','dance','ฉลอง','celebrate','ปาร์ตี้','party'))
+    return 'dance';
+  if (has('เดิน','ขยับ','เดินเล่น','เดินไปมา','เดินไป','เคลื่อนไหว','เคลื่อนที่','walk','wander','move around','stroll'))
+    return 'wander';
+  return null;
+}
+
+// Each agent hops to a few random points near their own desk, then returns.
+async function stageWander() {
+  systemLog("🚶 ทุกคนเดินยืดเส้นยืดสายในออฟฟิศ…");
+  for (let round = 0; round < 3; round++) {
+    await Promise.all(ALL_IDS.map(async (id) => {
+      const h = HOMES[id];
+      const ang = Math.random() * Math.PI * 2;
+      const rad = Math.sqrt(Math.random());
+      const nx = h.x + Math.cos(ang) * rad * (h.rx + 2);
+      const ny = h.y + Math.sin(ang) * rad * (h.ry + 2);
+      // Stay inside own office horizontally + clear of the top wall strip.
+      const cx = h.office === 1 ? Math.max(3, Math.min(47, nx)) : Math.max(53, Math.min(97, nx));
+      const cy = Math.max(22, Math.min(90, ny));
+      await walkTo(id, cx, cy, 1500);
+    }));
+    await sleep(250);
+  }
+  await Promise.all(ALL_IDS.map(id => walkTo(id, HOMES[id].x, HOMES[id].y, 1500)));
+  ALL_IDS.forEach(id => setStatus(id, 'idle'));
+}
+
+// Everyone converges to a small grid in the middle of their own office, holds, returns.
+async function stageGather() {
+  systemLog("📣 เรียกรวมตัว!");
+  const byOffice = { 1: [], 2: [] };
+  ALL_IDS.forEach(id => byOffice[HOMES[id].office].push(id));
+  const placeOne = (id, idx, office) => {
+    const col = idx % 3, row = Math.floor(idx / 3);
+    const cx = (office === 1 ? 30 : 58) + col * 5;
+    const cy = 50 + row * 8;
+    return walkAcross(id, cx, cy, 1900);
+  };
+  await Promise.all([
+    ...byOffice[1].map((id, i) => placeOne(id, i, 1)),
+    ...byOffice[2].map((id, i) => placeOne(id, i, 2)),
+  ]);
+  await sleep(2400);
+  await Promise.all(ALL_IDS.map(id => walkAcross(id, HOMES[id].x, HOMES[id].y, 1900)));
+  ALL_IDS.forEach(id => setStatus(id, 'idle'));
+}
+
+// Everyone walks back to their home desk.
+async function stageHome() {
+  systemLog("🪑 ทุกคนกลับประจำที่");
+  await Promise.all(ALL_IDS.map(id => walkAcross(id, HOMES[id].x, HOMES[id].y, 1700)));
+  ALL_IDS.forEach(id => setStatus(id, 'idle'));
+}
+
+// Quick celebration: fast bob in place + musical popups.
+async function stageDance() {
+  systemLog("🎉 ปาร์ตี้! ทุกคนเต้น");
+  ALL_IDS.forEach(id => setStatus(id, 'talking')); // talking state bobs fast
+  ALL_IDS.forEach(id => spawnPopup(id, '♪', 'heal'));
+  await sleep(2000);
+  ALL_IDS.forEach(id => spawnPopup(id, '♫', 'heal'));
+  await sleep(2000);
+  ALL_IDS.forEach(id => setStatus(id, 'idle'));
+}
+
+async function tryStageCommand(text) {
+  const kind = classifyStage(text);
+  if (!kind) return false;
+  if (stageBusy || irisOnDuty) { systemLog("กำลังเคลื่อนไหวอยู่ รอแป๊บ…"); return true; }
+  stageBusy = true;
+  ambientOn = false;
+  try {
+    if (kind === 'wander')      await stageWander();
+    else if (kind === 'gather') await stageGather();
+    else if (kind === 'home')   await stageHome();
+    else if (kind === 'dance')  await stageDance();
+  } finally {
+    ambientOn = true;
+    stageBusy = false;
+  }
+  return true;
+}
+
 // =================== INPUT ===================
 const promptEl = $("prompt");
 $("send").addEventListener("click", trigger);
@@ -1747,6 +1865,9 @@ async function trigger() {
   const t = promptEl.value.trim();
   if (!t) return;
   promptEl.value = "";
+  // Movement commands are handled instantly client-side; everything else is
+  // an AI brief routed through Iris.
+  if (await tryStageCommand(t)) return;
   await runBrief(t);
 }
 
