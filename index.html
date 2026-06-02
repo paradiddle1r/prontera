@@ -425,6 +425,23 @@
     display: flex; align-items: flex-end; justify-content: center;
     filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.7));
   }
+  /* Ground shadow cast at the character's feet (RO-style oval) */
+  .sprite::before {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: 3px;
+    transform: translateX(-50%);
+    width: 54px; height: 13px;
+    background: radial-gradient(ellipse at 50% 50%,
+      rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.34) 45%, rgba(0,0,0,0) 74%);
+    border-radius: 50%;
+    filter: blur(1px);
+    z-index: 0;                 /* under wings (1) and body (2) */
+    pointer-events: none;
+  }
+  /* CEO & Iris already glow at the feet — skip the dark oval so it stays clean */
+  #agent-jarvis .sprite::before,
+  #agent-iris   .sprite::before { display: none; }
   .sprite > img.body {
     max-height: 100%; max-width: 100%;
     image-rendering: pixelated;
@@ -739,7 +756,39 @@
   .nameplate .model-badge[data-family="gemini"] { color: #4dd6c0; }
   .nameplate .model-badge[data-family="codex"]  { color: #ff9e64; }
   .nameplate .model-badge[data-family="cursor"] { color: #ff7eb6; }
+  .nameplate .model-badge[data-family="copilot"]{ color: #2ac3de; }
+  .nameplate .model-badge[data-family="ollama"] { color: #a6e22e; }
   .nameplate .model-badge[data-family="other"]  { color: var(--gold); }
+
+  /* ===== Janitor-01 live AI quota board ===== */
+  .quota-board {
+    position: absolute;
+    left: 1.6%; top: 2%;
+    width: 186px;
+    background: linear-gradient(180deg, rgba(36,20,5,0.96), rgba(22,12,4,0.96));
+    border: 2px solid var(--gold);
+    box-shadow: 3px 3px 0 #000, inset 0 0 0 1px #4a3416;
+    padding: 7px 9px 7px;
+    font-family: 'Courier New', monospace;
+    border-radius: 3px;
+    z-index: 9000;          /* above y-sorted agents, below CEO pin */
+    pointer-events: none;
+  }
+  .quota-title {
+    color: var(--gold); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.5px; text-align: center; text-shadow: 1px 1px 0 #000;
+    margin-bottom: 6px; border-bottom: 1px solid #4a3416; padding-bottom: 4px;
+  }
+  .quota-row { margin-bottom: 6px; }
+  .quota-row:last-child { margin-bottom: 0; }
+  .quota-row .qr-head { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 2px; }
+  .quota-row .qr-name { font-weight: 700; letter-spacing: 0.5px; color: #f0e6d2; }
+  .quota-row .qr-plan { font-weight: 500; letter-spacing: 0; color: #9a8c70; }
+  .quota-row .qr-val  { color: #cdbb9a; }
+  .quota-track { height: 6px; background: #0d0702; border: 1px solid #000; border-radius: 2px; overflow: hidden; }
+  .quota-fill  { height: 100%; transition: width 0.5s ease; }
+  .quota-row.dead .qr-name, .quota-row.dead .qr-val { color: #ff6b6b; }
+  .quota-foot { margin-top: 7px; font-size: 8px; color: var(--muted); text-align: right; font-style: italic; }
 
   .bars { margin-top: 2px; width: 70px; margin-left: auto; margin-right: auto; }
   .bar { height: 3px; background: #1a0e06; border: 1px solid #000; margin-bottom: 1px; }
@@ -933,6 +982,44 @@
     font-family: 'Courier New', monospace;
   }
   .statusbar b { color: var(--gold); }
+
+  /* =========================================================================
+     RESPONSIVE — phones/tablets. The stage uses %-anchored positions, so the
+     overlap problem on small screens comes from FIXED-px UI (sprites, plates,
+     bubbles, quota board). We shrink those proportionally per breakpoint so
+     17 agents stop covering the whole map and the app stays usable on a phone.
+     ========================================================================= */
+  @media (max-width: 760px) {
+    .app { grid-template-rows: 1fr min(240px, 34vh); }
+    .agent { width: 78px; }
+    .sprite { width: 58px; height: 72px; }
+    .nameplate { padding: 1px 5px; font-size: 9px; }
+    .nameplate b { font-size: 10px; letter-spacing: 0.5px; }
+    .nameplate .model-badge { font-size: 6px; padding: 0 4px; margin-top: 2px; }
+    .status-pill { font-size: 8px; padding: 1px 5px; margin-top: 2px; }
+    .bars { width: 48px; }
+    .bubble { font-size: 11px; max-width: 160px; padding: 5px 8px; }
+    .banner { font-size: 13px !important; padding: 4px 10px; }
+    .banner small { font-size: 8px; }
+    .clock { font-size: 11px; }
+    /* quota board: scale the whole panel from its top-left anchor */
+    .quota-board { transform: scale(0.74); transform-origin: top left; }
+    .statusbar { font-size: 10px; padding: 5px 10px; }
+    .log { font-size: 12px; padding: 8px 10px; }
+    .input-row input { font-size: 13px; padding: 8px 10px; }
+  }
+  @media (max-width: 480px) {
+    .app { grid-template-rows: 1fr min(210px, 32vh); }
+    .agent { width: 56px; }
+    .sprite { width: 42px; height: 54px; }
+    .nameplate { font-size: 8px; padding: 1px 4px; }
+    .nameplate b { font-size: 9px; }
+    .nameplate .model-badge { font-size: 5.5px; padding: 0 3px; }
+    .status-pill { font-size: 7px; padding: 0 4px; }
+    .bars { width: 36px; }
+    .bubble { font-size: 10px; max-width: 130px; }
+    .quota-board { transform: scale(0.6); transform-origin: top left; }
+  }
 </style>
 </head>
 <body>
@@ -1096,6 +1183,12 @@
         <img src="sprites_out/v2/npc_pubmaster.png" alt="">
         <div class="npc-label">JANITOR-01</div>
       </div>
+      <!-- Janitor-01's live AI quota board — token limits per backend -->
+      <div class="quota-board" id="quotaBoard">
+        <div class="quota-title">📊 AI MANA POOL</div>
+        <div class="quota-rows" id="quotaRows"></div>
+        <div class="quota-foot">— Janitor-01 reporting</div>
+      </div>
       <div class="npc bob" style="left:44%; top:25%;">
         <img src="sprites_out/v2/npc_merchant_f1.png" alt="">
         <div class="npc-label">GM STAFF</div>
@@ -1177,12 +1270,14 @@ const AGENTS = {
 // live-refreshed from /__agents__ at boot so it stays in sync with agents.py.
 const MODEL_FALLBACK = {
   iris: "opus",
-  jarvis: "sonnet", cass: "sonnet", zara: "sonnet", aria: "sonnet",
+  jarvis: "qwen2.5-coder:7b", bolt: "qwen2.5-coder:7b",
+  mira: "qwen2.5-coder:7b", pino: "qwen2.5-coder:7b",
+  cass: "sonnet", zara: "sonnet", aria: "sonnet",
   sage: "sonnet", shade: "sonnet", reno: "sonnet",
-  mira: "cursor", vex: "cursor",
-  bolt: "codex", pino: "codex",
+  vex: "cursor",
   echo: "gemini-2.5-flash", lumen: "gemini-2.5-flash",
-  nyx: "gemini-2.5-flash", kira: "gemini-2.5-flash", tao: "gemini-2.5-flash",
+  nyx: "gemini-2.5-flash", kira: "gemini-2.5-flash",
+  tao: "copilot",
 };
 
 // Home zones per office (percent coords)
@@ -1212,6 +1307,48 @@ const PORTAL = { x: 50, y: 84 };
 
 const $ = (id) => document.getElementById(id);
 const log = $("log");
+
+// ===================== PERSISTENT CHAT LOG =====================
+// Speech bubbles are ephemeral by design, but the side-panel transcript must
+// survive reloads/livereload pushes — "แชทไม่ควรหายไปหมด". Backed by
+// localStorage, capped to the last CHATLOG_MAX lines.
+const CHATLOG_KEY = "prontera_chatlog_v1";
+const CHATLOG_MAX = 200;
+function _loadChatlog() {
+  try { return JSON.parse(localStorage.getItem(CHATLOG_KEY) || "[]"); }
+  catch (_) { return []; }
+}
+function saveChatlogEntry(e) {
+  let arr = _loadChatlog();
+  arr.push(e);
+  if (arr.length > CHATLOG_MAX) arr = arr.slice(-CHATLOG_MAX);
+  try { localStorage.setItem(CHATLOG_KEY, JSON.stringify(arr)); } catch (_) {}
+}
+function _renderLogRow(e) {
+  const row = document.createElement("div");
+  row.className = "row";
+  if (e.kind === "system") {
+    row.innerHTML = `<span class="ts">[${e.t}]</span> <span class="who system"></span>`;
+    row.querySelector(".who").textContent = "* " + e.text;
+  } else {
+    const tag = e.office === 1 ? '<span class="tag hp">HP</span>' : '<span class="tag hg">HG</span>';
+    row.innerHTML = `<span class="ts">[${e.t}]</span>${tag}<span class="who ${e.id}">${e.name}:</span> <span class="what"></span>`;
+    row.querySelector(".what").textContent = e.text;
+  }
+  log.appendChild(row);
+}
+function restoreChatlog() {
+  const arr = _loadChatlog();
+  if (!arr.length) return;
+  arr.forEach(_renderLogRow);
+  const sep = document.createElement("div");
+  sep.className = "row";
+  sep.innerHTML = `<span class="who system" style="opacity:.55">— ประวัติก่อนหน้า · เซสชันใหม่ —</span>`;
+  log.appendChild(sep);
+  log.scrollTop = log.scrollHeight;
+}
+restoreChatlog();
+
 const clk = $("clock");
 const stage = $("stage");
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -1237,7 +1374,20 @@ function setPos(id, x, y) {
   a.classList.add('walking');
   a.style.left = x + '%';
   a.style.top  = y + '%';
+  ysort();
 }
+
+// Depth-sort: characters lower on screen paint in front, so no sprite ends up
+// hidden behind a higher character's nameplate. CEO is always pinned on top.
+function ysort() {
+  document.querySelectorAll('.agent').forEach(a => {
+    const top = parseFloat(a.style.top) || 50;
+    a.style.zIndex = String(Math.round(top * 10) + 100);  // 20-92% -> 300-1020
+  });
+  const ceo = $('agent-jarvis');
+  if (ceo) ceo.style.zIndex = '100000';
+}
+ysort();
 
 async function walkTo(id, x, y, ms = 2200) {
   setPos(id, x, y);
@@ -1274,6 +1424,7 @@ function say(id, text, ms = 2800) {
   row.querySelector(".what").textContent = text;
   log.appendChild(row);
   log.scrollTop = log.scrollHeight;
+  saveChatlogEntry({ kind: "say", t, id, name: a.name, office: a.office, text });
 
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -1288,9 +1439,11 @@ function systemLog(text) {
   const t = new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
   const row = document.createElement("div");
   row.className = "row";
-  row.innerHTML = `<span class="ts">[${t}]</span> <span class="who system">* ${text}</span>`;
+  row.innerHTML = `<span class="ts">[${t}]</span> <span class="who system"></span>`;
+  row.querySelector(".who").textContent = "* " + text;
   log.appendChild(row);
   log.scrollTop = log.scrollHeight;
+  saveChatlogEntry({ kind: "system", t, text });
 }
 
 async function think(id, ms = 1600) { setStatus(id, "thinking"); await sleep(ms); }
@@ -1330,6 +1483,10 @@ function prettyModel(m) {
   }
   if (s.includes("codex") || s.includes("gpt")) return "CODEX";
   if (s.includes("cursor") || s.includes("composer")) return "CURSOR";
+  if (s.includes("copilot")) return "COPILOT";
+  if (s.includes("qwen"))   return "QWEN · LOCAL";
+  if (s.includes("llama"))  return "LLAMA · LOCAL";
+  if (s.includes("ollama") || s.includes("local")) return "LOCAL";
   return s ? s.toUpperCase() : "";
 }
 function modelFamily(m) {
@@ -1340,6 +1497,8 @@ function modelFamily(m) {
   if (s.includes("gemini")) return "gemini";
   if (s.includes("codex") || s.includes("gpt")) return "codex";
   if (s.includes("cursor") || s.includes("composer")) return "cursor";
+  if (s.includes("copilot")) return "copilot";
+  if (s.includes("qwen") || s.includes("llama") || s.includes("ollama")) return "ollama";
   return "other";
 }
 function setModelBadge(id, model) {
@@ -1367,6 +1526,65 @@ function stampModels() {
     .catch(() => {});
 }
 stampModels();
+
+// =================== JANITOR-01: LIVE AI QUOTA BOARD ===================
+// Polls /limits (served by agents.py usage tracker). Shows remaining token
+// budget per backend; a backend that hits a real CLI quota error or its budget
+// shows EXHAUSTED in red while its agents are auto-served by another backend.
+const BACKEND_META = {
+  claude:  { label: "CLAUDE",  color: "#88c0ff", plan: "Max" },
+  ollama:  { label: "OLLAMA",  color: "#a6e22e", plan: "Local ∞" },
+  gemini:  { label: "GEMINI",  color: "#4dd6c0", plan: "Free" },
+  copilot: { label: "COPILOT", color: "#2ac3de", plan: "Pro" },
+  codex:   { label: "CODEX",   color: "#ff9e64", plan: "Free" },
+  cursor:  { label: "CURSOR",  color: "#ff7eb6", plan: "Free" },
+};
+// Ordered by real capacity (local ∞ + Claude Max on top, free tiers below).
+const QUOTA_ORDER = ["claude", "ollama", "gemini", "copilot", "codex", "cursor"];
+function fmtTok(n) {
+  n = +n || 0;
+  if (n >= 1000000) return (n / 1000000).toFixed(n >= 10000000 ? 0 : 1) + "M";
+  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "k";
+  return String(n);
+}
+function renderQuota(snap) {
+  const rows = $("quotaRows");
+  if (!rows) return;
+  rows.innerHTML = "";
+  QUOTA_ORDER.forEach(b => {
+    const meta = BACKEND_META[b];
+    const d = snap && snap[b];
+    const row = document.createElement("div");
+    row.className = "quota-row";
+    let valText, pct, dead = false;
+    if (!d) { valText = "—"; pct = 100; }
+    else {
+      dead = !!d.exhausted;
+      const rem = Math.max(0, d.remaining != null ? d.remaining : (d.limit - d.used));
+      pct = d.limit ? Math.max(0, Math.min(100, Math.round(rem / d.limit * 100))) : 0;
+      valText = dead ? "EXHAUSTED" : (fmtTok(rem) + " left" + (d.est ? "~" : ""));
+    }
+    if (dead) row.classList.add("dead");
+    const plan = (d && d.plan) || meta.plan || "";
+    const nameHtml = meta.label +
+      (plan ? ' <span class="qr-plan">· ' + plan + '</span>' : '');
+    row.innerHTML =
+      '<div class="qr-head"><span class="qr-name">' + nameHtml + '</span>' +
+      '<span class="qr-val">' + valText + '</span></div>' +
+      '<div class="quota-track"><div class="quota-fill" style="width:' + pct +
+      '%;background:' + (dead ? "#ff5050" : meta.color) + '"></div></div>';
+    rows.appendChild(row);
+  });
+}
+function pollQuota() {
+  fetch(BACKEND + "/limits")
+    .then(r => (r.ok ? r.json() : null))
+    .then(s => { if (s) renderQuota(s); })
+    .catch(() => {});
+}
+renderQuota(null);   // static placeholder bars (works on file://)
+pollQuota();
+setInterval(pollQuota, 5000);
 
 // =================== CROSS-OFFICE VISIT ===================
 async function crossPortal(id) {
@@ -1856,6 +2074,89 @@ async function tryStageCommand(text) {
   return true;
 }
 
+// =================== AI STAGE DIRECTOR (freeform movement) ===================
+// For instructions that aren't one of the instant keywords, ask the backend
+// /direct endpoint (fast model) to interpret it into a movement plan. If the
+// director decides the input is a business task, it returns {kind:"brief"} and
+// we fall through to runBrief.
+function resolveWho(who) {
+  if (who === 'all') return ALL_IDS;
+  if (who === 'office1') return ALL_IDS.filter(id => HOMES[id].office === 1);
+  if (who === 'office2') return ALL_IDS.filter(id => HOMES[id].office === 2);
+  if (HOMES[who]) return [who];
+  return [];
+}
+
+async function execMove(m) {
+  const ids = resolveWho(m.who);
+  if (!ids.length) return;
+  const to = m.to;
+  if (to === 'home') {
+    await Promise.all(ids.map(id => walkAcross(id, HOMES[id].x, HOMES[id].y, 1700)));
+  } else if (to === 'portal') {
+    await Promise.all(ids.map((id, i) => walkAcross(id, PORTAL.x + (i % 3 - 1) * 3, PORTAL.y, 1800)));
+  } else if (to === 'wander') {
+    for (let round = 0; round < 2; round++) {
+      await Promise.all(ids.map(async (id) => {
+        const h = HOMES[id];
+        const ang = Math.random() * Math.PI * 2, rad = Math.sqrt(Math.random());
+        const nx = h.x + Math.cos(ang) * rad * (h.rx + 2);
+        const ny = h.y + Math.sin(ang) * rad * (h.ry + 2);
+        const cx = h.office === 1 ? Math.max(3, Math.min(47, nx)) : Math.max(53, Math.min(97, nx));
+        await walkTo(id, cx, Math.max(22, Math.min(90, ny)), 1500);
+      }));
+    }
+    await Promise.all(ids.map(id => walkTo(id, HOMES[id].x, HOMES[id].y, 1500)));
+  } else if (to === 'gather') {
+    await Promise.all(ids.map((id, i) => {
+      const off = HOMES[id].office;
+      const col = i % 3, row = Math.floor(i / 3);
+      const cx = (off === 1 ? 30 : 58) + col * 5;
+      return walkAcross(id, cx, 50 + row * 8, 1900);
+    }));
+  } else if (HOMES[to]) {                 // walk to another agent's desk
+    const h = HOMES[to];
+    await Promise.all(ids.map((id, i) => walkAcross(id, h.x + (i % 3 - 1) * 3.5, h.y + 3 + Math.floor(i / 3) * 3, 1850)));
+  } else if (to === 'point') {            // explicit coordinates
+    const x = Math.max(3, Math.min(97, m.x ?? 50));
+    const y = Math.max(20, Math.min(92, m.y ?? 60));
+    await Promise.all(ids.map((id, i) => walkAcross(id, x + (i % 4 - 1.5) * 3.5, y + Math.floor(i / 4) * 4, 1850)));
+  }
+  ids.forEach(id => setStatus(id, 'idle'));
+}
+
+async function runDirector(text) {
+  if (stageBusy || irisOnDuty) { systemLog("กำลังทำงานอยู่ รอแป๊บ…"); return true; }
+  let plan = null;
+  try {
+    const res = await fetch("/direct?task=" + encodeURIComponent(text));
+    if (res.ok) plan = await res.json();
+  } catch (_) { /* offline / file:// — fall through to brief */ }
+  if (!plan || plan.kind !== "move" || !Array.isArray(plan.moves) || !plan.moves.length) {
+    return false;  // not a movement command → let runBrief handle it
+  }
+  stageBusy = true;
+  ambientOn = false;
+  try {
+    if (plan.note) systemLog("🎬 " + plan.note);
+    for (const m of plan.moves) await execMove(m);
+    await sleep(1500);
+    // Settle back home unless they were explicitly told to go/stay home.
+    if (!plan.moves.some(m => m.to === 'home')) {
+      await Promise.all(ALL_IDS.map(id => {
+        const a = $(`agent-${id}`);
+        const moved = a && Math.abs(parseFloat(a.style.left) - HOMES[id].x) > 0.5;
+        return moved ? walkAcross(id, HOMES[id].x, HOMES[id].y, 1600) : Promise.resolve();
+      }));
+      ALL_IDS.forEach(id => setStatus(id, 'idle'));
+    }
+  } finally {
+    ambientOn = true;
+    stageBusy = false;
+  }
+  return true;
+}
+
 // =================== INPUT ===================
 const promptEl = $("prompt");
 $("send").addEventListener("click", trigger);
@@ -1865,9 +2166,9 @@ async function trigger() {
   const t = promptEl.value.trim();
   if (!t) return;
   promptEl.value = "";
-  // Movement commands are handled instantly client-side; everything else is
-  // an AI brief routed through Iris.
+  // 1) instant keyword movement  2) AI director (freeform)  3) AI business brief
   if (await tryStageCommand(t)) return;
+  if (await runDirector(t)) return;
   await runBrief(t);
 }
 
