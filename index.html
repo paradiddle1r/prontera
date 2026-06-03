@@ -1132,8 +1132,7 @@
 #w8-reno{background-image:url(sprites_out/walk8/reno_walk8.png)}
 #w8-aria{background-image:url(sprites_out/walk8/aria_walk8.png)}
 #w8-pino{background-image:url(sprites_out/walk8/pino_walk8.png)}
-.wing8{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);z-index:1;image-rendering:pixelated;pointer-events:none;width:240px;height:200px;background-repeat:no-repeat;background-position-x:0;background-size:720px 1600px;background-position-y:calc(var(--dir,0) * -200px);animation:wingflap 0.85s steps(3) infinite}
-@keyframes wingflap{from{background-position-x:0}to{background-position-x:-720px}}
+.wing8{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);z-index:1;image-rendering:pixelated;pointer-events:none;width:240px;height:200px;background-repeat:no-repeat;background-position-x:0;background-size:720px 1600px;background-position-y:calc(var(--dir,0) * -200px)}
 .agent.facing-back .wing8{z-index:3}
 #wing8-aria{background-image:url(sprites_out/walk8/aria_wing8.png)}
 #wing8-cass{background-image:url(sprites_out/walk8/cass_wing8.png)}
@@ -1155,15 +1154,15 @@
 .r-prontera{box-shadow:inset 0 0 0 2px #6a5020, inset 0 0 70px rgba(0,0,0,.35);border-color:#5a4424}
 .poring-real{position:absolute;width:41px;height:45px;image-rendering:pixelated;z-index:2;background:url(sprites_out/fx/poring_walk.png) 0 0/410px 45px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.4));pointer-events:none;animation:poringWalk 1s steps(10) infinite, poringHopLocal 13s ease-in-out infinite, poringFaceLocal 13s step-end infinite}
 @keyframes poringWalk{to{background-position:-410px 0}}
-@keyframes poringHopLocal{0%{left:20%;top:60%}18%{left:70%;top:50%}38%{left:42%;top:70%}58%{left:78%;top:56%}78%{left:28%;top:64%}100%{left:20%;top:60%}}
+@keyframes poringHopLocal{0%{left:22%;top:60%}7%{left:22%;top:60%}16%{left:68%;top:52%}32%{left:68%;top:52%}50%{left:40%;top:70%}59%{left:40%;top:70%}70%{left:78%;top:58%}86%{left:30%;top:64%}94%{left:30%;top:64%}100%{left:22%;top:60%}}
 @keyframes poringFaceLocal{0%{transform:scaleX(-1)}18%{transform:scaleX(1)}38%{transform:scaleX(-1)}58%{transform:scaleX(1)}78%{transform:scaleX(-1)}}
-.p-aldebaran{animation-delay:-0.0s,-0.0s,-0.0s}
-.p-geffen{animation-delay:-1.9s,-1.9s,-1.9s}
-.p-izlude{animation-delay:-3.8s,-3.8s,-3.8s}
-.p-prontera{animation-delay:-5.7s,-5.7s,-5.7s}
-.p-payon{animation-delay:-7.6s,-7.6s,-7.6s}
-.p-morroc{animation-delay:-9.5s,-9.5s,-9.5s}
-.p-alberta{animation-delay:-11.4s,-11.4s,-11.4s}
+.p-aldebaran{animation-delay:-0.0s,-0.0s,-0.0s;animation-duration:1s,11s,11s}
+.p-geffen{animation-delay:-1.9s,-1.9s,-1.9s;animation-duration:1s,12s,12s}
+.p-izlude{animation-delay:-3.8s,-3.8s,-3.8s;animation-duration:1s,13s,13s}
+.p-prontera{animation-delay:-5.7s,-5.7s,-5.7s;animation-duration:1s,14s,14s}
+.p-payon{animation-delay:-7.6s,-7.6s,-7.6s;animation-duration:1s,15s,15s}
+.p-morroc{animation-delay:-9.5s,-9.5s,-9.5s;animation-duration:1s,16s,16s}
+.p-alberta{animation-delay:-11.4s,-11.4s,-11.4s;animation-duration:1s,17s,17s}
 .platform{position:absolute;left:50%;transform:translateX(-50%);top:16%;width:62%;height:25%;image-rendering:pixelated;z-index:1;border:2px solid #14110a;border-radius:2px;box-shadow:0 7px 0 #1a120a, 0 10px 0 #0c0805, 0 18px 16px rgba(0,0,0,.55);outline:1px solid rgba(255,240,200,.10);outline-offset:-3px}
 .plat-prontera{background:url(maps_out/wood_floor.png) 0 0/46px 46px repeat}
 .plat-geffen{background:url(maps_out/gef_carpet.png) center/100% 100% no-repeat}
@@ -1466,6 +1465,7 @@ const AGENTS = {
 // live-refreshed from /__agents__ at boot so it stays in sync with agents.py.
 const MODEL_FALLBACK = {
   iris: "opus",
+  vera: "opus",
   jarvis: "qwen2.5-coder:7b", pino: "deepseek-chat",
   cass: "sonnet", zara: "sonnet", aria: "cursor",
   sage: "sonnet", shade: "sonnet", reno: "codex",
@@ -1827,6 +1827,7 @@ stampModels();
         let vv = vov ? (vov.backend + ":" + vov.model) : "default";
         if (![...vsel0.options].some(o => o.value === vv)) vv = "default";
         vsel0.value = vv;
+        setModelBadge("vera", (vov && vov.model) || "opus");
       }
       paintToggle(cfg.no_claude);
     })
@@ -1857,7 +1858,7 @@ stampModels();
     fetch(BACKEND + "/set_model?agent=vera&backend=" + encodeURIComponent(backend) +
                     "&model=" + encodeURIComponent(model))
       .then(r => (r.ok ? r.json() : null))
-      .then(res => { if (!res) return; stampModels();
+      .then(res => { if (!res) return; setModelBadge("vera", res.model || "opus");
         systemLog("🪦 Vera model → " + (res.backend === "default" ? "ค่าเริ่มต้น" : prettyModel(res.model))); })
       .catch(() => systemLog("⚠️ ตั้งค่าโมเดล Vera ไม่สำเร็จ"));
   });
@@ -2512,10 +2513,22 @@ const promptEl = $("prompt");
 $("send").addEventListener("click", trigger);
 promptEl.addEventListener("keydown", (e) => { if (e.key === "Enter") trigger(); });
 
+function tryConfigCommand(t){
+  const s=(t||"").toLowerCase();
+  const has=(...w)=>w.some(x=>s.includes(x));
+  if(has("หยุดเดิน","หยุดขยับ","อยู่นิ่ง","หยุดเคลื่อนไหว","หยุดเดินไปมา","ห้ามเดิน","stop walk","stop moving","freeze","stand still")){
+    window.__wanderOff=true; systemLog('🛑 หยุดเดินทุกตัว — พิมพ์ "เดินได้" เพื่อให้เดินต่อ'); return true;
+  }
+  if(has("เดินได้","เดินต่อ","ขยับได้","เดินไปมาได้","ให้เดิน","resume walk","start walk","move again","keep walking")){
+    window.__wanderOff=false; systemLog("🚶 ให้เดินไปมาต่อได้แล้ว"); return true;
+  }
+  return false;
+}
 async function trigger() {
   const t = promptEl.value.trim();
   if (!t) return;
   promptEl.value = "";
+  if (tryConfigCommand(t)) return;
   // 1) instant keyword movement  2) AI director (freeform)  3) AI business brief
   if (await tryStageCommand(t)) return;
   if (await runDirector(t)) return;
@@ -2569,6 +2582,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   var ORDER=["aldebaran","geffen","izlude","prontera","payon","morroc","alberta"], CTR={aldebaran:[7.14,50.0],geffen:[21.43,50.0],izlude:[35.71,50.0],prontera:[50.0,50.0],payon:[64.29,50.0],morroc:[78.57,50.0],alberta:[92.86,50.0]}, RW=14.2857;
   var SW=6300, SH=760, WH=110, GC=64;
   var PINNED=["cass","iris","jarvis","vera","zara"];   // these stand on their platform and wait for commands (no wander)
+  var POSVER="931ffe49";    // layout fingerprint for position persistence
   function roomAt(x){ var i=Math.floor(x/RW); return ORDER[Math.max(0,Math.min(ORDER.length-1,i))]; }
   function curRoom(id){ var p=$g("agent-"+id); return roomAt(parseFloat(p&&p.style.left)||50); }
   var CAM={ mode:"room",
@@ -2620,7 +2634,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       while(true){
         await sleep(4000 + Math.random()*6500);
         var e=$g("agent-"+id);
-        if(typeof ambientOn!=="undefined" && !ambientOn) continue;
+        if((typeof ambientOn!=="undefined" && !ambientOn) || window.__wanderOff) continue;
         if(!e || !e.classList.contains("idle") || e.classList.contains("walking")) continue;
         var ri=ORDER.indexOf(curRoom(id)); if(ri<0) ri=ORDER.indexOf("prontera");
         var pinned=(id==="jarvis"||id==="iris");
@@ -2644,7 +2658,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       await sleep(3500);
       while(true){
         await sleep(1400 + Math.random()*1400);
-        if(typeof ambientOn!=="undefined" && !ambientOn) continue;
+        if((typeof ambientOn!=="undefined" && !ambientOn) || window.__wanderOff) continue;
         var j=$g("agent-jarvis"), i=$g("agent-iris");
         if(!j||!i) continue;
         if(i.classList.contains("walking")||i.classList.contains("thinking")||i.classList.contains("talking")) continue;
@@ -2685,6 +2699,16 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     setInterval(function(){ CAM.apply(); }, 1500);
     try{ Object.keys(AGENTS).forEach(startWander); }catch(_){}   // ambient idle wandering
     try{ startIrisFollow(); }catch(_){}                          // Iris shadows the CEO
+    // persist positions across reloads (per layout version) so agents keep their
+    // CURRENT spot on refresh instead of snapping back to defaults.
+    try{
+      var _sv=JSON.parse(localStorage.getItem("prontera_pos_"+POSVER)||"null");
+      if(_sv){ for(var _pid in _sv){ var _pe=$g("agent-"+_pid); if(_pe && _sv[_pid]){ _pe.style.left=_sv[_pid][0]+"%"; _pe.style.top=_sv[_pid][1]+"%"; } }
+        if(typeof ysort==="function") ysort(); CAM.apply(); }
+    }catch(_){}
+    setInterval(function(){ try{ var _o={};
+      document.querySelectorAll(".agent").forEach(function(a){ _o[a.id.replace("agent-","")]=[parseFloat(a.style.left)||0, parseFloat(a.style.top)||0]; });
+      localStorage.setItem("prontera_pos_"+POSVER, JSON.stringify(_o)); }catch(_){} }, 3000);
     // hover grid cursor: a glowing blue cell follows the mouse over the floor; the
     // existing stage-click handler walks the CEO to it (snapped to the cell centre).
     var st0=$g("stage"); var gc=document.createElement("div"); gc.id="gridcursor";
