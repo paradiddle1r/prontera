@@ -2508,15 +2508,24 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
 (function(){
   var ROOM_CENTER={"prontera": (50, 50), "aldebaran": (50, 15), "geffen": (16, 50), "izlude": (84, 50), "morroc": (16, 84), "payon": (50, 84), "alberta": (84, 84)};
   function $g(id){return document.getElementById(id);}
-  var CAM={ mode:"room", zoom:2.8,
+  var ROOMS_RECT={prontera:[35,34,30,32],aldebaran:[35,2,30,28],geffen:[2,34,30,32],
+                  izlude:[68,34,30,32],morroc:[2,70,30,28],payon:[35,70,30,28],alberta:[68,70,30,28]};
+  function currentRoom(){
+    var p=$g("agent-jarvis"); var x=parseFloat(p&&p.style.left)||50, y=parseFloat(p&&p.style.top)||50;
+    for(var k in ROOMS_RECT){ var r=ROOMS_RECT[k];
+      if(x>=r[0]-1&&x<=r[0]+r[2]+1&&y>=r[1]-1&&y<=r[1]+r[3]+1) return r; }
+    return ROOMS_RECT.prontera;
+  }
+  var CAM={ mode:"room",
     apply:function(){
       var wrap=document.querySelector(".stage-wrap"), s=$g("stage");
       if(!wrap||!s) return;
-      var W=wrap.clientWidth, H=wrap.clientHeight, sw=s.offsetWidth, sh=s.offsetHeight, z,fx,fy;
-      if(this.mode==="overview"){ z=Math.min(W/sw,H/sh)*0.92; fx=sw/2; fy=sh/2; }
-      else { z=this.zoom; var p=$g("agent-jarvis");
-        fx=(parseFloat(p&&p.style.left)||50)/100*sw; fy=(parseFloat(p&&p.style.top)||50)/100*sh; }
-      s.style.transform="translate("+(W/2-fx*z)+"px,"+(H/2-fy*z)+"px) scale("+z+")";
+      var W=wrap.clientWidth, H=wrap.clientHeight, sw=s.offsetWidth, sh=s.offsetHeight, z,cx,cy;
+      if(this.mode==="overview"){ z=Math.min(W/sw,H/sh)*0.94; cx=sw/2; cy=sh/2; }
+      else { var r=currentRoom();                       // FIT the whole room to the screen
+        z=Math.min(W/(r[2]/100*sw), H/(r[3]/100*sh))*0.94;
+        cx=(r[0]+r[2]/2)/100*sw; cy=(r[1]+r[3]/2)/100*sh; }
+      s.style.transform="translate("+(W/2-cx*z)+"px,"+(H/2-cy*z)+"px) scale("+z+")";
     }
   };
   window.CAM=CAM;
