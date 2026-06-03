@@ -1175,7 +1175,7 @@
       <div class="clock" id="clock">--:--:--</div>
 
       <!-- ===== Office 1: Hotel PMS ===== -->
-      <div class="agent idle office-1" id="agent-jarvis" style="left:47.62%; top:38.0%;">
+      <div class="agent idle office-1" id="agent-jarvis" style="left:47.62%; top:33.0%;">
         <div class="bubble" id="bubble-jarvis"></div>
         <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="walk8" id="w8-jarvis"></div></div>
         <div class="nameplate"><b>PORNCHAI</b>Rebellion · CEO</div>
@@ -1183,7 +1183,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-iris" style="left:52.38%; top:38.0%;">
+      <div class="agent idle office-1" id="agent-iris" style="left:52.38%; top:33.0%;">
         <div class="bubble" id="bubble-iris"></div>
         <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="walk8" id="w8-iris"></div></div>
         <div class="nameplate"><b>IRIS</b>Cardinal · CoS</div>
@@ -1239,7 +1239,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-cass" style="left:64.29%; top:38.0%;">
+      <div class="agent idle office-1" id="agent-cass" style="left:64.29%; top:33.0%;">
         <div class="bubble" id="bubble-cass"></div>
         <div class="sprite"><div class="feet-aura fa-yellow"></div><div class="walk8" id="w8-cass"></div></div>
         <div class="nameplate"><b>CASS</b>Royal Guard · PM</div>
@@ -1304,7 +1304,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-2" id="agent-zara" style="left:21.43%; top:38.0%;">
+      <div class="agent idle office-2" id="agent-zara" style="left:21.43%; top:33.0%;">
         <div class="bubble" id="bubble-zara"></div>
         <div class="sprite"><div class="feet-aura fa-purple"></div><div class="walk8" id="w8-zara"></div></div>
         <div class="nameplate"><b>ZARA</b>Genetic · PM</div>
@@ -1453,14 +1453,14 @@ const MODEL_FALLBACK = {
 // Home zones per office (percent coords)
 const HOMES = {
   lumen: { x: 7.14, y: 58, rx: 3, ry: 3, office: 1 },
-  zara: { x: 21.43, y: 38.0, rx: 3, ry: 3, office: 1 },
+  zara: { x: 21.43, y: 33.0, rx: 3, ry: 3, office: 1 },
   mira: { x: 19.05, y: 58, rx: 3, ry: 3, office: 1 },
   bolt: { x: 23.81, y: 67, rx: 3, ry: 3, office: 1 },
   sage: { x: 33.33, y: 58, rx: 3, ry: 3, office: 1 },
   shade: { x: 38.1, y: 67, rx: 3, ry: 3, office: 1 },
-  jarvis: { x: 47.62, y: 38.0, rx: 3, ry: 3, office: 1 },
-  iris: { x: 52.38, y: 38.0, rx: 3, ry: 3, office: 1 },
-  cass: { x: 64.29, y: 38.0, rx: 3, ry: 3, office: 1 },
+  jarvis: { x: 47.62, y: 33.0, rx: 3, ry: 3, office: 1 },
+  iris: { x: 52.38, y: 33.0, rx: 3, ry: 3, office: 1 },
+  cass: { x: 64.29, y: 33.0, rx: 3, ry: 3, office: 1 },
   kira: { x: 60.71, y: 58, rx: 3, ry: 3, office: 1 },
   echo: { x: 64.29, y: 67, rx: 3, ry: 3, office: 1 },
   tao: { x: 67.86, y: 58, rx: 3, ry: 3, office: 1 },
@@ -2283,6 +2283,7 @@ let stageBusy = false;
 const ALL_IDS = Object.keys(HOMES);
 
 function classifyStage(text) {
+  return null;  // preset motion commands disabled -> real per-agent brief flow
   const t = text.toLowerCase();
   const has = (...ws) => ws.some(w => t.includes(w));
   // Order matters: most specific first.
@@ -2518,6 +2519,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   function $g(id){return document.getElementById(id);}
   var ORDER=["aldebaran","geffen","izlude","prontera","payon","morroc","alberta"], CTR={aldebaran:[7.14,50.0],geffen:[21.43,50.0],izlude:[35.71,50.0],prontera:[50.0,50.0],payon:[64.29,50.0],morroc:[78.57,50.0],alberta:[92.86,50.0]}, RW=14.2857;
   var SW=6300, SH=760, WH=110, GC=64;
+  var PINNED=["cass","iris","jarvis","zara"];   // these stand on their platform and wait for commands (no wander)
   function roomAt(x){ var i=Math.floor(x/RW); return ORDER[Math.max(0,Math.min(ORDER.length-1,i))]; }
   function curRoom(id){ var p=$g("agent-"+id); return roomAt(parseFloat(p&&p.style.left)||50); }
   var CAM={ mode:"room",
@@ -2563,7 +2565,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   // rooms (through the warp); jarvis (camera anchor) + iris (delegator) stay in-room.
   // Paused entirely while a brief runs (ambientOn=false) and only moves .idle agents.
   function startWander(id){
-    if(id==="jarvis"||id==="iris") return;   // CEO + CoS hold their platform station
+    if(PINNED.indexOf(id)>=0) return;   // platform-standers (CEO/CoS/Cass/Zara) wait for commands
     (async function loop(){
       await sleep(2500 + Math.random()*7000);
       while(true){
