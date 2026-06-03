@@ -2039,7 +2039,8 @@ const PORING_SVG = (color, dark) => `<svg viewBox="0 0 28 24" shape-rendering="c
   <rect x="11" y="15" width="6" height="1" fill="${dark}"/>
 </svg>`;
 
-function
+function spawnPoring(color, dark, side = 'left') {
+  const p = document.createElement('div');
   p.className = 'poring';
   p.innerHTML = PORING_SVG(color, dark);
   const baseX = side === 'left' ? 10 + Math.random() * 30 : 60 + Math.random() * 30;
