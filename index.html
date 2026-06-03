@@ -1099,6 +1099,11 @@
 .stage-wrap > .setup-board{right:14px !important;bottom:54px !important;left:auto !important;top:auto !important;z-index:200 !important}
 .grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:64px 64px;box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
 .grid-on .grid-overlay{opacity:.8}
+#agent-jarvis .ceo-mesh{position:absolute;left:50%;bottom:-18px;width:200px;height:210px;transform:translateX(-50%);z-index:0;pointer-events:none;border-radius:48% 52% 50% 50%;background:conic-gradient(from 0deg,#ff2d6f,#ff9e2d,#ffe93d,#3dff8e,#2dd4ff,#7c5cff,#ff2d6f);filter:blur(24px) saturate(1.5);opacity:.5;mix-blend-mode:screen;animation:ceoMeshSpin 7s linear infinite, ceoMeshPulse 3.2s ease-in-out infinite}
+@keyframes ceoMeshSpin{to{transform:translateX(-50%) rotate(360deg)}}
+@keyframes ceoMeshPulse{0%,100%{opacity:.36}50%{opacity:.66}}
+#agent-jarvis .ceo-wingaura{position:absolute;left:50%;top:2px;width:210px;height:132px;transform:translateX(-50%);z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,rgba(255,170,70,.6),rgba(255,80,150,.4) 42%,rgba(120,150,255,.22) 68%,transparent 80%);filter:blur(13px);mix-blend-mode:screen;animation:ceoWingAura 2.6s ease-in-out infinite}
+@keyframes ceoWingAura{0%,100%{opacity:.45;transform:translateX(-50%) scale(.98)}50%{opacity:.85;transform:translateX(-50%) scale(1.07)}}
 .walk8{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);z-index:2;image-rendering:pixelated;pointer-events:none;width:240px;height:200px;background-repeat:no-repeat;background-position-x:0;background-size:1920px 1600px;background-position-y:calc(var(--dir,0) * -200px)}
 @keyframes w8frame{from{background-position-x:0}to{background-position-x:-1920px}}
 .agent.walking .walk8{animation:w8frame .8s steps(8) infinite}
@@ -1164,7 +1169,7 @@
       <!-- ===== Office 1: Hotel PMS ===== -->
       <div class="agent idle office-1" id="agent-jarvis" style="left:47.62%; top:58%;">
         <div class="bubble" id="bubble-jarvis"></div>
-        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="walk8" id="w8-jarvis"></div></div>
+        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="walk8" id="w8-jarvis"></div></div>
         <div class="nameplate"><b>PORNCHAI</b>Rebellion · CEO</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -2200,22 +2205,19 @@ async function runBrief(task) {
   setStatus("iris", "delegating");
   await say("iris", plan.intro || "รับเรื่องค่ะ ✦", 2600);
 
-  // ── 4. Iris walks to each assignee (always via portal if crossing) ─
-  const irisHome = HOMES.iris;
+  // ── 4. Iris SUMMONS each assignee to her current spot (real office: called ->
+  //       they come; crossing rooms goes through the warp). Iris holds at HQ. ─
   for (const r of plan.routes) {
     const id = r.agent;
-    if (!HOMES[id]) continue;
-    const target = HOMES[id];
-    const tx = target.x + (Math.random()*3 - 1.5);
-    const ty = target.y + 3;
-    await walkAcross("iris", tx, ty, 1800);
+    if (!AGENTS[id]) continue;
+    const ia = $(`agent-iris`);
+    const ix = parseFloat(ia.style.left) || HOMES.iris.x;
+    const iy = parseFloat(ia.style.top)  || HOMES.iris.y;
     setStatus("iris", "delegating");
+    await walkAcross(id, ix + (Math.random()*7 - 3.5), iy + 6, 1900);
     await say("iris", r.task, sayMs(r.task));
     setStatus(id, "thinking");
   }
-
-  // ── 5. Iris returns home (via portal if currently across) ─────────
-  await walkAcross("iris", irisHome.x, irisHome.y, 1800);
   setStatus("iris", "idle");
 
   // ── 6. Show each agent's real work output as it arrives ───────────
@@ -2223,12 +2225,8 @@ async function runBrief(task) {
     const text = await workDs[r.agent].promise;
     if (!text) continue;
     setStatus(r.agent, "talking"); await say(r.agent, text, sayMs(text));
-    setStatus(r.agent, "working");
-    const ih = HOMES.iris; await walkAcross(r.agent, ih.x + (Math.random()*4-2), ih.y + 5, 1400);
-    setStatus(r.agent, "talking"); await say(r.agent, "เสร็จแล้วครับ Iris ✓", 1300);
+    await say(r.agent, "เสร็จแล้วครับ Iris ✓", 1300);
     setStatus(r.agent, "idle"); spawnPopup(r.agent, '+1 STEP', 'xp');
-    const h = HOMES[r.agent]; await walkAcross(r.agent, h.x, h.y, 1400);
-    setStatus(r.agent, "idle");
   }
 
   // ── 7. Iris summary + Jarvis reward ───────────────────────────────
@@ -2527,15 +2525,23 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   };
   window.CAM=CAM;
   async function walkVia(id, x, y, ms){
+    // Crossing rooms ALWAYS goes through the warp portal on the shared divider
+    // (bottom of the room, top:88%). Walk to it, fade (.warping), emerge just inside
+    // the next room at its warp, repeat. Same-room moves skip straight to walkTo.
     var cur=ORDER.indexOf(curRoom(id)), tgt=ORDER.indexOf(roomAt(x));
     if(cur>=0 && tgt>=0 && cur!==tgt){
       var step = tgt>cur ? 1 : -1;
+      var el=$g("agent-"+id);
       for(var i=cur; i!==tgt; i+=step){
-        var edgeX=(i*RW)+RW*(step>0?0.93:0.07);
-        await walkTo(id, edgeX, 62, 900);
-        var nx=((i+step)*RW)+RW*(step>0?0.07:0.93);
-        setPos(id, nx, 62); await sleep(130);
-        if(id==="jarvis") CAM.apply();
+        var border=(step>0 ? (i+1) : i) * RW;        // divider line == warp portal x
+        await walkTo(id, border, 88, 1100);          // walk onto the warp (floor, bottom)
+        if(el) el.classList.add("warping");          // fade out (teleport feel)
+        await sleep(240);
+        setPos(id, border + (step>0?0.7:-0.7), 88);  // re-appear just inside the next room
+        await sleep(150);
+        if(el) el.classList.remove("warping");
+        await sleep(140);
+        if(id==="jarvis" && window.CAM) window.CAM.apply();
       }
     }
     await walkTo(id, x, y, ms);
@@ -2543,6 +2549,32 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   window.WORLD={ walkVia:walkVia };
   function gotoRoom(dest){ var j=$g("agent-jarvis"); if(!j) return; CAM.mode="room";
     walkVia("jarvis", CTR[dest][0], 58, 800).then(function(){CAM.apply();}); CAM.apply(); }
+  // Idle wander: when free, each agent strolls around (and pauses). Others may cross
+  // rooms (through the warp); jarvis (camera anchor) + iris (delegator) stay in-room.
+  // Paused entirely while a brief runs (ambientOn=false) and only moves .idle agents.
+  function startWander(id){
+    (async function loop(){
+      await sleep(2500 + Math.random()*7000);
+      while(true){
+        await sleep(4000 + Math.random()*6500);
+        var e=$g("agent-"+id);
+        if(typeof ambientOn!=="undefined" && !ambientOn) continue;
+        if(!e || !e.classList.contains("idle") || e.classList.contains("walking")) continue;
+        var ri=ORDER.indexOf(curRoom(id)); if(ri<0) ri=ORDER.indexOf("prontera");
+        var pinned=(id==="jarvis"||id==="iris");
+        try{
+          if(!pinned && Math.random()<0.13 && ORDER.length>1){
+            var dir=(ri===0)?1:(ri===ORDER.length-1)?-1:(Math.random()<0.5?1:-1);
+            await walkAcross(id, (ri+dir)*RW + RW*(0.25+Math.random()*0.5), 54+Math.random()*16, 1700);
+          } else {
+            await walkTo(id, ri*RW + RW*(0.18+Math.random()*0.64), 52+Math.random()*20, 1300+Math.random()*900);
+          }
+        }catch(_){}
+        e=$g("agent-"+id);
+        if(e && (typeof ambientOn==="undefined" || ambientOn) && !e.classList.contains("thinking") && !e.classList.contains("working")) setStatus(id,"idle");
+      }
+    })();
+  }
   function init(){
     var wrap=document.querySelector(".stage-wrap");
     // Re-parent the AI MANA POOL + setup boards OUT of #stage so they don't scale
@@ -2568,6 +2600,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     window.addEventListener("resize", function(){ CAM.apply(); });
     CAM.apply(); setTimeout(function(){CAM.apply();},400); setTimeout(function(){CAM.apply();},1200);
     setInterval(function(){ CAM.apply(); }, 1500);
+    try{ Object.keys(AGENTS).forEach(startWander); }catch(_){}   // ambient idle wandering
   }
   window.addEventListener("load", init); if(document.readyState==="complete") init();
 })();
