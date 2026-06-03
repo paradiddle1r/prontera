@@ -1132,6 +1132,18 @@
 #w8-reno{background-image:url(sprites_out/walk8/reno_walk8.png)}
 #w8-aria{background-image:url(sprites_out/walk8/aria_walk8.png)}
 #w8-pino{background-image:url(sprites_out/walk8/pino_walk8.png)}
+.wing8{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);z-index:1;image-rendering:pixelated;pointer-events:none;width:240px;height:200px;background-repeat:no-repeat;background-position-x:0;background-size:720px 1600px;background-position-y:calc(var(--dir,0) * -200px);animation:wingflap 0.85s steps(3) infinite}
+@keyframes wingflap{from{background-position-x:0}to{background-position-x:-720px}}
+.agent.facing-back .wing8{z-index:3}
+#wing8-aria{background-image:url(sprites_out/walk8/aria_wing8.png)}
+#wing8-cass{background-image:url(sprites_out/walk8/cass_wing8.png)}
+#wing8-iris{background-image:url(sprites_out/walk8/iris_wing8.png)}
+#wing8-jarvis{background-image:url(sprites_out/walk8/jarvis_wing8.png)}
+#wing8-reno{background-image:url(sprites_out/walk8/reno_wing8.png)}
+#wing8-shade{background-image:url(sprites_out/walk8/shade_wing8.png)}
+#wing8-vera{background-image:url(sprites_out/walk8/vera_wing8.png)}
+#wing8-vex{background-image:url(sprites_out/walk8/vex_wing8.png)}
+#wing8-zara{background-image:url(sprites_out/walk8/zara_wing8.png)}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
 .r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-geffen{left:14.2857%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/geffen_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/geffen_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
@@ -1178,7 +1190,7 @@
       <!-- ===== Office 1: Hotel PMS ===== -->
       <div class="agent idle office-1" id="agent-jarvis" style="left:50.0%; top:33.0%;">
         <div class="bubble" id="bubble-jarvis"></div>
-        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="walk8" id="w8-jarvis"></div></div>
+        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="wing8" id="wing8-jarvis"></div><div class="walk8" id="w8-jarvis"></div></div>
         <div class="nameplate"><b>PORNCHAI</b>Rebellion · CEO</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1186,7 +1198,7 @@
 
       <div class="agent idle office-1" id="agent-iris" style="left:47.0%; top:33.0%;">
         <div class="bubble" id="bubble-iris"></div>
-        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="walk8" id="w8-iris"></div></div>
+        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="wing8" id="wing8-iris"></div><div class="walk8" id="w8-iris"></div></div>
         <div class="nameplate"><b>IRIS</b>Cardinal · CoS</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1226,7 +1238,7 @@
 
       <div class="agent idle office-1" id="agent-shade" style="left:38.1%; top:67%;">
         <div class="bubble" id="bubble-shade"></div>
-        <div class="sprite"><div class="walk8" id="w8-shade"></div></div>
+        <div class="sprite"><div class="wing8" id="wing8-shade"></div><div class="walk8" id="w8-shade"></div></div>
         <div class="nameplate"><b>SHADE</b>Assassin X · Sec</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1242,7 +1254,7 @@
 
       <div class="agent idle office-1" id="agent-cass" style="left:64.29%; top:33.0%;">
         <div class="bubble" id="bubble-cass"></div>
-        <div class="sprite"><div class="feet-aura fa-yellow"></div><div class="walk8" id="w8-cass"></div></div>
+        <div class="sprite"><div class="feet-aura fa-yellow"></div><div class="wing8" id="wing8-cass"></div><div class="walk8" id="w8-cass"></div></div>
         <div class="nameplate"><b>CASS</b>Royal Guard · PM</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1251,7 +1263,7 @@
       <!-- ===== Office 2: HostGate.app ===== -->
       <div class="agent idle office-2" id="agent-aria" style="left:92.86%; top:67%;">
         <div class="bubble" id="bubble-aria"></div>
-        <div class="sprite"><div class="walk8" id="w8-aria"></div></div>
+        <div class="sprite"><div class="wing8" id="wing8-aria"></div><div class="walk8" id="w8-aria"></div></div>
         <div class="nameplate"><b>ARIA</b>Bard · Brand</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1259,7 +1271,7 @@
 
       <div class="agent idle office-2" id="agent-vex" style="left:80.95%; top:67%;">
         <div class="bubble" id="bubble-vex"></div>
-        <div class="sprite"><div class="walk8" id="w8-vex"></div></div>
+        <div class="sprite"><div class="wing8" id="wing8-vex"></div><div class="walk8" id="w8-vex"></div></div>
         <div class="nameplate"><b>VEX</b>Crusader · SEO</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1291,7 +1303,7 @@
 
       <div class="agent idle office-2" id="agent-reno" style="left:89.29%; top:58%;">
         <div class="bubble" id="bubble-reno"></div>
-        <div class="sprite"><div class="walk8" id="w8-reno"></div></div>
+        <div class="sprite"><div class="wing8" id="wing8-reno"></div><div class="walk8" id="w8-reno"></div></div>
         <div class="nameplate"><b>RENO</b>Champion · Sales</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1307,7 +1319,7 @@
 
       <div class="agent idle office-2" id="agent-zara" style="left:21.43%; top:33.0%;">
         <div class="bubble" id="bubble-zara"></div>
-        <div class="sprite"><div class="feet-aura fa-purple"></div><div class="walk8" id="w8-zara"></div></div>
+        <div class="sprite"><div class="feet-aura fa-purple"></div><div class="wing8" id="wing8-zara"></div><div class="walk8" id="w8-zara"></div></div>
         <div class="nameplate"><b>ZARA</b>Genetic · PM</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1315,7 +1327,7 @@
 
       <div class="agent idle office-1" id="agent-vera" style="left:53.0%; top:33.0%;">
         <div class="bubble" id="bubble-vera"></div>
-        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="walk8" id="w8-vera"></div></div>
+        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="wing8" id="wing8-vera"></div><div class="walk8" id="w8-vera"></div></div>
         <div class="nameplate"><b>VERA</b>Soul Reaper · Auditor</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1560,6 +1572,9 @@ function setPos(id, x, y) {
     if (dir < 0) dir += 8;                          // 0=S 1=SW 2=W 3=NW 4=N 5=NE 6=E 7=SE
     const w8 = a.querySelector('.walk8');
     if (w8) w8.style.setProperty('--dir', dir);
+    const wg8 = a.querySelector('.wing8');          // keep the wing overlay facing the same way
+    if (wg8) wg8.style.setProperty('--dir', dir);
+    a.classList.toggle('facing-back', dir >= 3 && dir <= 5);   // wing z-index flips in front
   }
   a.classList.add('walking');
   a.style.left = x + '%';
