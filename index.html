@@ -2215,8 +2215,10 @@ async function runBrief(task) {
   const planD = newDeferred();
   const summaryD = newDeferred();
   const rewardD = newDeferred();
+  const veraD = newDeferred();
   const workDs = {}; // filled when plan arrives
   let streamFailed = false;
+  let veraText = "";
 
   es.addEventListener("jarvis_intro", (ev) => {
     try { jarvisIntroText = JSON.parse(ev.data).text || ""; } catch (_) {}
@@ -2240,12 +2242,16 @@ async function runBrief(task) {
     try { rewardText = JSON.parse(ev.data).text || ""; } catch (_) {}
     rewardD.resolve();
   });
-  es.addEventListener("done", () => { try { es.close(); } catch (_) {} });
+  es.addEventListener("vera_verify", (ev) => {
+    try { veraText = JSON.parse(ev.data).text || ""; } catch (_) {}
+    veraD.resolve();
+  });
+  es.addEventListener("done", () => { try { es.close(); } catch (_) {} veraD.resolve(); });
   es.onerror = () => {
     streamFailed = true;
     try { es.close(); } catch (_) {}
     // Resolve any unresolved deferreds so awaits don't hang forever.
-    introD.resolve(); planD.resolve(); summaryD.resolve(); rewardD.resolve();
+    introD.resolve(); planD.resolve(); summaryD.resolve(); rewardD.resolve(); veraD.resolve();
     for (const k of Object.keys(workDs)) workDs[k].resolve("(stream lost)");
   };
 
@@ -2294,6 +2300,14 @@ async function runBrief(task) {
     setStatus(r.agent, "talking"); await say(r.agent, text, sayMs(text));
     await say(r.agent, "เสร็จแล้วครับ Iris ✓", 1300);
     setStatus(r.agent, "idle"); spawnPopup(r.agent, '+1 STEP', 'xp');
+  }
+
+  // ── 6b. Vera's audit (verify-vs-internet / escalation) — only if she spoke ─
+  await veraD.promise;
+  if (veraText) {
+    setStatus("vera", "talking");
+    await say("vera", veraText, sayMs(veraText));
+    setStatus("vera", "idle");
   }
 
   // ── 7. Iris summary + Jarvis reward ───────────────────────────────
