@@ -1094,7 +1094,8 @@
 .sprite{filter:none !important}
 .sprite::before{bottom:-2px !important}
 .nameplate{margin-top:9px !important}
-.npc{transform:translate(-50%,-50%) scale(.72) !important;z-index:3}
+.npc{transform:translate(-50%,-50%) scale(.85) !important;z-index:3}
+.npc-label{color:#fff6df !important;font-weight:700 !important;letter-spacing:.5px;background:rgba(18,11,4,.72);padding:1px 6px;border-radius:3px;text-shadow:1px 1px 0 #000,0 0 5px #000 !important}
 .stage-wrap > .quota-board{left:14px !important;top:14px !important;z-index:200 !important}
 .stage-wrap > .setup-board{right:14px !important;bottom:54px !important;left:auto !important;top:auto !important;z-index:200 !important}
 .grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:64px 64px;box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
@@ -1106,24 +1107,28 @@
 @keyframes ceoMeshPulse{0%,100%{opacity:.36}50%{opacity:.66}}
 #agent-jarvis .ceo-wingaura{position:absolute;left:50%;top:14px;width:150px;height:92px;transform:translateX(-50%);z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(255,170,70,.5),rgba(255,80,150,.32) 44%,rgba(120,150,255,.16) 70%,transparent 82%);filter:blur(10px);mix-blend-mode:screen;animation:ceoWingAura 2.6s ease-in-out infinite}
 @keyframes ceoWingAura{0%,100%{opacity:.45;transform:translateX(-50%) scale(.98)}50%{opacity:.85;transform:translateX(-50%) scale(1.07)}}
+.feet-aura{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);width:92px;height:40px;z-index:0;pointer-events:none;border-radius:50%;filter:blur(4px);mix-blend-mode:screen;animation:feetAuraPulse 1.5s ease-in-out infinite}
+.fa-purple{background:radial-gradient(ellipse at 50% 60%,rgba(210,130,255,.95),rgba(160,80,235,.6) 40%,rgba(120,40,210,.25) 66%,transparent 80%)}
+.fa-yellow{background:radial-gradient(ellipse at 50% 60%,rgba(255,240,150,.95),rgba(255,205,70,.6) 40%,rgba(235,165,35,.25) 66%,transparent 80%)}
+@keyframes feetAuraPulse{0%,100%{opacity:.55;transform:translateX(-50%) scale(1)}50%{opacity:.95;transform:translateX(-50%) scale(1.16)}}
 .walk8{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);z-index:2;image-rendering:pixelated;pointer-events:none;width:240px;height:200px;background-repeat:no-repeat;background-position-x:0;background-size:1920px 1600px;background-position-y:calc(var(--dir,0) * -200px)}
 @keyframes w8frame{from{background-position-x:0}to{background-position-x:-1920px}}
 .agent.walking .walk8{animation:w8frame .8s steps(8) infinite}
 #w8-lumen{background-image:url(sprites_out/walk8/lumen_walk8.png)}
-#w8-cass{background-image:url(sprites_out/walk8/cass_walk8.png)}
+#w8-zara{background-image:url(sprites_out/walk8/zara_walk8.png)}
 #w8-mira{background-image:url(sprites_out/walk8/mira_walk8.png)}
 #w8-bolt{background-image:url(sprites_out/walk8/bolt_walk8.png)}
 #w8-sage{background-image:url(sprites_out/walk8/sage_walk8.png)}
 #w8-shade{background-image:url(sprites_out/walk8/shade_walk8.png)}
 #w8-jarvis{background-image:url(sprites_out/walk8/jarvis_walk8.png)}
 #w8-iris{background-image:url(sprites_out/walk8/iris_walk8.png)}
+#w8-cass{background-image:url(sprites_out/walk8/cass_walk8.png)}
 #w8-kira{background-image:url(sprites_out/walk8/kira_walk8.png)}
 #w8-echo{background-image:url(sprites_out/walk8/echo_walk8.png)}
 #w8-tao{background-image:url(sprites_out/walk8/tao_walk8.png)}
 #w8-nyx{background-image:url(sprites_out/walk8/nyx_walk8.png)}
 #w8-vex{background-image:url(sprites_out/walk8/vex_walk8.png)}
 #w8-reno{background-image:url(sprites_out/walk8/reno_walk8.png)}
-#w8-zara{background-image:url(sprites_out/walk8/zara_walk8.png)}
 #w8-aria{background-image:url(sprites_out/walk8/aria_walk8.png)}
 #w8-pino{background-image:url(sprites_out/walk8/pino_walk8.png)}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
@@ -1234,16 +1239,16 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-cass" style="left:21.43%; top:38.0%;">
+      <div class="agent idle office-1" id="agent-cass" style="left:64.29%; top:38.0%;">
         <div class="bubble" id="bubble-cass"></div>
-        <div class="sprite"><div class="walk8" id="w8-cass"></div></div>
+        <div class="sprite"><div class="feet-aura fa-yellow"></div><div class="walk8" id="w8-cass"></div></div>
         <div class="nameplate"><b>CASS</b>Royal Guard · PM</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
       <!-- ===== Office 2: HostGate.app ===== -->
-      <div class="agent idle office-2" id="agent-aria" style="left:94.29%; top:58%;">
+      <div class="agent idle office-2" id="agent-aria" style="left:92.86%; top:67%;">
         <div class="bubble" id="bubble-aria"></div>
         <div class="sprite"><div class="walk8" id="w8-aria"></div></div>
         <div class="nameplate"><b>ARIA</b>Bard · Brand</div>
@@ -1267,7 +1272,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-2" id="agent-pino" style="left:97.14%; top:67%;">
+      <div class="agent idle office-2" id="agent-pino" style="left:96.43%; top:58%;">
         <div class="bubble" id="bubble-pino"></div>
         <div class="sprite"><div class="walk8" id="w8-pino"></div></div>
         <div class="nameplate"><b>PINO</b>Alchemist · Demo</div>
@@ -1283,7 +1288,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-2" id="agent-reno" style="left:88.57%; top:58%;">
+      <div class="agent idle office-2" id="agent-reno" style="left:89.29%; top:58%;">
         <div class="bubble" id="bubble-reno"></div>
         <div class="sprite"><div class="walk8" id="w8-reno"></div></div>
         <div class="nameplate"><b>RENO</b>Champion · Sales</div>
@@ -1299,9 +1304,9 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-2" id="agent-zara" style="left:91.43%; top:67%;">
+      <div class="agent idle office-2" id="agent-zara" style="left:21.43%; top:38.0%;">
         <div class="bubble" id="bubble-zara"></div>
-        <div class="sprite"><div class="walk8" id="w8-zara"></div></div>
+        <div class="sprite"><div class="feet-aura fa-purple"></div><div class="walk8" id="w8-zara"></div></div>
         <div class="nameplate"><b>ZARA</b>Genetic · PM</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1448,22 +1453,22 @@ const MODEL_FALLBACK = {
 // Home zones per office (percent coords)
 const HOMES = {
   lumen: { x: 7.14, y: 58, rx: 3, ry: 3, office: 1 },
-  cass: { x: 21.43, y: 38.0, rx: 3, ry: 3, office: 1 },
+  zara: { x: 21.43, y: 38.0, rx: 3, ry: 3, office: 1 },
   mira: { x: 19.05, y: 58, rx: 3, ry: 3, office: 1 },
   bolt: { x: 23.81, y: 67, rx: 3, ry: 3, office: 1 },
   sage: { x: 33.33, y: 58, rx: 3, ry: 3, office: 1 },
   shade: { x: 38.1, y: 67, rx: 3, ry: 3, office: 1 },
   jarvis: { x: 47.62, y: 38.0, rx: 3, ry: 3, office: 1 },
   iris: { x: 52.38, y: 38.0, rx: 3, ry: 3, office: 1 },
+  cass: { x: 64.29, y: 38.0, rx: 3, ry: 3, office: 1 },
   kira: { x: 60.71, y: 58, rx: 3, ry: 3, office: 1 },
   echo: { x: 64.29, y: 67, rx: 3, ry: 3, office: 1 },
   tao: { x: 67.86, y: 58, rx: 3, ry: 3, office: 1 },
   nyx: { x: 76.19, y: 58, rx: 3, ry: 3, office: 1 },
   vex: { x: 80.95, y: 67, rx: 3, ry: 3, office: 1 },
-  reno: { x: 88.57, y: 58, rx: 3, ry: 3, office: 1 },
-  zara: { x: 91.43, y: 67, rx: 3, ry: 3, office: 1 },
-  aria: { x: 94.29, y: 58, rx: 3, ry: 3, office: 1 },
-  pino: { x: 97.14, y: 67, rx: 3, ry: 3, office: 1 }
+  reno: { x: 89.29, y: 58, rx: 3, ry: 3, office: 1 },
+  aria: { x: 92.86, y: 67, rx: 3, ry: 3, office: 1 },
+  pino: { x: 96.43, y: 58, rx: 3, ry: 3, office: 1 }
 };
 
 const PORTAL = { x: 50.0, y: 50 };
@@ -2581,6 +2586,27 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       }
     })();
   }
+  // Iris shadows the CEO at a distance: when she drifts too far from jarvis, she walks
+  // to a spot just behind/beside him (through the warp if he changed rooms). Paused in briefs.
+  function startIrisFollow(){
+    (async function(){
+      await sleep(3500);
+      while(true){
+        await sleep(1400 + Math.random()*1400);
+        if(typeof ambientOn!=="undefined" && !ambientOn) continue;
+        var j=$g("agent-jarvis"), i=$g("agent-iris");
+        if(!j||!i) continue;
+        if(i.classList.contains("walking")||i.classList.contains("thinking")||i.classList.contains("talking")) continue;
+        var jx=parseFloat(j.style.left)||50, jy=parseFloat(j.style.top)||50;
+        var ix=parseFloat(i.style.left)||50, iy=parseFloat(i.style.top)||50;
+        var dxp=(jx-ix)*SW/100, dyp=(jy-iy)*SH/100, dist=Math.sqrt(dxp*dxp+dyp*dyp);
+        if(dist>95){
+          try{ await walkAcross("iris", jx - 2.4, jy + 1.4, 1500); }catch(_){}
+          if($g("agent-iris")) setStatus("iris","idle");
+        }
+      }
+    })();
+  }
   function init(){
     var wrap=document.querySelector(".stage-wrap");
     // Re-parent the AI MANA POOL + setup boards OUT of #stage so they don't scale
@@ -2607,6 +2633,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     CAM.apply(); setTimeout(function(){CAM.apply();},400); setTimeout(function(){CAM.apply();},1200);
     setInterval(function(){ CAM.apply(); }, 1500);
     try{ Object.keys(AGENTS).forEach(startWander); }catch(_){}   // ambient idle wandering
+    try{ startIrisFollow(); }catch(_){}                          // Iris shadows the CEO
     // hover grid cursor: a glowing blue cell follows the mouse over the floor; the
     // existing stage-click handler walks the CEO to it (snapped to the cell centre).
     var st0=$g("stage"); var gc=document.createElement("div"); gc.id="gridcursor";
