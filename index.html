@@ -1577,9 +1577,12 @@ function setPos(id, x, y) {
     if (wg8) wg8.style.setProperty('--dir', dir);
     a.classList.toggle('facing-back', dir >= 3 && dir <= 5);   // wing z-index flips in front
   }
-  // SPEED LIMIT: constant pace ~1 grid cell / 280ms, clamped 300-2800ms (no teleporting)
+  // SPEED: short hops (1-2 grid cells) stroll slowly; longer walks ramp up to full
+  // pace. ms-per-cell falls from ~560 (1 cell) to 280 (>=4 cells); clamp 450-2800ms.
   const _dpx = Math.hypot(dx/100*6300, dy/100*760);
-  const _dur = Math.max(300, Math.min(2800, Math.round(_dpx/64*280)));
+  const _cells = _dpx/64;
+  const _mpc = Math.max(280, 560 - (_cells-1)*90);
+  const _dur = Math.max(450, Math.min(2800, Math.round(_cells*_mpc)));
   a.style.transition = 'left '+_dur+'ms ease-in-out, top '+_dur+'ms ease-in-out, opacity 0.35s ease';
   a.classList.add('walking');
   a.style.left = x + '%';
@@ -1603,7 +1606,9 @@ async function walkTo(id, x, y, ms = 2200) {
   const a = $(`agent-${id}`);
   const ox = parseFloat(a.style.left)||x, oy = parseFloat(a.style.top)||y;
   const dpx = Math.hypot((x-ox)/100*6300, (y-oy)/100*760);
-  const dur = Math.max(300, Math.min(2800, Math.round(dpx/64*280)));   // speed cap
+  const cells = dpx/64;
+  const mpc = Math.max(280, 560 - (cells-1)*90);   // slow for 1-2 cells, ramps to full
+  const dur = Math.max(450, Math.min(2800, Math.round(cells*mpc)));
   setPos(id, x, y);
   await sleep(dur);
   a.classList.remove('walking');
