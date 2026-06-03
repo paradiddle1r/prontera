@@ -1123,9 +1123,24 @@
 .r-morroc{left:71.4285%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/morroc_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/morroc_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-alberta{left:85.7142%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/alberta_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/alberta_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-prontera{box-shadow:inset 0 0 0 2px #6a5020, inset 0 0 70px rgba(0,0,0,.35);border-color:#5a4424}
+.poring-real{position:absolute;width:41px;height:45px;image-rendering:pixelated;z-index:2;background:url(sprites_out/fx/poring_walk.png) 0 0/410px 45px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.4));pointer-events:none;animation:poringWalk 1s steps(10) infinite, poringHopLocal 13s ease-in-out infinite, poringFaceLocal 13s step-end infinite}
+@keyframes poringWalk{to{background-position:-410px 0}}
+@keyframes poringHopLocal{0%{left:20%;top:60%}18%{left:70%;top:50%}38%{left:42%;top:70%}58%{left:78%;top:56%}78%{left:28%;top:64%}100%{left:20%;top:60%}}
+@keyframes poringFaceLocal{0%{transform:scaleX(-1)}18%{transform:scaleX(1)}38%{transform:scaleX(-1)}58%{transform:scaleX(1)}78%{transform:scaleX(-1)}}
+.p-aldebaran{animation-delay:-0.0s,-0.0s,-0.0s}
+.p-geffen{animation-delay:-1.9s,-1.9s,-1.9s}
+.p-izlude{animation-delay:-3.8s,-3.8s,-3.8s}
+.p-prontera{animation-delay:-5.7s,-5.7s,-5.7s}
+.p-payon{animation-delay:-7.6s,-7.6s,-7.6s}
+.p-morroc{animation-delay:-9.5s,-9.5s,-9.5s}
+.p-alberta{animation-delay:-11.4s,-11.4s,-11.4s}
+.platform{position:absolute;left:50%;transform:translateX(-50%);top:16%;width:62%;height:25%;image-rendering:pixelated;z-index:1;border:2px solid #14110a;border-radius:2px;box-shadow:0 7px 0 #1a120a, 0 10px 0 #0c0805, 0 18px 16px rgba(0,0,0,.55);outline:1px solid rgba(255,240,200,.10);outline-offset:-3px}
+.plat-prontera{background:url(maps_out/wood_floor.png) 0 0/46px 46px repeat}
+.plat-geffen{background:url(maps_out/gef_carpet.png) center/100% 100% no-repeat}
+.plat-payon{background:url(maps_out/prt_carpet03.png) center/100% 100% no-repeat}
 .room-label{position:absolute;transform:translateX(-50%);z-index:6;font:600 14px system-ui;color:#f5e3b0;text-shadow:0 1px 2px #000,0 0 7px #000;text-align:center;pointer-events:none;white-space:nowrap}
 .room-label small{display:block;font-size:9px;letter-spacing:1.5px;color:#cdb98a;opacity:.85}
-.warp-portal{position:absolute;transform:translate(-50%,-50%) scale(.45) scaleY(.62);cursor:pointer;z-index:5;opacity:.92}
+.warp-portal{position:absolute;transform:translate(-50%,-50%) scale(.85) scaleY(.62);cursor:pointer;z-index:5;opacity:.95}
 .warp-portal:hover{filter:brightness(1.35)}
 .cam-btns{position:absolute;right:14px;bottom:14px;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 12px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:6px;padding:7px 12px;cursor:pointer}
@@ -1136,7 +1151,7 @@
 <div class="app">
   <div class="stage-wrap">
     <div class="stage" id="stage">
-      <div class="room r-aldebaran"></div><div class="room r-geffen"></div><div class="room r-izlude"></div><div class="room r-prontera"></div><div class="room r-payon"></div><div class="room r-morroc"></div><div class="room r-alberta"></div>
+      <div class="room r-aldebaran"><div class="poring-real p-aldebaran"></div></div><div class="room r-geffen"><div class="poring-real p-geffen"></div><div class="platform plat-geffen"></div></div><div class="room r-izlude"><div class="poring-real p-izlude"></div></div><div class="room r-prontera"><div class="poring-real p-prontera"></div><div class="platform plat-prontera"></div></div><div class="room r-payon"><div class="poring-real p-payon"></div><div class="platform plat-payon"></div></div><div class="room r-morroc"><div class="poring-real p-morroc"></div></div><div class="room r-alberta"><div class="poring-real p-alberta"></div></div>
       <div class="room-label" style="left:7.14%;top:1.5%">🕰 ALDEBARAN<small>OPS</small></div><div class="room-label" style="left:21.43%;top:1.5%">✦ GEFFEN<small>ENGINEERING</small></div><div class="room-label" style="left:35.71%;top:1.5%">🌊 IZLUDE<small>DATA · SEC</small></div><div class="room-label" style="left:50.0%;top:1.5%">⛪ PRONTERA HALL<small>HQ</small></div><div class="room-label" style="left:64.29%;top:1.5%">🏯 PAYON<small>COMMUNITY</small></div><div class="room-label" style="left:78.57%;top:1.5%">☀ MORROC<small>GROWTH</small></div><div class="room-label" style="left:92.86%;top:1.5%">⚓ ALBERTA<small>GO-TO-MARKET</small></div>
       <div class="portal warp-portal" data-a="aldebaran" data-b="geffen" style="left:14.29%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="geffen" data-b="izlude" style="left:28.57%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="izlude" data-b="prontera" style="left:42.86%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="prontera" data-b="payon" style="left:57.14%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="payon" data-b="morroc" style="left:71.43%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="morroc" data-b="alberta" style="left:85.71%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div>
       <div class="clock" id="clock">--:--:--</div>
@@ -2017,8 +2032,7 @@ const PORING_SVG = (color, dark) => `<svg viewBox="0 0 28 24" shape-rendering="c
   <rect x="11" y="15" width="6" height="1" fill="${dark}"/>
 </svg>`;
 
-function spawnPoring(color, dark, side = 'left') {
-  const p = document.createElement('div');
+function
   p.className = 'poring';
   p.innerHTML = PORING_SVG(color, dark);
   const baseX = side === 'left' ? 10 + Math.random() * 30 : 60 + Math.random() * 30;
@@ -2031,9 +2045,6 @@ function spawnPoring(color, dark, side = 'left') {
     p.style.top  = (48 + Math.random() * 32) + '%';
   }, 4200);
 }
-spawnPoring('#ffb0c0', '#a04060', 'left');
-spawnPoring('#a0d0ff', '#4080a0', 'right');
-spawnPoring('#ffd080', '#a06030', 'left');
 
 // =================== IRIS DELEGATION WORKFLOW ===================
 // When a brief comes in, Iris walks to each relevant person and delivers the task.
