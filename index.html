@@ -1099,16 +1099,18 @@
 .stage-wrap > .setup-board{right:14px !important;bottom:54px !important;left:auto !important;top:auto !important;z-index:200 !important}
 .grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:64px 64px;box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
 .grid-on .grid-overlay{opacity:.8}
+#gridcursor{position:absolute;width:64px;height:64px;pointer-events:none;z-index:3;display:none;border:2px solid rgba(90,205,255,.95);border-radius:3px;background:rgba(90,205,255,.16);box-shadow:0 0 12px rgba(90,205,255,.8),inset 0 0 10px rgba(130,225,255,.5);animation:gcPulse 1.1s ease-in-out infinite}
+@keyframes gcPulse{0%,100%{opacity:.7}50%{opacity:1}}
 #agent-jarvis .ceo-mesh{position:absolute;left:50%;bottom:-18px;width:200px;height:210px;transform:translateX(-50%);z-index:0;pointer-events:none;border-radius:48% 52% 50% 50%;background:conic-gradient(from 0deg,#ff2d6f,#ff9e2d,#ffe93d,#3dff8e,#2dd4ff,#7c5cff,#ff2d6f);filter:blur(24px) saturate(1.5);opacity:.5;mix-blend-mode:screen;animation:ceoMeshSpin 7s linear infinite, ceoMeshPulse 3.2s ease-in-out infinite}
 @keyframes ceoMeshSpin{to{transform:translateX(-50%) rotate(360deg)}}
 @keyframes ceoMeshPulse{0%,100%{opacity:.36}50%{opacity:.66}}
-#agent-jarvis .ceo-wingaura{position:absolute;left:50%;top:2px;width:210px;height:132px;transform:translateX(-50%);z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,rgba(255,170,70,.6),rgba(255,80,150,.4) 42%,rgba(120,150,255,.22) 68%,transparent 80%);filter:blur(13px);mix-blend-mode:screen;animation:ceoWingAura 2.6s ease-in-out infinite}
+#agent-jarvis .ceo-wingaura{position:absolute;left:50%;top:14px;width:150px;height:92px;transform:translateX(-50%);z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(255,170,70,.5),rgba(255,80,150,.32) 44%,rgba(120,150,255,.16) 70%,transparent 82%);filter:blur(10px);mix-blend-mode:screen;animation:ceoWingAura 2.6s ease-in-out infinite}
 @keyframes ceoWingAura{0%,100%{opacity:.45;transform:translateX(-50%) scale(.98)}50%{opacity:.85;transform:translateX(-50%) scale(1.07)}}
 .walk8{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);z-index:2;image-rendering:pixelated;pointer-events:none;width:240px;height:200px;background-repeat:no-repeat;background-position-x:0;background-size:1920px 1600px;background-position-y:calc(var(--dir,0) * -200px)}
 @keyframes w8frame{from{background-position-x:0}to{background-position-x:-1920px}}
 .agent.walking .walk8{animation:w8frame .8s steps(8) infinite}
-#w8-cass{background-image:url(sprites_out/walk8/cass_walk8.png)}
 #w8-lumen{background-image:url(sprites_out/walk8/lumen_walk8.png)}
+#w8-cass{background-image:url(sprites_out/walk8/cass_walk8.png)}
 #w8-mira{background-image:url(sprites_out/walk8/mira_walk8.png)}
 #w8-bolt{background-image:url(sprites_out/walk8/bolt_walk8.png)}
 #w8-sage{background-image:url(sprites_out/walk8/sage_walk8.png)}
@@ -1148,6 +1150,7 @@
 .plat-prontera{background:url(maps_out/wood_floor.png) 0 0/46px 46px repeat}
 .plat-geffen{background:url(maps_out/gef_carpet.png) center/100% 100% no-repeat}
 .plat-payon{background:url(maps_out/prt_carpet03.png) center/100% 100% no-repeat}
+.plat-carpet{position:absolute;left:50%;top:6%;transform:translateX(-50%);width:60%;height:90%;background:url(maps_out/prt_carpet03.png) center/100% 100% no-repeat;border-radius:2px;box-shadow:0 2px 6px rgba(0,0,0,.45)}
 .room-label{position:absolute;transform:translateX(-50%);z-index:6;font:700 15px system-ui;color:#f8ecc8;text-align:center;pointer-events:none;white-space:nowrap;letter-spacing:1px;background:linear-gradient(180deg,#3a2614,#241608);border:2px solid #b9923f;border-radius:5px;padding:5px 14px 6px;box-shadow:3px 3px 0 rgba(0,0,0,.55),inset 0 0 0 1px #5a4424,0 0 10px rgba(0,0,0,.55);text-shadow:1px 1px 0 #000}
 .room-label small{display:block;font-size:9.5px;letter-spacing:1.5px;color:#ecc97e;opacity:.95;margin-top:2px;font-weight:600}
 .warp-portal{position:absolute;transform:translate(-50%,-50%) scale(.85) scaleY(.62);cursor:pointer;z-index:5;opacity:.95}
@@ -1161,13 +1164,13 @@
 <div class="app">
   <div class="stage-wrap">
     <div class="stage" id="stage">
-      <div class="room r-aldebaran"><div class="grid-overlay"></div><div class="poring-real p-aldebaran"></div></div><div class="room r-geffen"><div class="grid-overlay"></div><div class="poring-real p-geffen"></div><div class="platform plat-geffen"></div></div><div class="room r-izlude"><div class="grid-overlay"></div><div class="poring-real p-izlude"></div></div><div class="room r-prontera"><div class="grid-overlay"></div><div class="poring-real p-prontera"></div><div class="platform plat-prontera"></div></div><div class="room r-payon"><div class="grid-overlay"></div><div class="poring-real p-payon"></div><div class="platform plat-payon"></div></div><div class="room r-morroc"><div class="grid-overlay"></div><div class="poring-real p-morroc"></div></div><div class="room r-alberta"><div class="grid-overlay"></div><div class="poring-real p-alberta"></div></div>
+      <div class="room r-aldebaran"><div class="grid-overlay"></div><div class="poring-real p-aldebaran"></div></div><div class="room r-geffen"><div class="grid-overlay"></div><div class="poring-real p-geffen"></div><div class="platform plat-geffen"></div></div><div class="room r-izlude"><div class="grid-overlay"></div><div class="poring-real p-izlude"></div></div><div class="room r-prontera"><div class="grid-overlay"></div><div class="poring-real p-prontera"></div><div class="platform plat-prontera"><div class="plat-carpet"></div></div></div><div class="room r-payon"><div class="grid-overlay"></div><div class="poring-real p-payon"></div><div class="platform plat-payon"></div></div><div class="room r-morroc"><div class="grid-overlay"></div><div class="poring-real p-morroc"></div></div><div class="room r-alberta"><div class="grid-overlay"></div><div class="poring-real p-alberta"></div></div>
       <div class="room-label" style="left:7.14%;top:1.5%">🕰 ALDEBARAN<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:21.43%;top:1.5%">✦ GEFFEN<small>HOSTGATE OFFICE</small></div><div class="room-label" style="left:35.71%;top:1.5%">🌊 IZLUDE<small>INVESTMENT CENTRE</small></div><div class="room-label" style="left:50.0%;top:1.5%">⛪ PRONTERA<small>ศูนย์รวมพล · ASSEMBLY</small></div><div class="room-label" style="left:64.29%;top:1.5%">🏯 PAYON<small>HOTEL PMS</small></div><div class="room-label" style="left:78.57%;top:1.5%">☀ MORROC<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:92.86%;top:1.5%">⚓ ALBERTA<small>· หน้าที่ TBD ·</small></div>
       <div class="portal warp-portal" data-a="aldebaran" data-b="geffen" style="left:14.29%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="geffen" data-b="izlude" style="left:28.57%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="izlude" data-b="prontera" style="left:42.86%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="prontera" data-b="payon" style="left:57.14%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="payon" data-b="morroc" style="left:71.43%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="morroc" data-b="alberta" style="left:85.71%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div>
       <div class="clock" id="clock">--:--:--</div>
 
       <!-- ===== Office 1: Hotel PMS ===== -->
-      <div class="agent idle office-1" id="agent-jarvis" style="left:47.62%; top:58%;">
+      <div class="agent idle office-1" id="agent-jarvis" style="left:47.62%; top:38.0%;">
         <div class="bubble" id="bubble-jarvis"></div>
         <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="walk8" id="w8-jarvis"></div></div>
         <div class="nameplate"><b>PORNCHAI</b>Rebellion · CEO</div>
@@ -1175,7 +1178,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-iris" style="left:52.38%; top:67%;">
+      <div class="agent idle office-1" id="agent-iris" style="left:52.38%; top:38.0%;">
         <div class="bubble" id="bubble-iris"></div>
         <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="walk8" id="w8-iris"></div></div>
         <div class="nameplate"><b>IRIS</b>Cardinal · CoS</div>
@@ -1223,7 +1226,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-lumen" style="left:9.52%; top:67%;">
+      <div class="agent idle office-1" id="agent-lumen" style="left:7.14%; top:58%;">
         <div class="bubble" id="bubble-lumen"></div>
         <div class="sprite"><div class="walk8" id="w8-lumen"></div></div>
         <div class="nameplate"><b>LUMEN</b>High Priest · QA</div>
@@ -1231,7 +1234,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-cass" style="left:4.76%; top:58%;">
+      <div class="agent idle office-1" id="agent-cass" style="left:21.43%; top:38.0%;">
         <div class="bubble" id="bubble-cass"></div>
         <div class="sprite"><div class="walk8" id="w8-cass"></div></div>
         <div class="nameplate"><b>CASS</b>Royal Guard · PM</div>
@@ -1444,14 +1447,14 @@ const MODEL_FALLBACK = {
 
 // Home zones per office (percent coords)
 const HOMES = {
-  cass: { x: 4.76, y: 58, rx: 3, ry: 3, office: 1 },
-  lumen: { x: 9.52, y: 67, rx: 3, ry: 3, office: 1 },
+  lumen: { x: 7.14, y: 58, rx: 3, ry: 3, office: 1 },
+  cass: { x: 21.43, y: 38.0, rx: 3, ry: 3, office: 1 },
   mira: { x: 19.05, y: 58, rx: 3, ry: 3, office: 1 },
   bolt: { x: 23.81, y: 67, rx: 3, ry: 3, office: 1 },
   sage: { x: 33.33, y: 58, rx: 3, ry: 3, office: 1 },
   shade: { x: 38.1, y: 67, rx: 3, ry: 3, office: 1 },
-  jarvis: { x: 47.62, y: 58, rx: 3, ry: 3, office: 1 },
-  iris: { x: 52.38, y: 67, rx: 3, ry: 3, office: 1 },
+  jarvis: { x: 47.62, y: 38.0, rx: 3, ry: 3, office: 1 },
+  iris: { x: 52.38, y: 38.0, rx: 3, ry: 3, office: 1 },
   kira: { x: 60.71, y: 58, rx: 3, ry: 3, office: 1 },
   echo: { x: 64.29, y: 67, rx: 3, ry: 3, office: 1 },
   tao: { x: 67.86, y: 58, rx: 3, ry: 3, office: 1 },
@@ -2487,8 +2490,9 @@ stageEl.addEventListener("click", async (e) => {
   const y = ((e.clientY - rect.top) / rect.height) * 100;
   // Clamp to the walkable floor — full tile area, just keep clear of the
   // top wall strip (~160px ≈ 18% of viewport) and the very bottom edge.
-  const cx = Math.max(3, Math.min(97, x));
-  const cy = Math.max(20, Math.min(92, y));
+  let cx = Math.max(3, Math.min(97, x));
+  let cy = Math.max(20, Math.min(92, y));
+  if (window.__gcSnap) { const s = window.__gcSnap(cx, cy); cx = s[0]; cy = s[1]; }
   jarvisMoving = true;
   setStatus("jarvis", "walking");
   try {
@@ -2508,6 +2512,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
 (function(){
   function $g(id){return document.getElementById(id);}
   var ORDER=["aldebaran","geffen","izlude","prontera","payon","morroc","alberta"], CTR={aldebaran:[7.14,50.0],geffen:[21.43,50.0],izlude:[35.71,50.0],prontera:[50.0,50.0],payon:[64.29,50.0],morroc:[78.57,50.0],alberta:[92.86,50.0]}, RW=14.2857;
+  var SW=6300, SH=760, WH=110, GC=64;
   function roomAt(x){ var i=Math.floor(x/RW); return ORDER[Math.max(0,Math.min(ORDER.length-1,i))]; }
   function curRoom(id){ var p=$g("agent-"+id); return roomAt(parseFloat(p&&p.style.left)||50); }
   var CAM={ mode:"room",
@@ -2553,6 +2558,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   // rooms (through the warp); jarvis (camera anchor) + iris (delegator) stay in-room.
   // Paused entirely while a brief runs (ambientOn=false) and only moves .idle agents.
   function startWander(id){
+    if(id==="jarvis"||id==="iris") return;   // CEO + CoS hold their platform station
     (async function loop(){
       await sleep(2500 + Math.random()*7000);
       while(true){
@@ -2601,6 +2607,25 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     CAM.apply(); setTimeout(function(){CAM.apply();},400); setTimeout(function(){CAM.apply();},1200);
     setInterval(function(){ CAM.apply(); }, 1500);
     try{ Object.keys(AGENTS).forEach(startWander); }catch(_){}   // ambient idle wandering
+    // hover grid cursor: a glowing blue cell follows the mouse over the floor; the
+    // existing stage-click handler walks the CEO to it (snapped to the cell centre).
+    var st0=$g("stage"); var gc=document.createElement("div"); gc.id="gridcursor";
+    if(st0){ st0.appendChild(gc);
+      window.__gcSnap=function(xPct,yPct){      // snap a stage-% point to its grid-cell centre %
+        var sx=xPct/100*SW, sy=yPct/100*SH;
+        if(sy<WH) sy=WH+GC/2;
+        var col=Math.floor(sx/GC), row=Math.floor((sy-WH)/GC);
+        return [ (col*GC+GC/2)/SW*100, (WH+row*GC+GC/2)/SH*100 ];
+      };
+      st0.addEventListener("mousemove", function(e){
+        var r=st0.getBoundingClientRect();
+        var sx=(e.clientX-r.left)/r.width*SW, sy=(e.clientY-r.top)/r.height*SH;
+        if(sy<WH || sy>SH){ gc.style.display="none"; return; }
+        var col=Math.floor(sx/GC), row=Math.floor((sy-WH)/GC);
+        gc.style.left=(col*GC)+"px"; gc.style.top=(WH+row*GC)+"px"; gc.style.display="block";
+      });
+      st0.addEventListener("mouseleave", function(){ gc.style.display="none"; });
+    }
   }
   window.addEventListener("load", init); if(document.readyState==="complete") init();
 })();
