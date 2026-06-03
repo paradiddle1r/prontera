@@ -1118,6 +1118,7 @@
 #w8-zara{background-image:url(sprites_out/walk8/zara_walk8.png)}
 #w8-mira{background-image:url(sprites_out/walk8/mira_walk8.png)}
 #w8-bolt{background-image:url(sprites_out/walk8/bolt_walk8.png)}
+#w8-echo{background-image:url(sprites_out/walk8/echo_walk8.png)}
 #w8-sage{background-image:url(sprites_out/walk8/sage_walk8.png)}
 #w8-shade{background-image:url(sprites_out/walk8/shade_walk8.png)}
 #w8-jarvis{background-image:url(sprites_out/walk8/jarvis_walk8.png)}
@@ -1125,7 +1126,6 @@
 #w8-vera{background-image:url(sprites_out/walk8/vera_walk8.png)}
 #w8-cass{background-image:url(sprites_out/walk8/cass_walk8.png)}
 #w8-kira{background-image:url(sprites_out/walk8/kira_walk8.png)}
-#w8-echo{background-image:url(sprites_out/walk8/echo_walk8.png)}
 #w8-tao{background-image:url(sprites_out/walk8/tao_walk8.png)}
 #w8-nyx{background-image:url(sprites_out/walk8/nyx_walk8.png)}
 #w8-vex{background-image:url(sprites_out/walk8/vex_walk8.png)}
@@ -1162,8 +1162,11 @@
 .p-alberta{animation-delay:-11.4s,-11.4s,-11.4s;animation-duration:1s,17s,17s}
 .platform{position:absolute;left:50%;transform:translateX(-50%);top:16%;width:62%;height:25%;image-rendering:pixelated;z-index:1;border:2px solid #14110a;border-radius:2px;box-shadow:0 7px 0 #1a120a, 0 10px 0 #0c0805, 0 18px 16px rgba(0,0,0,.55);outline:1px solid rgba(255,240,200,.10);outline-offset:-3px}
 .plat-prontera{background:url(maps_out/wood_floor.png) 0 0/46px 46px repeat}
-.plat-geffen{background:url(maps_out/gef_carpet.png) center/100% 100% no-repeat}
+.plat-geffen{background:url(maps_out/gef_top_tile03.png) 0 0/48px 48px repeat}
 .plat-payon{background:url(maps_out/gla_carpet1.png) 0 0/72px 72px repeat}
+.plat-izlude{background:url(maps_out/gef_top_tile02.png) 0 0/52px 52px repeat}
+.round-carpet{position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);width:104px;height:104px;border-radius:50%;background:radial-gradient(circle,#a51c1c 0%,#7a1212 58%,#3e0909 100%);box-shadow:0 0 0 3px #b9923f,0 5px 12px rgba(0,0,0,.55);z-index:0;pointer-events:none}
+.statue{position:absolute;left:50%;bottom:40%;transform:translateX(-50%);width:50px;height:118px;background:url(maps_out/statue.png) center/contain no-repeat;image-rendering:pixelated;z-index:1;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
 .plat-carpet{position:absolute;left:50%;top:13%;transform:translateX(-50%);width:48%;height:76%;background:url(maps_out/prt_carpet03.png) center/100% 100% no-repeat;border-radius:2px;box-shadow:0 2px 6px rgba(0,0,0,.45)}
 .room-label{position:absolute;transform:translateX(-50%);z-index:6;font:700 15px system-ui;color:#f8ecc8;text-align:center;pointer-events:none;white-space:nowrap;letter-spacing:1px;background:linear-gradient(180deg,#3a2614,#241608);border:2px solid #b9923f;border-radius:5px;padding:5px 14px 6px;box-shadow:3px 3px 0 rgba(0,0,0,.55),inset 0 0 0 1px #5a4424,0 0 10px rgba(0,0,0,.55);text-shadow:1px 1px 0 #000}
 .room-label small{display:block;font-size:9.5px;letter-spacing:1.5px;color:#ecc97e;opacity:.95;margin-top:2px;font-weight:600}
@@ -1172,14 +1175,17 @@
 .cam-btns{position:absolute;right:14px;bottom:14px;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 12px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:6px;padding:7px 12px;cursor:pointer}
 .cam-btns button:hover{background:rgba(60,46,20,.95);border-color:#f5d68a}
+@media (max-width:760px){.room-label{font-size:12px;padding:3px 9px}.room-label small{font-size:8px}.cam-btns{right:8px;bottom:8px;gap:6px}.cam-btns button{font-size:11px;padding:5px 9px}#gridcursor{display:none !important}}
+@media (orientation:landscape) and (max-height:540px){.app{grid-template-columns:1fr 220px !important;grid-template-rows:100dvh !important}.quota-board{transform:scale(.58);transform-origin:top left}.setup-board{transform:scale(.58);transform-origin:bottom right}}
+@media (max-width:760px){.app{height:100dvh}}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="stage-wrap">
     <div class="stage" id="stage">
-      <div class="room r-aldebaran"><div class="grid-overlay"></div><div class="poring-real p-aldebaran"></div></div><div class="room r-geffen"><div class="grid-overlay"></div><div class="poring-real p-geffen"></div><div class="platform plat-geffen"></div></div><div class="room r-izlude"><div class="grid-overlay"></div><div class="poring-real p-izlude"></div></div><div class="room r-prontera"><div class="grid-overlay"></div><div class="poring-real p-prontera"></div><div class="platform plat-prontera"><div class="plat-carpet"></div></div></div><div class="room r-payon"><div class="grid-overlay"></div><div class="poring-real p-payon"></div><div class="platform plat-payon"></div></div><div class="room r-morroc"><div class="grid-overlay"></div><div class="poring-real p-morroc"></div></div><div class="room r-alberta"><div class="grid-overlay"></div><div class="poring-real p-alberta"></div></div>
-      <div class="room-label" style="left:7.14%;top:1.5%">🕰 ALDEBARAN<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:21.43%;top:1.5%">✦ GEFFEN<small>HOSTGATE OFFICE</small></div><div class="room-label" style="left:35.71%;top:1.5%">🌊 IZLUDE<small>INVESTMENT CENTRE</small></div><div class="room-label" style="left:50.0%;top:1.5%">⛪ PRONTERA<small>ศูนย์รวมพล · ASSEMBLY</small></div><div class="room-label" style="left:64.29%;top:1.5%">🏯 PAYON<small>HOTEL PMS</small></div><div class="room-label" style="left:78.57%;top:1.5%">☀ MORROC<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:92.86%;top:1.5%">⚓ ALBERTA<small>· หน้าที่ TBD ·</small></div>
+      <div class="room r-aldebaran"><div class="grid-overlay"></div><div class="poring-real p-aldebaran"></div></div><div class="room r-geffen"><div class="grid-overlay"></div><div class="poring-real p-geffen"></div><div class="platform plat-geffen"></div></div><div class="room r-izlude"><div class="grid-overlay"></div><div class="poring-real p-izlude"></div><div class="round-carpet"></div><div class="statue"></div><div class="platform plat-izlude"></div></div><div class="room r-prontera"><div class="grid-overlay"></div><div class="poring-real p-prontera"></div><div class="platform plat-prontera"><div class="plat-carpet"></div></div></div><div class="room r-payon"><div class="grid-overlay"></div><div class="poring-real p-payon"></div><div class="platform plat-payon"></div></div><div class="room r-morroc"><div class="grid-overlay"></div><div class="poring-real p-morroc"></div></div><div class="room r-alberta"><div class="grid-overlay"></div><div class="poring-real p-alberta"></div></div>
+      <div class="room-label" style="left:7.14%;top:1.5%">🕰 ALDEBARAN<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:21.43%;top:1.5%">✦ GEFFEN<small>HOSTGATE OFFICE</small></div><div class="room-label" style="left:35.71%;top:1.5%">🌊 IZLUDE<small>INVESTMENT CENTRE</small></div><div class="room-label" style="left:50.0%;top:1.5%">⛪ PRONTERA<small>CITY CENTRE</small></div><div class="room-label" style="left:64.29%;top:1.5%">🏯 PAYON<small>HOTEL PMS</small></div><div class="room-label" style="left:78.57%;top:1.5%">☀ MORROC<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:92.86%;top:1.5%">⚓ ALBERTA<small>· หน้าที่ TBD ·</small></div>
       <div class="portal warp-portal" data-a="aldebaran" data-b="geffen" style="left:14.29%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="geffen" data-b="izlude" style="left:28.57%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="izlude" data-b="prontera" style="left:42.86%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="prontera" data-b="payon" style="left:57.14%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="payon" data-b="morroc" style="left:71.43%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="morroc" data-b="alberta" style="left:85.71%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div>
       <div class="clock" id="clock">--:--:--</div>
 
@@ -1216,10 +1222,10 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-echo" style="left:64.29%; top:67%;">
+      <div class="agent idle office-1" id="agent-echo" style="left:35.71%; top:33.0%;">
         <div class="bubble" id="bubble-echo"></div>
         <div class="sprite"><div class="wing8" id="wing8-echo"></div><div class="walk8" id="w8-echo"></div></div>
-        <div class="nameplate"><b>ECHO</b>Minstrel · CS</div>
+        <div class="nameplate"><b>ECHO</b>Minstrel · Investment</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
@@ -1289,7 +1295,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-2" id="agent-kira" style="left:60.71%; top:58%;">
+      <div class="agent idle office-2" id="agent-kira" style="left:61.9%; top:58%;">
         <div class="bubble" id="bubble-kira"></div>
         <div class="sprite"><div class="walk8" id="w8-kira"></div></div>
         <div class="nameplate"><b>KIRA</b>Wanderer · Social</div>
@@ -1305,10 +1311,10 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-2" id="agent-tao" style="left:67.86%; top:58%;">
+      <div class="agent idle office-2" id="agent-tao" style="left:66.67%; top:67%;">
         <div class="bubble" id="bubble-tao"></div>
         <div class="sprite"><div class="walk8" id="w8-tao"></div></div>
-        <div class="nameplate"><b>TAO</b>Sniper · Support</div>
+        <div class="nameplate"><b>TAO</b>Sniper · Support·CS</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
@@ -1441,7 +1447,7 @@ const AGENTS = {
   iris:   { name: "Iris",   role: "Cardinal · Chief of Staff",    office: 1 },
   mira:   { name: "Mira",   role: "Wizard · Frontend",            office: 1 },
   bolt:   { name: "Bolt",   role: "Whitesmith · Backend",         office: 1 },
-  echo:   { name: "Echo",   role: "Minstrel · Customer Success",  office: 1 },
+  echo:   { name: "Echo",   role: "Minstrel · Investment Lead",   office: 1 },
   sage:   { name: "Sage",   role: "Professor · Data",             office: 1 },
   shade:  { name: "Shade",  role: "Assassin X · Security",        office: 1 },
   lumen:  { name: "Lumen",  role: "High Priest · QA",             office: 1 },
@@ -1453,7 +1459,7 @@ const AGENTS = {
   pino:   { name: "Pino",   role: "Alchemist · Demo",             office: 2 },
   kira:   { name: "Kira",   role: "Wanderer · Social",            office: 2 },
   reno:   { name: "Reno",   role: "Champion · Sales",             office: 2 },
-  tao:    { name: "Tao",    role: "Sniper · Support",             office: 2 },
+  tao:    { name: "Tao",    role: "Sniper · Support & CS",        office: 2 },
   zara:   { name: "Zara",   role: "Genetic · PM",                 office: 2 },
   vera:   { name: "Vera",   role: "Soul Reaper · Auditor",        office: 1 },
 };
@@ -1478,15 +1484,15 @@ const HOMES = {
   zara: { x: 21.43, y: 33.0, rx: 3, ry: 3, office: 1 },
   mira: { x: 19.05, y: 58, rx: 3, ry: 3, office: 1 },
   bolt: { x: 23.81, y: 67, rx: 3, ry: 3, office: 1 },
+  echo: { x: 35.71, y: 33.0, rx: 3, ry: 3, office: 1 },
   sage: { x: 33.33, y: 58, rx: 3, ry: 3, office: 1 },
   shade: { x: 38.1, y: 67, rx: 3, ry: 3, office: 1 },
   jarvis: { x: 50.0, y: 33.0, rx: 3, ry: 3, office: 1 },
   iris: { x: 47.0, y: 33.0, rx: 3, ry: 3, office: 1 },
   vera: { x: 53.0, y: 33.0, rx: 3, ry: 3, office: 1 },
   cass: { x: 64.29, y: 33.0, rx: 3, ry: 3, office: 1 },
-  kira: { x: 60.71, y: 58, rx: 3, ry: 3, office: 1 },
-  echo: { x: 64.29, y: 67, rx: 3, ry: 3, office: 1 },
-  tao: { x: 67.86, y: 58, rx: 3, ry: 3, office: 1 },
+  kira: { x: 61.9, y: 58, rx: 3, ry: 3, office: 1 },
+  tao: { x: 66.67, y: 67, rx: 3, ry: 3, office: 1 },
   nyx: { x: 76.19, y: 58, rx: 3, ry: 3, office: 1 },
   vex: { x: 80.95, y: 67, rx: 3, ry: 3, office: 1 },
   reno: { x: 89.29, y: 58, rx: 3, ry: 3, office: 1 },
@@ -1573,6 +1579,10 @@ function setPos(id, x, y) {
     if (wg8) wg8.style.setProperty('--dir', dir);
     a.classList.toggle('facing-back', dir >= 3 && dir <= 5);   // wing z-index flips in front
   }
+  // SPEED LIMIT: constant pace ~1 grid cell / 280ms, clamped 300-2800ms (no teleporting)
+  const _dpx = Math.hypot(dx/100*6300, dy/100*760);
+  const _dur = Math.max(300, Math.min(2800, Math.round(_dpx/64*280)));
+  a.style.transition = 'left '+_dur+'ms ease-in-out, top '+_dur+'ms ease-in-out, opacity 0.35s ease';
   a.classList.add('walking');
   a.style.left = x + '%';
   a.style.top  = y + '%';
@@ -1592,9 +1602,13 @@ function ysort() {
 ysort();
 
 async function walkTo(id, x, y, ms = 2200) {
+  const a = $(`agent-${id}`);
+  const ox = parseFloat(a.style.left)||x, oy = parseFloat(a.style.top)||y;
+  const dpx = Math.hypot((x-ox)/100*6300, (y-oy)/100*760);
+  const dur = Math.max(300, Math.min(2800, Math.round(dpx/64*280)));   // speed cap
   setPos(id, x, y);
-  await sleep(ms);
-  $(`agent-${id}`).classList.remove('walking');
+  await sleep(dur);
+  a.classList.remove('walking');
 }
 
 function spawnPopup(agentId, text, type = 'xp') {
@@ -2527,8 +2541,6 @@ async function trigger() {
   promptEl.value = "";
   if (tryConfigCommand(t)) return;
   // 1) instant keyword movement  2) AI director (freeform)  3) AI business brief
-  if (await tryStageCommand(t)) return;
-  if (await runDirector(t)) return;
   await runBrief(t);
 }
 
@@ -2578,8 +2590,8 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   function $g(id){return document.getElementById(id);}
   var ORDER=["aldebaran","geffen","izlude","prontera","payon","morroc","alberta"], CTR={aldebaran:[7.14,50.0],geffen:[21.43,50.0],izlude:[35.71,50.0],prontera:[50.0,50.0],payon:[64.29,50.0],morroc:[78.57,50.0],alberta:[92.86,50.0]}, RW=14.2857;
   var SW=6300, SH=760, WH=110, GC=64;
-  var PINNED=["cass","iris","jarvis","vera","zara"];   // these stand on their platform and wait for commands (no wander)
-  var POSVER="931ffe49";    // layout fingerprint for position persistence
+  var PINNED=["cass","echo","iris","jarvis","vera","zara"];   // these stand on their platform and wait for commands (no wander)
+  var POSVER="1d8f0057";    // layout fingerprint for position persistence
   function roomAt(x){ var i=Math.floor(x/RW); return ORDER[Math.max(0,Math.min(ORDER.length-1,i))]; }
   function curRoom(id){ var p=$g("agent-"+id); return roomAt(parseFloat(p&&p.style.left)||50); }
   var CAM={ mode:"room",
