@@ -1095,7 +1095,8 @@
 .sprite::before{bottom:-2px !important}
 .nameplate{margin-top:9px !important}
 .npc{transform:translate(-50%,-50%) scale(.72) !important;z-index:3}
-.quota-board{left:43% !important;top:3% !important}
+.stage-wrap > .quota-board{left:14px !important;top:14px !important;z-index:200 !important}
+.stage-wrap > .setup-board{right:14px !important;bottom:54px !important;left:auto !important;top:auto !important;z-index:200 !important}
 .grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:64px 64px;box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
 .grid-on .grid-overlay{opacity:.8}
 .walk8{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);z-index:2;image-rendering:pixelated;pointer-events:none;width:240px;height:200px;background-repeat:no-repeat;background-position-x:0;background-size:1920px 1600px;background-position-y:calc(var(--dir,0) * -200px)}
@@ -2543,6 +2544,15 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     walkVia("jarvis", CTR[dest][0], 58, 800).then(function(){CAM.apply();}); CAM.apply(); }
   function init(){
     var wrap=document.querySelector(".stage-wrap");
+    // Re-parent the AI MANA POOL + setup boards OUT of #stage so they don't scale
+    // with the camera. At ~3.3x zoom an in-stage board covered the whole prontera
+    // view and the floor-click handler ignored clicks on its huge invisible area
+    // -> agents couldn't walk and the model pickers were unreachable. As stage-wrap
+    // children they are HUD: constant size, always on top, always clickable.
+    ["quotaBoard","setupBoard"].forEach(function(id){
+      var b=document.getElementById(id);
+      if(b && wrap && b.parentNode!==wrap) wrap.appendChild(b);
+    });
     var bar=document.createElement("div"); bar.className="cam-btns";
     bar.innerHTML='<button id="zoomout">🗺 ทั้งหมด</button><button id="zoomin">🔍 Pornchai</button>';
     wrap.appendChild(bar);
