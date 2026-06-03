@@ -2459,8 +2459,8 @@ stageEl.style.cursor = "pointer";
 setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค่ะ."), 400);
 </script>
 <style id="ro-v3-css">
-.walk8{image-rendering:pixelated;position:relative;z-index:2;align-self:flex-end;width:136px;height:120px;background-repeat:no-repeat;background-position-x:0;background-size:1088px 960px;background-position-y:calc(var(--dir,0) * -120px)}
-@keyframes w8frame{from{background-position-x:0}to{background-position-x:-1088px}}
+.walk8{image-rendering:pixelated;position:relative;z-index:2;align-self:flex-end;width:170px;height:150px;background-repeat:no-repeat;background-position-x:0;background-size:1360px 1200px;background-position-y:calc(var(--dir,0) * -150px)}
+@keyframes w8frame{from{background-position-x:0}to{background-position-x:-1360px}}
 .agent.walking .walk8{animation:w8frame 0.8s steps(8) infinite}
 #w8-cass{background-image:url(sprites_out/walk8/cass_walk8.png)}
 #w8-echo{background-image:url(sprites_out/walk8/echo_walk8.png)}
@@ -2486,7 +2486,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
 /* ===== v4 world + robust camera ===== */
 .office,.seam,.banner,.upper-deck,.stairs{display:none !important}
 .stage-wrap{overflow:hidden !important}
-#stage{transform-origin:0 0;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+#stage{transform-origin:0 0 !important;transition:none !important;will-change:transform}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;border-radius:3px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 50px rgba(0,0,0,.4), 0 5px 22px rgba(0,0,0,.6)}
 .r-aldebaran{left:35%;top:2%;width:30%;height:28%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 64px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 64px/30px 30px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-geffen{left:2%;top:36%;width:30%;height:28%;background:url(maps_out/rooms/geffen_wall.png) 0 0/auto 64px repeat-x,url(maps_out/rooms/geffen_floor.png) 0 64px/30px 30px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
@@ -2503,6 +2503,10 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
 .cam-btns{position:absolute;right:14px;bottom:14px;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 12px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:6px;padding:7px 12px;cursor:pointer}
 .cam-btns button:hover{background:rgba(60,46,20,.95);border-color:#f5d68a}
+.sprite{filter:none !important}
+.npc{transform:scale(.55);transform-origin:bottom center}
+.nameplate{font-size:9px !important;padding:1px 6px !important;margin-top:6px !important}
+.nameplate b{font-size:11px !important}
 </style>
 <script>(function(){function add(sel,cls){var o=document.querySelector(sel);if(o){var p=document.createElement("div");p.className="poring-real"+(cls?" "+cls:"");o.appendChild(p);}}add(".office.left","");add(".office.right","r2");})();</script>
 <script>
@@ -2526,7 +2530,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       else { var r=RECT[curRoom("jarvis")||"prontera"];
         z=Math.min(W/(r[2]/100*sw), H/(r[3]/100*sh))*1.0; // room fills the screen
         cx=(r[0]+r[2]/2)/100*sw; cy=(r[1]+r[3]/2)/100*sh; }
-      s.style.transform="translate("+(W/2-cx*z)+"px,"+(H/2-cy*z)+"px) scale("+z+")";
+      s.style.setProperty("transform","translate("+(W/2-cx*z)+"px,"+(H/2-cy*z)+"px) scale("+z+")","important");
     }
   };
   window.CAM=CAM;
@@ -2558,6 +2562,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     if(window.ResizeObserver){ new ResizeObserver(function(){ CAM.apply(); }).observe(wrap); }
     window.addEventListener("resize", function(){ CAM.apply(); });
     CAM.apply(); setTimeout(function(){CAM.apply();},400); setTimeout(function(){CAM.apply();},1200);
+    setInterval(function(){ CAM.apply(); }, 1500);   // self-heal: keep the camera correct
   }
   window.addEventListener("load", init);
   if(document.readyState==="complete") init();
