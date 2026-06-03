@@ -1093,9 +1093,8 @@
 #stage{width:6300px !important;height:760px !important;transform-origin:0 0 !important;transition:none !important;will-change:transform}
 .sprite{filter:none !important}
 .npc{transform:translate(-50%,-50%) scale(.55) !important;z-index:3}
-#agent-jarvis .sprite img.wings-img{--wing-bottom:42% !important;--wing-y:14% !important;max-width:120px !important;max-height:74px !important}
-.walk8{position:relative;z-index:2;align-self:flex-end;image-rendering:pixelated;margin:0 auto -3px;width:108px;height:128px;background-repeat:no-repeat;background-position-x:0;background-size:864px 1024px;background-position-y:calc(var(--dir,0) * -128px)}
-@keyframes w8frame{from{background-position-x:0}to{background-position-x:-864px}}
+.walk8{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);z-index:2;image-rendering:pixelated;pointer-events:none;width:276px;height:230px;background-repeat:no-repeat;background-position-x:0;background-size:2208px 1840px;background-position-y:calc(var(--dir,0) * -230px)}
+@keyframes w8frame{from{background-position-x:0}to{background-position-x:-2208px}}
 .agent.walking .walk8{animation:w8frame .8s steps(8) infinite}
 #w8-cass{background-image:url(sprites_out/walk8/cass_walk8.png)}
 #w8-lumen{background-image:url(sprites_out/walk8/lumen_walk8.png)}
@@ -1115,13 +1114,13 @@
 #w8-aria{background-image:url(sprites_out/walk8/aria_walk8.png)}
 #w8-pino{background-image:url(sprites_out/walk8/pino_walk8.png)}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
-.r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 70px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 70px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
-.r-geffen{left:14.2857%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/geffen_wall.png) 0 0/auto 70px repeat-x,url(maps_out/rooms/geffen_floor.png) 0 70px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
-.r-izlude{left:28.5714%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/izlude_wall.png) 0 0/auto 70px repeat-x,url(maps_out/rooms/izlude_floor.png) 0 70px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
-.r-prontera{left:42.8571%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/prontera_wall.png) 0 0/auto 70px repeat-x,url(maps_out/rooms/prontera_floor.png) 0 70px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
-.r-payon{left:57.1428%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/payon_wall.png) 0 0/auto 70px repeat-x,url(maps_out/rooms/payon_floor.png) 0 70px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
-.r-morroc{left:71.4285%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/morroc_wall.png) 0 0/auto 70px repeat-x,url(maps_out/rooms/morroc_floor.png) 0 70px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
-.r-alberta{left:85.7142%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/alberta_wall.png) 0 0/auto 70px repeat-x,url(maps_out/rooms/alberta_floor.png) 0 70px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
+.r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
+.r-geffen{left:14.2857%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/geffen_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/geffen_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
+.r-izlude{left:28.5714%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/izlude_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/izlude_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
+.r-prontera{left:42.8571%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/prontera_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/prontera_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
+.r-payon{left:57.1428%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/payon_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/payon_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
+.r-morroc{left:71.4285%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/morroc_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/morroc_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
+.r-alberta{left:85.7142%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/alberta_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/alberta_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-prontera{box-shadow:inset 0 0 0 2px #6a5020, inset 0 0 70px rgba(0,0,0,.35);border-color:#5a4424}
 .room-label{position:absolute;transform:translateX(-50%);z-index:6;font:600 14px system-ui;color:#f5e3b0;text-shadow:0 1px 2px #000,0 0 7px #000;text-align:center;pointer-events:none;white-space:nowrap}
 .room-label small{display:block;font-size:9px;letter-spacing:1.5px;color:#cdb98a;opacity:.85}
@@ -1138,13 +1137,13 @@
     <div class="stage" id="stage">
       <div class="room r-aldebaran"></div><div class="room r-geffen"></div><div class="room r-izlude"></div><div class="room r-prontera"></div><div class="room r-payon"></div><div class="room r-morroc"></div><div class="room r-alberta"></div>
       <div class="room-label" style="left:7.14%;top:1.5%">🕰 ALDEBARAN<small>OPS</small></div><div class="room-label" style="left:21.43%;top:1.5%">✦ GEFFEN<small>ENGINEERING</small></div><div class="room-label" style="left:35.71%;top:1.5%">🌊 IZLUDE<small>DATA · SEC</small></div><div class="room-label" style="left:50.0%;top:1.5%">⛪ PRONTERA HALL<small>HQ</small></div><div class="room-label" style="left:64.29%;top:1.5%">🏯 PAYON<small>COMMUNITY</small></div><div class="room-label" style="left:78.57%;top:1.5%">☀ MORROC<small>GROWTH</small></div><div class="room-label" style="left:92.86%;top:1.5%">⚓ ALBERTA<small>GO-TO-MARKET</small></div>
-      <div class="portal warp-portal" data-dest="geffen" style="left:13.29%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="aldebaran" style="left:15.29%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="izlude" style="left:27.57%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="geffen" style="left:29.57%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="prontera" style="left:41.86%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="izlude" style="left:43.86%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="payon" style="left:56.14%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="prontera" style="left:58.14%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="morroc" style="left:70.43%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="payon" style="left:72.43%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="alberta" style="left:84.71%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-dest="morroc" style="left:86.71%;top:62%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div>
+      <div class="portal warp-portal" data-a="aldebaran" data-b="geffen" style="left:14.29%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="geffen" data-b="izlude" style="left:28.57%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="izlude" data-b="prontera" style="left:42.86%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="prontera" data-b="payon" style="left:57.14%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="payon" data-b="morroc" style="left:71.43%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="morroc" data-b="alberta" style="left:85.71%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div>
       <div class="clock" id="clock">--:--:--</div>
 
       <!-- ===== Office 1: Hotel PMS ===== -->
       <div class="agent idle office-1" id="agent-jarvis" style="left:47.62%; top:58%;">
         <div class="bubble" id="bubble-jarvis"></div>
-        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><img class="wings-img" src="sprites_out/v2/wing_gold.png" alt=""><div class="walk8" id="w8-jarvis"></div></div>
+        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="walk8" id="w8-jarvis"></div></div>
         <div class="nameplate"><b>PORNCHAI</b>Rebellion · CEO</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1152,7 +1151,7 @@
 
       <div class="agent idle office-1" id="agent-iris" style="left:52.38%; top:67%;">
         <div class="bubble" id="bubble-iris"></div>
-        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><img class="wings-img" src="sprites_out/v2/wing_archangel.png" alt=""><div class="walk8" id="w8-iris"></div></div>
+        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="walk8" id="w8-iris"></div></div>
         <div class="nameplate"><b>IRIS</b>Cardinal · CoS</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1192,7 +1191,7 @@
 
       <div class="agent idle office-1" id="agent-shade" style="left:38.1%; top:67%;">
         <div class="bubble" id="bubble-shade"></div>
-        <div class="sprite"><img class="wings-img" src="sprites_out/v2/wing_devil.png" alt=""><div class="walk8" id="w8-shade"></div></div>
+        <div class="sprite"><div class="walk8" id="w8-shade"></div></div>
         <div class="nameplate"><b>SHADE</b>Assassin X · Sec</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1217,7 +1216,7 @@
       <!-- ===== Office 2: HostGate.app ===== -->
       <div class="agent idle office-2" id="agent-aria" style="left:94.29%; top:58%;">
         <div class="bubble" id="bubble-aria"></div>
-        <div class="sprite"><img class="wings-img" src="sprites_out/v2/wing_fairy_big.png" alt=""><div class="walk8" id="w8-aria"></div></div>
+        <div class="sprite"><div class="walk8" id="w8-aria"></div></div>
         <div class="nameplate"><b>ARIA</b>Bard · Brand</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1225,7 +1224,7 @@
 
       <div class="agent idle office-2" id="agent-vex" style="left:80.95%; top:67%;">
         <div class="bubble" id="bubble-vex"></div>
-        <div class="sprite"><img class="wings-img" src="sprites_out/v2/wing_dragon.png" alt=""><div class="walk8" id="w8-vex"></div></div>
+        <div class="sprite"><div class="walk8" id="w8-vex"></div></div>
         <div class="nameplate"><b>VEX</b>Crusader · SEO</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1257,7 +1256,7 @@
 
       <div class="agent idle office-2" id="agent-reno" style="left:88.57%; top:58%;">
         <div class="bubble" id="bubble-reno"></div>
-        <div class="sprite"><img class="wings-img" src="sprites_out/v2/wing_phoenix.png" alt=""><div class="walk8" id="w8-reno"></div></div>
+        <div class="sprite"><div class="walk8" id="w8-reno"></div></div>
         <div class="nameplate"><b>RENO</b>Champion · Sales</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -2531,7 +2530,10 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     wrap.appendChild(bar);
     $g("zoomout").onclick=function(){ CAM.mode="overview"; CAM.apply(); };
     $g("zoomin").onclick=function(){ CAM.mode="room"; CAM.apply(); };
-    document.querySelectorAll(".warp-portal").forEach(function(wp){ wp.addEventListener("click", function(){ gotoRoom(wp.dataset.dest); }); });
+    document.querySelectorAll(".warp-portal").forEach(function(wp){ wp.addEventListener("click", function(){
+      var a=wp.dataset.a, b=wp.dataset.b, here=curRoom("jarvis");
+      gotoRoom(here===b ? a : b);            // step across the divider to the other room
+    }); });
     if(window.ResizeObserver){ new ResizeObserver(function(){ CAM.apply(); }).observe(wrap); }
     window.addEventListener("resize", function(){ CAM.apply(); });
     CAM.apply(); setTimeout(function(){CAM.apply();},400); setTimeout(function(){CAM.apply();},1200);
