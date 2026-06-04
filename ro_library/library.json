@@ -1,0 +1,87 @@
+{
+ "library": {
+  "effect": {
+   "label": "✨ Effects",
+   "atlas": "at_effect.png",
+   "cols": 16,
+   "cell": 84,
+   "shown": 198,
+   "ok": 198,
+   "total": 209
+  },
+  "item": {
+   "label": "🎒 Item Icons",
+   "atlas": "at_item.png",
+   "cols": 16,
+   "cell": 84,
+   "shown": 600,
+   "ok": 992,
+   "total": 1000
+  },
+  "job": {
+   "label": "🛡️ Jobs / Costumes",
+   "atlas": "at_job.png",
+   "cols": 16,
+   "cell": 84,
+   "shown": 146,
+   "ok": 146,
+   "total": 150
+  },
+  "minimap": {
+   "label": "🗺️ Maps (minimap)",
+   "atlas": "at_minimap.png",
+   "cols": 16,
+   "cell": 84,
+   "shown": 600,
+   "ok": 1032,
+   "total": 1039
+  },
+  "monster": {
+   "label": "👹 Monsters",
+   "atlas": "at_monster.png",
+   "cols": 16,
+   "cell": 84,
+   "shown": 600,
+   "ok": 1373,
+   "total": 1381
+  },
+  "npc": {
+   "label": "🧍 NPCs",
+   "atlas": "at_npc.png",
+   "cols": 16,
+   "cell": 84,
+   "shown": 600,
+   "ok": 1149,
+   "total": 1168
+  },
+  "wing": {
+   "label": "🪽 Wings / Garments",
+   "atlas": "at_wing.png",
+   "cols": 16,
+   "cell": 84,
+   "shown": 242,
+   "ok": 242,
+   "total": 250
+  }
+ },
+ "grf_total": 221431,
+ "categories": {
+  "wing": 108126,
+  "texture": 41313,
+  "sound": 2607,
+  "shield": 2907,
+  "item_icon": 7812,
+  "effect_str": 2267,
+  "job": 11413,
+  "item_sprite": 15561,
+  "model": 9494,
+  "other": 3364,
+  "minimap": 1108,
+  "map": 2783,
+  "effect": 427,
+  "accessory": 6966,
+  "npc": 2340,
+  "monster": 2792,
+  "sprite_other": 151
+ }
+}
