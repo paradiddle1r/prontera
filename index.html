@@ -1145,6 +1145,25 @@
 .wa-angel::before{background:radial-gradient(circle 58px at 50% 62%,rgba(255,250,225,.85) 0%,rgba(255,216,104,.55) 34%,rgba(255,186,52,.26) 62%,transparent 100%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
 .wa-demon::before{background:radial-gradient(circle 58px at 50% 62%,rgba(8,2,12,.82) 0%,rgba(34,5,46,.76) 30%,rgba(150,22,138,.5) 58%,rgba(96,14,150,.3) 80%,transparent 100%);animation:wingAuraPulse 2.2s ease-in-out infinite}
 @keyframes wingAuraPulse{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+#agentChat{position:fixed;right:18px;bottom:92px;width:300px;max-width:84vw;z-index:300;background:linear-gradient(180deg,#1b1710,#13100a);border:2px solid #8a6a3a;border-radius:12px;box-shadow:0 12px 38px rgba(0,0,0,.6);font:13px system-ui;color:#f3e7c8;display:flex;flex-direction:column;overflow:hidden}
+#agentChat[hidden]{display:none}
+#agentChat .ac-head{display:flex;align-items:center;gap:7px;padding:9px 11px;background:rgba(60,46,20,.6);border-bottom:1px solid #6a512c}
+#agentChat .ac-head b{color:#ffd884;font-size:14px}
+#agentChat #ac-role{color:#b79a63;font-size:10px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#agentChat #ac-x{background:none;border:none;color:#caa86a;font-size:19px;line-height:1;cursor:pointer;padding:0 2px}
+#agentChat #ac-x:hover{color:#ffd884}
+#ac-thread{padding:10px;height:232px;overflow-y:auto;display:flex;flex-direction:column;gap:7px}
+.ac-msg{padding:6px 9px;border-radius:9px;max-width:86%;line-height:1.35;white-space:pre-wrap;word-break:break-word}
+.ac-msg .ac-who{display:block;font-size:9px;opacity:.55;margin-bottom:1px}
+.ac-msg.me{align-self:flex-end;background:#39568a;color:#eaf2ff}
+.ac-msg.bot{align-self:flex-start;background:#2a241a;border:1px solid #4a3c22}
+.ac-msg.wait{opacity:.7;font-style:italic}
+.ac-msg.err{align-self:flex-start;background:#5a2222;border:1px solid #7a2c2c}
+#agentChat .ac-in{display:flex;gap:6px;padding:9px;border-top:1px solid #6a512c;background:rgba(0,0,0,.25)}
+#agentChat #ac-msg{flex:1;min-width:0;background:#0e0c08;border:1px solid #6a512c;border-radius:7px;color:#f3e7c8;padding:7px 9px;font:13px system-ui;outline:none}
+#agentChat #ac-msg:focus{border-color:#caa64a}
+#agentChat #ac-send{background:#caa64a;border:none;border-radius:7px;color:#1a1408;font-weight:700;padding:0 14px;cursor:pointer}
+#agentChat #ac-send:hover{background:#e3bd5e}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
 .r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-geffen{left:14.2857%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/geffen_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/geffen_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
@@ -1587,8 +1606,9 @@ function setPos(id, x, y) {
   // pace. ms-per-cell falls from ~560 (1 cell) to 280 (>=4 cells); clamp 450-2800ms.
   const _dpx = Math.hypot(dx/100*6300, dy/100*760);
   const _cells = _dpx/64;
-  const _mpc = Math.max(280, 560 - (_cells-1)*90);
-  const _dur = Math.max(450, Math.min(2800, Math.round(_cells*_mpc)));
+  // idle wandering = slow (speed 1-2); during a brief / active use (ambientOn=false) = speed 3
+  const _mpc = (typeof ambientOn!=="undefined" && ambientOn===false) ? 360 : 640;
+  const _dur = Math.max(420, Math.min(3200, Math.round(_cells*_mpc)));
   a.style.transition = 'left '+_dur+'ms ease-in-out, top '+_dur+'ms ease-in-out, opacity 0.35s ease';
   a.classList.add('walking');
   a.style.left = x + '%';
@@ -1613,8 +1633,8 @@ async function walkTo(id, x, y, ms = 2200) {
   const ox = parseFloat(a.style.left)||x, oy = parseFloat(a.style.top)||y;
   const dpx = Math.hypot((x-ox)/100*6300, (y-oy)/100*760);
   const cells = dpx/64;
-  const mpc = Math.max(280, 560 - (cells-1)*90);   // slow for 1-2 cells, ramps to full
-  const dur = Math.max(450, Math.min(2800, Math.round(cells*mpc)));
+  const mpc = (typeof ambientOn!=="undefined" && ambientOn===false) ? 360 : 640;  // brief=3, idle=1-2
+  const dur = Math.max(420, Math.min(3200, Math.round(cells*mpc)));
   setPos(id, x, y);
   await sleep(dur);
   a.classList.remove('walking');
@@ -2732,27 +2752,43 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       var a=wp.dataset.a, b=wp.dataset.b, here=curRoom("jarvis");
       gotoRoom(here===b ? a : b);            // step across the divider to the other room
     }); });
-    // ── Click an agent to TEXT/CHAT it directly (1:1, bypasses Iris routing) ──
-    document.querySelectorAll(".agent").forEach(function(el){
-      el.style.cursor="pointer";
-      el.addEventListener("click", async function(ev){
-        ev.stopPropagation();                // don't trigger floor walk-to
-        var id=el.id.replace("agent-","");
-        if(typeof AGENTS==="undefined"||!AGENTS[id]) return;
-        var nm=AGENTS[id].name||id;
-        var msg=window.prompt("แชทกับ "+nm+" โดยตรง — พิมพ์ข้อความ:");
-        if(!msg||!msg.trim()) return;
-        setStatus(id,"thinking"); say(id,"…",1500);
-        systemLog("💬 คุณ → "+nm+": "+msg.trim());
+    // ── Click an agent -> PRIVATE 1:1 chat popup (styled; not in the guild log) ──
+    (function(){
+      var pop=document.createElement("div"); pop.id="agentChat"; pop.hidden=true;
+      pop.innerHTML='<div class="ac-head"><b id="ac-name"></b><span id="ac-role"></span><button id="ac-x" title="ปิด">×</button></div>'
+        +'<div id="ac-thread"></div>'
+        +'<div class="ac-in"><input id="ac-msg" placeholder="พิมพ์ข้อความถึงเอเจนท์…" autocomplete="off"><button id="ac-send">ส่ง</button></div>';
+      document.body.appendChild(pop);
+      var thread=pop.querySelector("#ac-thread"), nameEl=pop.querySelector("#ac-name"),
+          roleEl=pop.querySelector("#ac-role"), inp=pop.querySelector("#ac-msg"), curId=null, busy=false;
+      function esc(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+      function addMsg(who,txt,cls){ var d=document.createElement("div"); d.className="ac-msg "+cls;
+        d.innerHTML='<span class="ac-who">'+esc(who)+'</span>'+esc(txt); thread.appendChild(d);
+        thread.scrollTop=thread.scrollHeight; return d; }
+      function openChat(id){ curId=id; var a=(typeof AGENTS!=="undefined"&&AGENTS[id])||{};
+        nameEl.textContent=a.name||id; roleEl.textContent=a.role||""; thread.innerHTML="";
+        pop.hidden=false; setTimeout(function(){inp.focus();},30); }
+      pop.querySelector("#ac-x").onclick=function(){ pop.hidden=true; curId=null; };
+      async function send(){
+        var msg=(inp.value||"").trim(); if(!msg||busy||!curId) return;
+        busy=true; inp.value=""; addMsg("คุณ",msg,"me");
+        var nm=((typeof AGENTS!=="undefined"&&AGENTS[curId])||{}).name||curId;
+        var wait=addMsg(nm,"กำลังคิด…","bot wait");
         try{
-          var r=await fetch(BACKEND+"/agent/"+id+"/work?task="+encodeURIComponent(msg.trim()));
-          var d=await r.json(); var txt=(d&&d.text)||"(ไม่มีคำตอบ)";
-          setStatus(id,"talking"); await say(id,txt,sayMs(txt));
-          systemLog(nm+": "+txt);
-        }catch(e){ systemLog("⚠️ คุยกับ "+nm+" ไม่สำเร็จ (เซิร์ฟเวอร์ Prontera?)"); }
-        if($g("agent-"+id)) setStatus(id,"idle");
+          var r=await fetch(BACKEND+"/agent/"+curId+"/work?task="+encodeURIComponent(msg));
+          var d=await r.json(); wait.remove(); addMsg(nm,(d&&d.text)||"(ไม่มีคำตอบ)","bot");
+        }catch(e){ wait.remove(); addMsg(nm,"⚠️ เชื่อมต่อเซิร์ฟเวอร์ Prontera ไม่ได้","bot err"); }
+        busy=false; inp.focus();
+      }
+      pop.querySelector("#ac-send").onclick=send;
+      inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); send(); }
+        else if(e.key==="Escape"){ pop.hidden=true; curId=null; } });
+      document.querySelectorAll(".agent").forEach(function(el){
+        el.style.cursor="pointer";
+        el.addEventListener("click",function(ev){ ev.stopPropagation();
+          var id=el.id.replace("agent-",""); if(typeof AGENTS==="undefined"||!AGENTS[id]) return; openChat(id); });
       });
-    });
+    })();
     window.addEventListener("keydown", function(e){ if((e.key==="g"||e.key==="G") && !/input|select|textarea/i.test(e.target.tagName||"")) { var s=$g("stage"); if(s) s.classList.toggle("grid-on"); } });
     if(window.ResizeObserver){ new ResizeObserver(function(){ CAM.apply(); }).observe(wrap); }
     window.addEventListener("resize", function(){ CAM.apply(); });
