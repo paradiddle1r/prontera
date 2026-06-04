@@ -1183,6 +1183,35 @@
 .ac-self-n{margin-top:7px;color:#b79a63}
 .ac-notes{margin:4px 0 0;padding-left:16px}
 .ac-notes li{margin-bottom:3px;color:#e0d3a8}
+#dashBtn{position:fixed;left:12px;bottom:46px;z-index:210;background:linear-gradient(180deg,#caa64a,#a07d2c);border:1px solid #ffe9a8;border-radius:8px;color:#1a1408;font:700 12px system-ui;padding:7px 12px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#dashBtn:hover{background:#e3bd5e}
+#dashboard{position:fixed;inset:0;z-index:400;background:rgba(8,6,3,.72);display:flex;align-items:center;justify-content:center}
+#dashboard[hidden]{display:none}
+.dl-box{width:min(1040px,94vw);height:min(82vh,760px);background:linear-gradient(180deg,#1b1710,#13100a);border:2px solid #8a6a3a;border-radius:14px;box-shadow:0 18px 60px #000;display:flex;flex-direction:column;overflow:hidden;color:#f3e7c8;font:13px system-ui}
+.dl-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(60,46,20,.6);border-bottom:1px solid #6a512c}
+.dl-head b{font-size:16px;color:#ffd884}
+.dl-head #dl-sub{flex:1;color:#b79a63;font-size:11px}
+.dl-head #dl-x{background:none;border:none;color:#caa86a;font-size:22px;line-height:1;cursor:pointer}
+.dl-head #dl-x:hover{color:#ffd884}
+.dl-body{flex:1;display:flex;overflow:hidden}
+.dl-col{padding:12px 14px;overflow-y:auto}
+.dl-col h3{margin:0 0 10px;font-size:13px;color:#ffd884;font-weight:700;position:sticky;top:0;background:#15110b;padding:3px 0}
+.dl-col:first-child{width:300px;border-right:1px solid #3a3020;flex:none}
+.dl-col-t{flex:1}
+#dl-agents{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dl-ag{background:#221c12;border:1px solid #3a3020;border-radius:8px;padding:8px}
+.dl-ag-n{color:#ffe9a8;font-weight:700;font-size:13px}
+.dl-ag-r{color:#c4b48c;font-size:10px;margin-top:1px}
+.dl-ag-m{color:#88c0ff;font-size:9px;margin-top:3px}
+.dl-ag-t{color:#a6e22e;font-size:10px;margin-top:4px}
+.dl-tk{background:#1f1a10;border:1px solid #3a3020;border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.dl-tk-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dl-tk-h b{color:#ffd884;font-size:12px}
+.dl-tk-h span{color:#7e7256;font-size:9px;white-space:nowrap}
+.dl-tk-t{color:#e8d9b0;font-weight:600;font-size:12px;margin-top:3px;line-height:1.3}
+.dl-tk-o{color:#c4b48c;font-size:11px;margin-top:2px;line-height:1.4;white-space:pre-wrap}
+.dl-empty{color:#8a7e60;font-style:italic;padding:10px 2px}
+@media(max-width:620px){.dl-col:first-child{width:44%}#dl-agents{grid-template-columns:1fr}}
 .npc::before{content:"";position:absolute;left:50%;bottom:13px;transform:translateX(-50%);width:44px;height:11px;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.5) 0%,rgba(0,0,0,.3) 45%,transparent 72%);z-index:-1;pointer-events:none}
 .nameplate{white-space:nowrap;display:block;width:max-content;position:relative;left:50%;transform:translateX(-50%)}
 .nameplate .model-badge{white-space:nowrap}
@@ -2915,6 +2944,40 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         el.addEventListener("click",function(ev){ ev.stopPropagation();
           var id=el.id.replace("agent-",""); if(typeof AGENTS==="undefined"||!AGENTS[id]) return; openChat(id); });
       });
+    })();
+    // ── 📊 DASHBOARD: big popup summarising ALL agents + ALL tickets ──
+    (function(){
+      var btn=document.createElement("button"); btn.id="dashBtn"; btn.textContent="📊 Dashboard";
+      document.body.appendChild(btn);
+      var dl=document.createElement("div"); dl.id="dashboard"; dl.hidden=true;
+      dl.innerHTML='<div class="dl-box"><div class="dl-head"><b>📊 Dashboard</b><span id="dl-sub"></span><button id="dl-x" title="ปิด">×</button></div>'
+        +'<div class="dl-body"><div class="dl-col"><h3>👥 Agents (<span id="dl-ac">0</span>)</h3><div id="dl-agents"></div></div>'
+        +'<div class="dl-col dl-col-t"><h3>🎫 Tickets / ผลงานทั้งหมด (<span id="dl-tc">0</span>)</h3><div id="dl-tickets"></div></div></div></div>';
+      document.body.appendChild(dl);
+      function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+      async function openDash(){
+        dl.hidden=false;
+        var ag=$g("dl-agents"), tk=$g("dl-tickets");
+        ag.innerHTML='<div class="dl-empty">กำลังโหลด…</div>'; tk.innerHTML="";
+        try{
+          var r=await fetch(BACKEND+"/dashboard"); var d=await r.json();
+          $g("dl-ac").textContent=d.agentCount; $g("dl-tc").textContent=d.ticketCount;
+          ag.innerHTML=(d.agents||[]).map(function(a){
+            return '<div class="dl-ag" data-id="'+a.id+'"><div class="dl-ag-n">'+esc(a.name)+'</div>'
+              +'<div class="dl-ag-r">'+esc(a.role||"-")+'</div>'
+              +'<div class="dl-ag-m">'+esc(a.model||"-")+' · '+esc(a.backend||"")+'</div>'
+              +'<div class="dl-ag-t">🎫 '+(a.tickets||0)+(a.notes?(' · 🧠 '+a.notes):'')+'</div></div>';
+          }).join("")||'<div class="dl-empty">—</div>';
+          tk.innerHTML=(d.tickets||[]).map(function(t){
+            return '<div class="dl-tk"><div class="dl-tk-h"><b>'+esc(t.agentName)+'</b><span>'+esc(t.when)+'</span></div>'
+              +'<div class="dl-tk-t">'+esc(t.task)+'</div><div class="dl-tk-o">'+esc(t.output)+'</div></div>';
+          }).join("")||'<div class="dl-empty">ยังไม่มี ticket</div>';
+        }catch(e){ ag.innerHTML='<div class="dl-empty">⚠️ โหลด dashboard ไม่ได้ (เซิร์ฟเวอร์ Prontera?)</div>'; }
+      }
+      btn.onclick=openDash;
+      $g("dl-x").onclick=function(){ dl.hidden=true; };
+      dl.addEventListener("click",function(e){ if(e.target===dl) dl.hidden=true; });
+      document.addEventListener("keydown",function(e){ if(e.key==="Escape") dl.hidden=true; });
     })();
     window.addEventListener("keydown", function(e){ if((e.key==="g"||e.key==="G") && !/input|select|textarea/i.test(e.target.tagName||"")) { var s=$g("stage"); if(s) s.classList.toggle("grid-on"); } });
     if(window.ResizeObserver){ new ResizeObserver(function(){ CAM.apply(); }).observe(wrap); }
