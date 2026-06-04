@@ -2809,9 +2809,24 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         var msg=(inp.value||"").trim(); if(!msg||busy||!curId) return;
         busy=true; inp.value=""; addMsg("คุณ",msg,"me");
         var nm=((typeof AGENTS!=="undefined"&&AGENTS[curId])||{}).name||curId;
+        // 1) movement command in chat -> actually WALK this agent (no AI guessing)
+        var ms=msg.toLowerCase(), room=null;
+        if(typeof ROOM_KW!=="undefined" && /ไป|ย้าย|ประจำ|เข้าห้อง|อยู่ห้อง|station|move|go ?to/.test(ms)){
+          for(var r in ROOM_KW){ if(ROOM_KW[r].some(function(k){return ms.indexOf(k)>=0;})){ room=r; break; } }
+        }
+        if(room && typeof ROOM_CX!=="undefined" && ROOM_CX[room]){
+          try{ setStatus(curId,"walking");
+            walkAcross(curId, ROOM_CX[room], 58, 1600).then(function(){ if($g("agent-"+curId)) setStatus(curId,"idle"); });
+          }catch(e){}
+          addMsg(nm,"กำลังเดินไปห้อง "+room.toUpperCase()+" ค่ะ","bot");
+          busy=false; inp.focus(); return;
+        }
+        // 2) normal chat — tell the agent its REAL current room so it doesn't guess
+        var here=""; try{ here=curRoom(curId); }catch(e){}
+        var task = here ? ("(ตอนนี้คุณอยู่ห้อง "+here.toUpperCase()+") "+msg) : msg;
         var wait=addMsg(nm,"กำลังคิด…","bot wait");
         try{
-          var r=await fetch(BACKEND+"/agent/"+curId+"/chat?task="+encodeURIComponent(msg));
+          var r=await fetch(BACKEND+"/agent/"+curId+"/chat?task="+encodeURIComponent(task));
           var d=await r.json(); wait.remove(); addMsg(nm,(d&&d.text)||"(ไม่มีคำตอบ)","bot");
         }catch(e){ wait.remove(); addMsg(nm,"⚠️ เชื่อมต่อเซิร์ฟเวอร์ Prontera ไม่ได้","bot err"); }
         busy=false; inp.focus();
