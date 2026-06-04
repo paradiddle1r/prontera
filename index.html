@@ -1216,6 +1216,13 @@
 .flag-eagle{background-image:url(maps_out/decor/flag_eagle.png)}
 .flag-lion{background-image:url(maps_out/decor/flag_lion.png)}
 @keyframes flagWave{to{background-position-x:-1728px}}
+.deco{position:absolute;transform:translate(-50%,-50%);z-index:4;pointer-events:none;image-rendering:pixelated;background-repeat:no-repeat;filter:drop-shadow(2px 3px 2px rgba(0,0,0,.4))}
+.deco-bull{width:61px;height:58px;background-image:url(maps_out/decor/bull.png);background-size:61px 58px}
+.deco-bear{width:56px;height:80px;background-image:url(maps_out/decor/bear.png);background-size:1176px 80px;animation:deco_bear 2.3s steps(21) infinite}
+@keyframes deco_bear{to{background-position-x:-1176px}}
+.deco-board3{width:38px;height:58px;background-image:url(maps_out/decor/board3.png);background-size:38px 58px}
+.deco-ed_orb{width:58px;height:84px;background-image:url(maps_out/decor/ed_orb.png);background-size:1798px 84px;animation:deco_ed_orb 3.4s steps(31) infinite}
+@keyframes deco_ed_orb{to{background-position-x:-1798px}}
 .npc::before{content:"";position:absolute;left:50%;bottom:13px;transform:translateX(-50%);width:44px;height:11px;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.5) 0%,rgba(0,0,0,.3) 45%,transparent 72%);z-index:-1;pointer-events:none}
 .nameplate{white-space:nowrap;display:block;width:max-content;position:relative;left:50%;transform:translateX(-50%)}
 .nameplate .model-badge{white-space:nowrap}
@@ -1414,6 +1421,10 @@
       </div>
       <div class="deco-flag flag-eagle" style="left:45%; top:34%"></div>
       <div class="deco-flag flag-lion" style="left:55%; top:34%"></div>
+      <div class="deco deco-bull" style="left:30%; top:62%"></div>
+      <div class="deco deco-bear" style="left:40%; top:59%"></div>
+      <div class="deco deco-board3" style="left:17%; top:62%"></div>
+      <div class="deco deco-ed_orb" style="left:26%; top:58%"></div>
       <!-- ===== Background NPCs (decoration) ===== -->
       <div class="npc bob" style="left:78.6%; top:35%;">
         <img src="sprites_out/v2/npc_pubmaster.png" alt="">
