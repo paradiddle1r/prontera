@@ -1449,6 +1449,7 @@
               <option value="codex:codex">Codex</option>
               <option value="cursor:cursor">Cursor</option>
               <option value="copilot:copilot">Copilot</option>
+              <option value="antigravity:Gemini 3.5 Flash (Low)">Antigravity</option>
             </select>
           </div>
           <div class="ctrl-row">
@@ -1463,6 +1464,7 @@
               <option value="codex:codex">Codex</option>
               <option value="cursor:cursor">Cursor</option>
               <option value="copilot:copilot">Copilot</option>
+              <option value="antigravity:Gemini 3.5 Flash (Low)">Antigravity</option>
             </select>
           </div>
           <div class="ctrl-row">
@@ -1802,6 +1804,7 @@ function prettyModel(m) {
   else if (s.includes("codex") || s.includes("gpt")) name = "CODEX";
   else if (s.includes("cursor") || s.includes("composer")) name = "CURSOR";
   else if (s.includes("copilot")) name = "COPILOT";
+  else if (s.includes("antigravity") || s.includes("agy")) name = "ANTIGRAVITY";
   else if (s.includes("qwen"))   name = "QWEN";
   else if (s.includes("llama"))  name = "LLAMA";
   else if (s.includes("ollama") || s.includes("local")) name = "LOCAL";
@@ -1870,6 +1873,7 @@ stampModels();
     ["codex:codex", "Codex"],
     ["cursor:cursor", "Cursor"],
     ["copilot:copilot", "Copilot"],
+    ["antigravity:Gemini 3.5 Flash (Low)", "Antigravity"],
   ];
   const optsHtml = OPTS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("");
 
@@ -2020,9 +2024,10 @@ const BACKEND_META = {
   copilot:  { label: "COPILOT",  color: "#2ac3de", plan: "CLI · Free" },
   codex:    { label: "CODEX",    color: "#ff9e64", plan: "CLI · Free" },
   cursor:   { label: "CURSOR",   color: "#ff7eb6", plan: "CLI · Free" },
+  antigravity: { label: "ANTIGRAVITY", color: "#b48cff", plan: "CLI · Free" },
 };
 // Ordered by real capacity (local ∞ + Claude Max on top, free tiers below).
-const QUOTA_ORDER = ["claude", "ollama", "deepseek", "gemini", "copilot", "codex", "cursor"];
+const QUOTA_ORDER = ["claude", "ollama", "deepseek", "gemini", "copilot", "codex", "cursor", "antigravity"];
 function fmtTok(n) {
   n = +n || 0;
   if (n >= 1000000) return (n / 1000000).toFixed(n >= 10000000 ? 0 : 1) + "M";
