@@ -2811,7 +2811,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         var nm=((typeof AGENTS!=="undefined"&&AGENTS[curId])||{}).name||curId;
         var wait=addMsg(nm,"กำลังคิด…","bot wait");
         try{
-          var r=await fetch(BACKEND+"/agent/"+curId+"/work?task="+encodeURIComponent(msg));
+          var r=await fetch(BACKEND+"/agent/"+curId+"/chat?task="+encodeURIComponent(msg));
           var d=await r.json(); wait.remove(); addMsg(nm,(d&&d.text)||"(ไม่มีคำตอบ)","bot");
         }catch(e){ wait.remove(); addMsg(nm,"⚠️ เชื่อมต่อเซิร์ฟเวอร์ Prontera ไม่ได้","bot err"); }
         busy=false; inp.focus();
