@@ -2619,13 +2619,32 @@ const ROOM_KW={
   aldebaran:["aldebaran","อัลเดบา"]
 };
 const ROOM_CX={aldebaran:7.14,geffen:21.43,izlude:35.71,prontera:50,payon:64.29,morroc:78.57,alberta:92.86};
+const HOME_ROOM={"lumen":"aldebaran","mira":"geffen","bolt":"geffen","zara":"geffen","sage":"izlude","shade":"izlude","echo":"izlude","jarvis":"prontera","iris":"prontera","vera":"prontera","kira":"payon","tao":"payon","cass":"payon","nyx":"morroc","vex":"morroc","reno":"alberta","aria":"alberta","pino":"alberta"};
+function tryArrangeCommand(t){
+  var s=(t||"").toLowerCase();
+  if(!/จัดทีม|เข้าห้อง|กลับห้อง|ห้องตัวเอง|ห้องที่เกี่ยว|ตามสายงาน|แต่ละทีม|แต่ละคน|ประจำห้อง|ทุกคนกลับ|จัดห้อง|เข้าประจำ/.test(s)) return false;
+  var byRoom={}; Object.keys(HOME_ROOM).forEach(function(id){ (byRoom[HOME_ROOM[id]]=byRoom[HOME_ROOM[id]]||[]).push(id); });
+  var moved=0;
+  for(var rm in byRoom){ if(!ROOM_CX[rm]) continue; var cx=ROOM_CX[rm], list=byRoom[rm];
+    list.forEach(function(id,i){ if(!document.getElementById("agent-"+id)) return;
+      var x=cx + (i-(list.length-1)/2)*4.5;
+      try{ setStatus(id,"walking"); walkAcross(id, x, 58, 1700).then(function(){ if($g("agent-"+id)) setStatus(id,"idle"); }); }catch(e){}
+      moved++;
+    });
+  }
+  if(!moved) return false;
+  systemLog("\u27a1\ufe0f \u0e08\u0e31\u0e14\u0e17\u0e35\u0e21\u0e40\u0e02\u0e49\u0e32\u0e2b\u0e49\u0e2d\u0e07\u0e15\u0e32\u0e21\u0e2a\u0e32\u0e22\u0e07\u0e32\u0e19 \u2014 "+moved+" \u0e15\u0e31\u0e27\u0e40\u0e14\u0e34\u0e19\u0e01\u0e25\u0e31\u0e1a\u0e2b\u0e49\u0e2d\u0e07\u0e02\u0e2d\u0e07\u0e15\u0e31\u0e27\u0e40\u0e2d\u0e07");
+  return true;
+}
+
 function tryMoveCommand(t){
   const s=(t||"").toLowerCase();
   if(!/ไป|ย้าย|ประจำ|เข้าห้อง|อยู่ห้อง|อยู่ที่|station|move|go ?to|goto/.test(s)) return false;
   let room=null;
   for(const r in ROOM_KW){ if(ROOM_KW[r].some(k=>s.includes(k))){ room=r; break; } }
   if(!room || !ROOM_CX[room]) return false;
-  const ids=Object.keys(AGENTS).filter(id=>{ const nm=(AGENTS[id].name||"").toLowerCase();
+  const _all=/ทุกคน|ทุกตัว|ทั้งทีม|ทั้งหมด|everyone|\ball\b/.test(s);
+  const ids=_all?Object.keys(AGENTS):Object.keys(AGENTS).filter(id=>{ const nm=(AGENTS[id].name||"").toLowerCase();
     return s.includes(id) || (nm.length>1 && s.includes(nm)); });
   if(!ids.length) return false;
   const cx=ROOM_CX[room];
@@ -2643,6 +2662,7 @@ async function trigger() {
   if (!t) return;
   promptEl.value = "";
   if (tryConfigCommand(t)) return;
+  if (tryArrangeCommand(t)) return;
   if (tryMoveCommand(t)) return;
   // 1) instant keyword movement  2) AI director (freeform)  3) AI business brief
   await runBrief(t);
