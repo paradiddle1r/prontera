@@ -2589,11 +2589,43 @@ function tryConfigCommand(t){
   }
   return false;
 }
+// Direct MOVE command: "<agent> ไป/ย้าย/ประจำ <room>" walks that agent to the room
+// itself — no Iris routing, no AI brief. Handles the "go station in room X" case.
+const ROOM_KW={
+  prontera:["prontera","โปรเทรา","สำนักงานใหญ่","กองบัญชาการ","headquarter","hq"],
+  geffen:["geffen","เกฟเฟน","hostgate"],
+  izlude:["izlude","อิสลู","investment","ลงทุน"],
+  payon:["payon","พายอน","hotel","pms","โรงแรม"],
+  morroc:["morroc","morocc","มอร็อค","มอรอค"],
+  alberta:["alberta","อัลเบอร์","อัลเบอตา"],
+  aldebaran:["aldebaran","อัลเดบา"]
+};
+const ROOM_CX={aldebaran:7.14,geffen:21.43,izlude:35.71,prontera:50,payon:64.29,morroc:78.57,alberta:92.86};
+function tryMoveCommand(t){
+  const s=(t||"").toLowerCase();
+  if(!/ไป|ย้าย|ประจำ|เข้าห้อง|อยู่ห้อง|อยู่ที่|station|move|go ?to|goto/.test(s)) return false;
+  let room=null;
+  for(const r in ROOM_KW){ if(ROOM_KW[r].some(k=>s.includes(k))){ room=r; break; } }
+  if(!room || !ROOM_CX[room]) return false;
+  const ids=Object.keys(AGENTS).filter(id=>{ const nm=(AGENTS[id].name||"").toLowerCase();
+    return s.includes(id) || (nm.length>1 && s.includes(nm)); });
+  if(!ids.length) return false;
+  const cx=ROOM_CX[room];
+  ids.forEach((id,i)=>{
+    const x=cx + (i-(ids.length-1)/2)*4.2;
+    setStatus(id,"walking");
+    walkAcross(id, x, 58, 1600).then(function(){ if($g("agent-"+id)) setStatus(id,"idle"); });
+    say(id, "ไปประจำห้อง "+room.toUpperCase()+" แล้ว", 2200);
+  });
+  systemLog("➡️ ย้าย "+ids.map(i=>AGENTS[i].name||i).join(", ")+" → "+room.toUpperCase());
+  return true;
+}
 async function trigger() {
   const t = promptEl.value.trim();
   if (!t) return;
   promptEl.value = "";
   if (tryConfigCommand(t)) return;
+  if (tryMoveCommand(t)) return;
   // 1) instant keyword movement  2) AI director (freeform)  3) AI business brief
   await runBrief(t);
 }
