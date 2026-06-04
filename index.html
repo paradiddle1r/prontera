@@ -1108,8 +1108,9 @@
 #agent-jarvis .ceo-wingaura{position:absolute;left:50%;top:14px;width:150px;height:92px;transform:translateX(-50%);z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(255,170,70,.5),rgba(255,80,150,.32) 44%,rgba(120,150,255,.16) 70%,transparent 82%);filter:blur(10px);mix-blend-mode:screen;animation:ceoWingAura 2.6s ease-in-out infinite}
 @keyframes ceoWingAura{0%,100%{opacity:.45;transform:translateX(-50%) scale(.98)}50%{opacity:.85;transform:translateX(-50%) scale(1.07)}}
 .feet-aura{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);width:92px;height:40px;z-index:0;pointer-events:none;border-radius:50%;filter:blur(4px);mix-blend-mode:screen;animation:feetAuraPulse 1.5s ease-in-out infinite}
-.fa-purple{background:radial-gradient(ellipse at 50% 60%,rgba(210,130,255,.95),rgba(160,80,235,.6) 40%,rgba(120,40,210,.25) 66%,transparent 80%)}
-.fa-yellow{background:radial-gradient(ellipse at 50% 60%,rgba(255,240,150,.95),rgba(255,205,70,.6) 40%,rgba(235,165,35,.25) 66%,transparent 80%)}
+.fa-purple{background:radial-gradient(ellipse at 50% 60%,rgba(216,162,255,.58),rgba(170,110,235,.4) 40%,rgba(130,70,210,.16) 66%,transparent 80%)}
+.fa-yellow{background:radial-gradient(ellipse at 50% 60%,rgba(255,245,185,.58),rgba(255,216,96,.4) 40%,rgba(235,182,56,.16) 66%,transparent 80%)}
+.fa-green{background:radial-gradient(ellipse at 50% 60%,rgba(186,255,194,.55),rgba(132,235,158,.38) 40%,rgba(96,205,128,.15) 66%,transparent 80%)}
 @keyframes feetAuraPulse{0%,100%{opacity:.55;transform:translateX(-50%) scale(1)}50%{opacity:.95;transform:translateX(-50%) scale(1.16)}}
 .walk8{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);z-index:2;image-rendering:pixelated;pointer-events:none;width:240px;height:200px;background-repeat:no-repeat;background-position-x:0;background-size:1920px 1600px;background-position-y:calc(var(--dir,0) * -200px)}
 @keyframes w8frame{from{background-position-x:0}to{background-position-x:-1920px}}
@@ -1201,7 +1202,6 @@
 .room-label small{display:block;font-size:9.5px;letter-spacing:1.5px;color:#ecc97e;opacity:.95;margin-top:2px;font-weight:600}
 .warp-portal{position:absolute;transform:translate(-50%,-50%) scale(.85) scaleY(.62);cursor:pointer;pointer-events:auto;z-index:5;opacity:.95}
 .warp-portal:hover{filter:brightness(1.35)}
-.aura-green{filter:hue-rotate(72deg) saturate(1.25) brightness(1.05)}
 .cam-btns{position:absolute;right:14px;bottom:14px;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 12px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:6px;padding:7px 12px;cursor:pointer}
 .cam-btns button:hover{background:rgba(60,46,20,.95);border-color:#f5d68a}
@@ -1215,7 +1215,7 @@
   <div class="stage-wrap">
     <div class="stage" id="stage">
       <div class="room r-aldebaran"><div class="grid-overlay"></div><div class="poring-real p-aldebaran"></div></div><div class="room r-geffen"><div class="grid-overlay"></div><div class="poring-real p-geffen"></div><div class="platform plat-geffen"></div></div><div class="room r-izlude"><div class="grid-overlay"></div><div class="poring-real p-izlude"></div><div class="platform plat-izlude"></div></div><div class="room r-prontera"><div class="grid-overlay"></div><div class="poring-real p-prontera"></div><div class="platform plat-prontera"><div class="plat-carpet"></div></div></div><div class="room r-payon"><div class="grid-overlay"></div><div class="poring-real p-payon"></div><div class="platform plat-payon"></div></div><div class="room r-morroc"><div class="grid-overlay"></div><div class="poring-real p-morroc"></div></div><div class="room r-alberta"><div class="grid-overlay"></div><div class="poring-real p-alberta"></div></div>
-      <div class="room-label" style="left:7.14%;top:1.5%">🕰 ALDEBARAN<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:21.43%;top:1.5%">✦ GEFFEN<small>HOSTGATE OFFICE</small></div><div class="room-label" style="left:35.71%;top:1.5%">🌊 IZLUDE<small>INVESTMENT CENTRE</small></div><div class="room-label" style="left:50.0%;top:1.5%">⛪ PRONTERA<small>CITY CENTRE</small></div><div class="room-label" style="left:64.29%;top:1.5%">🏯 PAYON<small>HOTEL PMS</small></div><div class="room-label" style="left:78.57%;top:1.5%">☀ MORROC<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:92.86%;top:1.5%">⚓ ALBERTA<small>· หน้าที่ TBD ·</small></div>
+      <div class="room-label" style="left:7.14%;top:1.5%">🕰 ALDEBARAN<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:21.43%;top:1.5%">✦ GEFFEN<small>HOSTGATE OFFICE</small></div><div class="room-label" style="left:35.71%;top:1.5%">🌊 IZLUDE<small>INVESTMENT CENTRE</small></div><div class="room-label" style="left:50.0%;top:1.5%">⛪ PRONTERA<small>HEADQUARTER</small></div><div class="room-label" style="left:64.29%;top:1.5%">🏯 PAYON<small>HOTEL PMS</small></div><div class="room-label" style="left:78.57%;top:1.5%">☀ MORROC<small>· หน้าที่ TBD ·</small></div><div class="room-label" style="left:92.86%;top:1.5%">⚓ ALBERTA<small>· หน้าที่ TBD ·</small></div>
       <div class="portal warp-portal" data-a="aldebaran" data-b="geffen" style="left:14.29%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="geffen" data-b="izlude" style="left:28.57%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="izlude" data-b="prontera" style="left:42.86%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="prontera" data-b="payon" style="left:57.14%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="payon" data-b="morroc" style="left:71.43%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div><div class="portal warp-portal" data-a="morroc" data-b="alberta" style="left:85.71%;top:88%"><span class="beams"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div>
       <div class="clock" id="clock">--:--:--</div>
 
@@ -1254,7 +1254,7 @@
 
       <div class="agent idle office-1" id="agent-echo" style="left:35.71%; top:33.0%;">
         <div class="bubble" id="bubble-echo"></div>
-        <div class="sprite"><div class="aura-iris aura-green"><div class="aura-iris-beams"></div></div><div class="wing8" id="wing8-echo"></div><div class="walk8" id="w8-echo"></div></div>
+        <div class="sprite"><div class="feet-aura fa-green"></div><div class="wing8" id="wing8-echo"></div><div class="walk8" id="w8-echo"></div></div>
         <div class="nameplate"><b>ECHO</b>Minstrel · Investment</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
