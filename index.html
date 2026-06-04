@@ -765,7 +765,7 @@
   .quota-board {
     position: absolute;
     left: 1.6%; top: 2%;
-    width: 186px;
+    width: 216px;
     background: linear-gradient(180deg, rgba(36,20,5,0.96), rgba(22,12,4,0.96));
     border: 2px solid var(--gold);
     box-shadow: 3px 3px 0 #000, inset 0 0 0 1px #4a3416;
@@ -1098,9 +1098,9 @@
 .npc-label{color:#fff6df !important;font-weight:700 !important;letter-spacing:.5px;background:rgba(18,11,4,.72);padding:1px 6px;border-radius:3px;text-shadow:1px 1px 0 #000,0 0 5px #000 !important}
 .stage-wrap > .quota-board{left:14px !important;top:14px !important;z-index:200 !important}
 .stage-wrap > .setup-board{right:14px !important;bottom:54px !important;left:auto !important;top:auto !important;z-index:200 !important}
-.grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:64px 64px;box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
+.grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:48px 48px;box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
 .grid-on .grid-overlay{opacity:.8}
-#gridcursor{position:absolute;width:64px;height:64px;pointer-events:none;z-index:3;display:none;border:2px solid rgba(120,215,255,.5);border-radius:14px;background:rgba(90,205,255,.12);box-shadow:0 0 22px 6px rgba(90,205,255,.6),inset 0 0 18px rgba(140,228,255,.55);filter:blur(.7px);animation:gcPulse 1.1s ease-in-out infinite}
+#gridcursor{position:absolute;width:48px;height:48px;pointer-events:none;z-index:3;display:none;border:2px solid rgba(120,215,255,.5);border-radius:14px;background:rgba(90,205,255,.12);box-shadow:0 0 22px 6px rgba(90,205,255,.6),inset 0 0 18px rgba(140,228,255,.55);filter:blur(.7px);animation:gcPulse 1.1s ease-in-out infinite}
 @keyframes gcPulse{0%,100%{opacity:.7}50%{opacity:1}}
 #agent-oman .ceo-mesh{position:absolute;left:50%;bottom:-18px;width:200px;height:210px;transform:translateX(-50%);z-index:0;pointer-events:none;border-radius:48% 52% 50% 50%;background:conic-gradient(from 0deg,#ff2d6f,#ff9e2d,#ffe93d,#3dff8e,#2dd4ff,#7c5cff,#ff2d6f);filter:blur(24px) saturate(1.5);opacity:.5;mix-blend-mode:screen;animation:ceoMeshSpin 7s linear infinite, ceoMeshPulse 3.2s ease-in-out infinite}
 @keyframes ceoMeshSpin{to{transform:translateX(-50%) rotate(360deg)}}
@@ -1143,8 +1143,8 @@
 #wing8-zara{background-image:url(sprites_out/walk8/zara_wing8.png)}
 .wing-aura{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:240px;height:200px;z-index:0;pointer-events:none}
 .wing-aura::before{content:"";position:absolute;inset:0;transform-origin:50% 62%}
-.wa-angel::before{background:radial-gradient(circle 58px at 50% 62%,rgba(255,250,225,.85) 0%,rgba(255,216,104,.55) 34%,rgba(255,186,52,.26) 62%,transparent 100%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
-.wa-demon::before{background:radial-gradient(circle 58px at 50% 62%,rgba(8,2,12,.82) 0%,rgba(34,5,46,.76) 30%,rgba(150,22,138,.5) 58%,rgba(96,14,150,.3) 80%,transparent 100%);animation:wingAuraPulse 2.2s ease-in-out infinite}
+.wa-angel::before{background:radial-gradient(ellipse 56px 145px at 50% 30%,rgba(255,250,225,.85) 0%,rgba(255,216,104,.55) 34%,rgba(255,186,52,.26) 62%,transparent 100%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
+.wa-demon::before{background:radial-gradient(ellipse 56px 145px at 50% 30%,rgba(8,2,12,.82) 0%,rgba(34,5,46,.76) 30%,rgba(150,22,138,.5) 58%,rgba(96,14,150,.3) 80%,transparent 100%);animation:wingAuraPulse 2.2s ease-in-out infinite}
 @keyframes wingAuraPulse{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 #agentChat{position:fixed;right:18px;bottom:92px;width:300px;max-width:84vw;z-index:300;background:linear-gradient(180deg,#1b1710,#13100a);border:2px solid #8a6a3a;border-radius:12px;box-shadow:0 12px 38px rgba(0,0,0,.6);font:13px system-ui;color:#f3e7c8;display:flex;flex-direction:column;overflow:hidden}
 #agentChat[hidden]{display:none}
@@ -1183,10 +1183,47 @@
 .ac-self-n{margin-top:7px;color:#b79a63}
 .ac-notes{margin:4px 0 0;padding-left:16px}
 .ac-notes li{margin-bottom:3px;color:#e0d3a8}
-#dashBtn{position:fixed;left:12px;bottom:46px;z-index:210;background:linear-gradient(180deg,#caa64a,#a07d2c);border:1px solid #ffe9a8;border-radius:8px;color:#1a1408;font:700 12px system-ui;padding:7px 12px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.5)}
-#dashBtn:hover{background:#e3bd5e}
+#menuBtn{position:fixed;left:12px;bottom:46px;z-index:210;background:linear-gradient(180deg,#caa64a,#a07d2c);border:1px solid #ffe9a8;border-radius:8px;color:#1a1408;font:700 12px system-ui;padding:7px 12px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#menuBtn:hover{background:#e3bd5e}
 #dashboard{position:fixed;inset:0;z-index:400;background:rgba(8,6,3,.72);display:flex;align-items:center;justify-content:center}
 #dashboard[hidden]{display:none}
+.menu-box{width:min(1100px,95vw);height:min(84vh,780px);background:linear-gradient(180deg,#1b1710,#13100a);border:2px solid #8a6a3a;border-radius:14px;box-shadow:0 18px 60px #000;display:flex;flex-direction:column;overflow:hidden;color:#f3e7c8;font:13px system-ui}
+.menu-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:9px 12px 0;background:rgba(60,46,20,.6);border-bottom:1px solid #6a512c}
+.menu-tabs button{background:#221c12;border:1px solid #3a3020;border-bottom:none;border-radius:8px 8px 0 0;color:#c4b48c;font:600 12px system-ui;padding:7px 11px;cursor:pointer;white-space:nowrap}
+.menu-tabs button:hover{color:#ffe9a8;background:#2a2216}
+.menu-tabs button.on{background:#15110b;color:#ffd884;border-color:#8a6a3a}
+.menu-tabs #menu-x{margin-left:auto;background:none;border:none;color:#caa86a;font-size:22px;line-height:1;cursor:pointer;align-self:center}
+.menu-tabs #menu-x:hover{color:#ffd884}
+.menu-panels{flex:1;overflow:hidden;display:flex}
+.menu-panel{flex:1;overflow-y:auto;padding:12px 16px;display:none}
+.menu-panel.on{display:block}
+.menu-panel h3{margin:0 0 10px;font-size:14px;color:#ffd884;font-weight:700}
+.menu-panel.dash-panel{display:none;padding:0}
+.menu-panel.dash-panel.on{display:flex}
+.mn-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.mn-room{background:#221c12;border:1px solid #3a3020;border-radius:10px;padding:10px 12px;cursor:pointer}
+.mn-room:hover{border-color:#8a6a3a;background:#2a2216}
+.mn-room-n{color:#ffe9a8;font-weight:700;font-size:14px}
+.mn-room-s{color:#c4b48c;font-size:11px;margin-top:2px}
+.mn-room-a{color:#88c0ff;font-size:10px;margin-top:6px;line-height:1.4}
+.mn-room-t{color:#a6e22e;font-size:11px;margin-top:5px}
+.mn-room-h{font-size:9px;margin-top:5px;color:#7e7256}
+.mn-empty{color:#8a7e60;font-style:italic;padding:14px 4px;text-align:center}
+.mn-controls .ctrl-panel{margin:0;border:none;padding:0}
+.mn-ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.mn-ctrl-row label{min-width:150px;color:#e8d9b0;font-weight:600}
+.mn-ctrl-row button{background:#221c12;border:1px solid #8a6a3a;border-radius:7px;color:#f5e3b0;font:600 12px system-ui;padding:6px 11px;cursor:pointer}
+.mn-ctrl-row button:hover{background:#2a2216}
+.mn-ctrl-row button.on{background:#4a1414;color:#ffb0b0;border-color:#a33}
+.mn-grid-search{width:100%;box-sizing:border-box;background:#15110b;border:1px solid #6a512c;border-radius:7px;color:#f3e7c8;font:13px system-ui;padding:7px 10px;margin-bottom:10px}
+.mn-grid-list{max-height:100%}
+.mn-grid-row{display:flex;align-items:center;gap:10px;padding:5px 8px;border-bottom:1px solid #2a2418}
+.mn-grid-row:hover{background:#221c12}
+.mn-grid-cell{color:#ffe9a8;font-weight:700;font-family:ui-monospace,monospace;min-width:62px}
+.mn-grid-room{color:#c4b48c;font-size:11px;min-width:78px}
+.mn-grid-xy{color:#88c0ff;font-size:10px;flex:1}
+.mn-grid-row button{background:#221c12;border:1px solid #3a3020;border-radius:6px;color:#caa86a;font:600 10px system-ui;padding:3px 7px;cursor:pointer}
+.mn-grid-row button:hover{color:#ffd884;border-color:#8a6a3a}
 .dl-box{width:min(1040px,94vw);height:min(82vh,760px);background:linear-gradient(180deg,#1b1710,#13100a);border:2px solid #8a6a3a;border-radius:14px;box-shadow:0 18px 60px #000;display:flex;flex-direction:column;overflow:hidden;color:#f3e7c8;font:13px system-ui}
 .dl-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(60,46,20,.6);border-bottom:1px solid #6a512c}
 .dl-head b{font-size:16px;color:#ffd884}
@@ -1236,17 +1273,17 @@
 .r-morroc{left:71.4285%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/morroc_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/morroc_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-alberta{left:85.7142%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/alberta_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/alberta_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-prontera{box-shadow:inset 0 0 0 2px #6a5020, inset 0 0 70px rgba(0,0,0,.35);border-color:#5a4424}
-.poring-real{position:absolute;width:41px;height:45px;image-rendering:pixelated;z-index:2;background:url(sprites_out/fx/poring_walk.png) 0 0/410px 45px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.4));pointer-events:none;animation:poringWalk 1s steps(10) infinite, poringHopLocal 13s ease-in-out infinite, poringFaceLocal 13s step-end infinite}
+.poring-real{position:absolute;width:41px;height:45px;image-rendering:pixelated;z-index:2;background:url(sprites_out/fx/poring_walk.png) 0 0/410px 45px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.4));pointer-events:none;animation:poringWalk 2s steps(10) infinite, poringHopLocal 26s ease-in-out infinite, poringFaceLocal 26s step-end infinite}
 @keyframes poringWalk{to{background-position:-410px 0}}
 @keyframes poringHopLocal{0%{left:22%;top:60%}7%{left:22%;top:60%}16%{left:68%;top:52%}32%{left:68%;top:52%}50%{left:40%;top:70%}59%{left:40%;top:70%}70%{left:78%;top:58%}86%{left:30%;top:64%}94%{left:30%;top:64%}100%{left:22%;top:60%}}
 @keyframes poringFaceLocal{0%{transform:scaleX(-1)}18%{transform:scaleX(1)}38%{transform:scaleX(-1)}58%{transform:scaleX(1)}78%{transform:scaleX(-1)}}
-.p-aldebaran{animation-delay:-0.0s,-0.0s,-0.0s;animation-duration:1s,11s,11s}
-.p-geffen{animation-delay:-1.9s,-1.9s,-1.9s;animation-duration:1s,12s,12s}
-.p-izlude{animation-delay:-3.8s,-3.8s,-3.8s;animation-duration:1s,13s,13s}
-.p-prontera{animation-delay:-5.7s,-5.7s,-5.7s;animation-duration:1s,14s,14s}
-.p-payon{animation-delay:-7.6s,-7.6s,-7.6s;animation-duration:1s,15s,15s}
-.p-morroc{animation-delay:-9.5s,-9.5s,-9.5s;animation-duration:1s,16s,16s}
-.p-alberta{animation-delay:-11.4s,-11.4s,-11.4s;animation-duration:1s,17s,17s}
+.p-aldebaran{animation-delay:-0.0s,-0.0s,-0.0s;animation-duration:2s,22s,22s}
+.p-geffen{animation-delay:-1.9s,-1.9s,-1.9s;animation-duration:2s,24s,24s}
+.p-izlude{animation-delay:-3.8s,-3.8s,-3.8s;animation-duration:2s,26s,26s}
+.p-prontera{animation-delay:-5.7s,-5.7s,-5.7s;animation-duration:2s,28s,28s}
+.p-payon{animation-delay:-7.6s,-7.6s,-7.6s;animation-duration:2s,30s,30s}
+.p-morroc{animation-delay:-9.5s,-9.5s,-9.5s;animation-duration:2s,32s,32s}
+.p-alberta{animation-delay:-11.4s,-11.4s,-11.4s;animation-duration:2s,34s,34s}
 .platform{position:absolute;left:50%;transform:translateX(-50%);top:16%;width:62%;height:25%;image-rendering:pixelated;z-index:1;border:2px solid #14110a;border-radius:2px;box-shadow:0 7px 0 #1a120a, 0 10px 0 #0c0805, 0 18px 16px rgba(0,0,0,.55);outline:1px solid rgba(255,240,200,.10);outline-offset:-3px}
 .plat-prontera{background:url(maps_out/wood_floor.png) 0 0/46px 46px repeat}
 .plat-geffen{background:linear-gradient(180deg,#363842 0%,#272932 55%,#1f2027 100%)}
@@ -1698,7 +1735,8 @@ function ysort() {
 }
 ysort();
 
-async function walkTo(id, x, y, ms = 2200) {
+async function walkTo(id, x, y, ms = 2200, noClamp = false) {
+  if(!noClamp && window.WORLD && window.WORLD.clamp){ const _c=window.WORLD.clamp(x,y); x=_c[0]; y=_c[1]; }
   const a = $(`agent-${id}`);
   const ox = parseFloat(a.style.left)||x, oy = parseFloat(a.style.top)||y;
   const dpx = Math.hypot((x-ox)/100*6300, (y-oy)/100*760);
@@ -2386,20 +2424,24 @@ async function runBrief(task) {
   setStatus("iris", "delegating");
   await say("iris", plan.intro || "รับเรื่องค่ะ ✦", 2600);
 
-  // ── 4. Iris SUMMONS each assignee to her current spot (real office: called ->
-  //       they come; crossing rooms goes through the warp). Iris holds at HQ. ─
-  for (const r of plan.routes) {
-    const id = r.agent;
-    if (!AGENTS[id]) continue;
-    const ia = $(`agent-iris`);
-    const ix = parseFloat(ia.style.left) || HOMES.iris.x;
-    const iy = parseFloat(ia.style.top)  || HOMES.iris.y;
-    setStatus("iris", "delegating");
-    await walkAcross(id, ix + (Math.random()*7 - 3.5), iy + 6, 1900);
-    await say("iris", r.task, sayMs(r.task));
-    setStatus(id, "thinking");
+  // ── 4. Iris DELIVERS the task by walking to each assignee in turn (real office:
+  //       the Chief of Staff comes to you). Inverted from the old summon. Crossing
+  //       rooms goes through the warp. Shared impl (window.WORLD.deliver) so Vera
+  //       can reuse the same delivery walk for her own routing. ─
+  if (window.WORLD && window.WORLD.deliver) {
+    await window.WORLD.deliver("iris", plan.routes);
+  } else {
+    for (const r of plan.routes) {
+      const id = r.agent; if (!AGENTS[id]) continue;
+      const ae = $(`agent-${id}`);
+      const ax = parseFloat(ae.style.left) || 50, ay = parseFloat(ae.style.top) || 58;
+      setStatus("iris", "delegating");
+      await walkAcross("iris", ax + (Math.random()*5 - 2.5), ay + 6, 1900);
+      await say("iris", r.task, sayMs(r.task));
+      setStatus(id, "thinking");
+    }
+    setStatus("iris", "idle");
   }
-  setStatus("iris", "idle");
 
   // ── 6. Show each agent's real work output as it arrives ───────────
   for (const r of plan.routes) {
@@ -2745,6 +2787,7 @@ stageEl.addEventListener("click", async (e) => {
   let cx = Math.max(3, Math.min(97, x));
   let cy = Math.max(20, Math.min(92, y));
   if (window.__gcSnap) { const s = window.__gcSnap(cx, cy); cx = s[0]; cy = s[1]; }
+  if (window.WORLD && window.WORLD.clamp) { const s2 = window.WORLD.clamp(cx, cy); cx = s2[0]; cy = s2[1]; }
   omanMoving = true;
   setStatus("oman", "walking");
   try {
@@ -2764,11 +2807,34 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
 (function(){
   function $g(id){return document.getElementById(id);}
   var ORDER=["aldebaran","geffen","izlude","prontera","payon","morroc","alberta"], CTR={aldebaran:[7.14,50.0],geffen:[21.43,50.0],izlude:[35.71,50.0],prontera:[50.0,50.0],payon:[64.29,50.0],morroc:[78.57,50.0],alberta:[92.86,50.0]}, RW=14.2857;
-  var SW=6300, SH=760, WH=110, GC=64;
+  var SW=6300, SH=760, WH=110, GC=48;
   var PINNED=["cass","echo","iris","oman","zara"];   // these stand on their platform and wait for commands (no wander)
   var POSVER="71c4c697";    // layout fingerprint for position persistence
   function roomAt(x){ var i=Math.floor(x/RW); return ORDER[Math.max(0,Math.min(ORDER.length-1,i))]; }
   function curRoom(id){ var p=$g("agent-"+id); return roomAt(parseFloat(p&&p.style.left)||50); }
+  // ── Grid naming: stage-% <-> "PRT-C3" cell ref (lookup layer only; never re-snaps
+  //    existing sprites). col A..S within each room, row 1..N below the wall band. ──
+  var GRID_PRE={aldebaran:"ALD",geffen:"GEF",izlude:"IZL",prontera:"PRT",payon:"PAY",morroc:"MOR",alberta:"ALB"};
+  var GRID_PRE_R={ALD:0,GEF:1,IZL:2,PRT:3,PAY:4,MOR:5,ALB:6};
+  function gridName(x, y){
+    var ri=Math.max(0,Math.min(ORDER.length-1,Math.floor(x/RW)));
+    var sx=x/100*SW, sy=y/100*SH; if(sy<WH) sy=WH;
+    var Lpx=ri*RW/100*SW;
+    var ncol=Math.max(1,Math.round(RW/100*SW/GC));     // cols per room
+    var nrow=Math.max(1,Math.round((SH-WH)/GC));        // rows below the wall
+    var col=Math.max(0,Math.min(ncol-1,Math.floor((sx-Lpx)/GC)));
+    var row=Math.max(0,Math.min(nrow-1,Math.floor((sy-WH)/GC)))+1;
+    return GRID_PRE[ORDER[ri]]+"-"+String.fromCharCode(65+col)+row;
+  }
+  function nameToCoords(name){
+    var m=/^([A-Z]{3})-([A-Z])(\d+)$/.exec(String(name||"").toUpperCase());
+    if(!m || !(m[1] in GRID_PRE_R)) return null;
+    var ri=GRID_PRE_R[m[1]], col=m[2].charCodeAt(0)-65, row=parseInt(m[3],10)-1;
+    var Lpx=ri*RW/100*SW;
+    var sx=Lpx + col*GC + GC/2, sy=WH + row*GC + GC/2;
+    return { x:+(sx/SW*100).toFixed(3), y:+(sy/SH*100).toFixed(3), cell:m[1]+"-"+m[2]+m[3] };
+  }
+  window.GRID={ name:gridName, at:nameToCoords, ncol:function(){return Math.max(1,Math.round(RW/100*SW/GC));}, nrow:function(){return Math.max(1,Math.round((SH-WH)/GC));} };
   var CAM={ mode:"room",
     apply:function(){
       var wrap=document.querySelector(".stage-wrap"), s=$g("stage"); if(!wrap||!s) return;
@@ -2793,7 +2859,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       var el=$g("agent-"+id);
       for(var i=cur; i!==tgt; i+=step){
         var border=(step>0 ? (i+1) : i) * RW;        // divider line == warp portal x
-        await walkTo(id, border, 88, 1100);          // walk onto the warp (floor, bottom)
+        await walkTo(id, border, 88, 1100, true);    // walk onto the warp (floor, bottom) — noClamp so it reaches the EXACT divider
         if(el) el.classList.add("warping");          // fade out (teleport feel)
         await sleep(240);
         setPos(id, border + (step>0?0.7:-0.7), 88);  // re-appear just inside the next room
@@ -2805,9 +2871,52 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     }
     await walkTo(id, x, y, ms);
   }
-  window.WORLD={ walkVia:walkVia };
+  // ── COLLISION (task 5): clamp a target to the CURRENT room's interior floor rect.
+  //    Cross-room stays warp-only (walkVia); clamp lives in walkTo (not raw setPos),
+  //    and walkVia's divider-approach legs pass noClamp=true so warps still reach the
+  //    exact border. WMX=1.6 side margin; floor y in [18,90].
+  function clampToRoom(x, y){
+    var ri=Math.max(0,Math.min(ORDER.length-1,Math.floor(x/RW)));
+    var lo=ri*RW+1.6, hi=(ri+1)*RW-1.6;
+    return [ Math.max(lo, Math.min(hi, x)), Math.max(18, Math.min(90, y)) ];
+  }
+  // ── DELIVERY (task 6, reusable for task 7): the ROUTER walks to each assigned
+  //    agent in turn to deliver the task (real office: boss comes to you). Crossing
+  //    rooms goes through the warp via walkAcross. Parameterized by routerId so Vera
+  //    can reuse it. Uses page globals walkAcross/say/sayMs/setStatus/AGENTS/$.
+  async function deliverToAgents(routerId, routes){
+    if(!routes || !routes.length) return;
+    for(var k=0;k<routes.length;k++){
+      var r=routes[k], id=r.agent;
+      if(typeof AGENTS==="undefined" || !AGENTS[id]) continue;
+      var ae=$g("agent-"+id); if(!ae) continue;
+      var ax=parseFloat(ae.style.left), ay=parseFloat(ae.style.top);
+      if(isNaN(ax)) ax=50; if(isNaN(ay)) ay=58;
+      try{ setStatus(routerId,"delegating"); }catch(_){}
+      // stand just beside/below the assignee (clamped to that room's floor by walkTo)
+      try{ await walkAcross(routerId, ax + (Math.random()*5 - 2.5), ay + 6, 1900); }catch(_){}
+      try{ await say(routerId, r.task, sayMs(r.task)); }catch(_){}
+      try{ setStatus(id, "thinking"); }catch(_){}
+    }
+    try{ setStatus(routerId, "idle"); }catch(_){}
+  }
+  window.WORLD={ walkVia:walkVia, clamp:clampToRoom, deliver:deliverToAgents };
   function gotoRoom(dest){ var j=$g("agent-oman"); if(!j) return; CAM.mode="room";
     walkVia("oman", CTR[dest][0], 58, 800).then(function(){CAM.apply();}); CAM.apply(); }
+  // Per-backend RESTLESSNESS (task 9): probability an idle agent acts on a given
+  // wander tick. Leadership / heavy reasoning models stay more; light/fast models
+  // roam more. Family comes from the nameplate badge (modelFamily) with a static
+  // fallback. 'other'/unknown gets a mild default.
+  var RESTLESS={ opus:0.10, sonnet:0.20, haiku:0.32, claude:0.20, codex:0.30, cursor:0.35, deepseek:0.45, copilot:0.50, gemini:0.60, ollama:0.70, other:0.30 };
+  function restlessnessOf(id){
+    var fam="other";
+    try{
+      var b=document.querySelector("#agent-"+id+" .model-badge");
+      if(b && b.dataset && b.dataset.family) fam=b.dataset.family;
+      else if(typeof MODEL_FALLBACK!=="undefined" && MODEL_FALLBACK[id] && typeof modelFamily==="function") fam=modelFamily(MODEL_FALLBACK[id]);
+    }catch(_){}
+    return (fam in RESTLESS) ? RESTLESS[fam] : RESTLESS.other;
+  }
   // Idle wander: when free, each agent strolls around (and pauses). Others may cross
   // rooms (through the warp); oman (camera anchor) + iris (delegator) stay in-room.
   // Paused entirely while a brief runs (ambientOn=false) and only moves .idle agents.
@@ -2818,8 +2927,13 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       while(true){
         await sleep(4000 + Math.random()*6500);
         var e=$g("agent-"+id);
-        if((typeof ambientOn!=="undefined" && !ambientOn) || window.__wanderOff) continue;
+        if((typeof ambientOn!="undefined" && !ambientOn) || window.__wanderOff) continue;
         if(!e || !e.classList.contains("idle") || e.classList.contains("walking")) continue;
+        // ── RESTLESSNESS (task 9): each agent decides to roam vs stay based on its
+        //   AI backend. Heavier/leadership models stay put more; lighter ones roam.
+        //   Read family lazily each tick from the stamped badge, fall back to the
+        //   static MODEL_FALLBACK so file:// / pre-stamp ticks still work.
+        if(Math.random() >= restlessnessOf(id)) continue;
         var ri=ORDER.indexOf(curRoom(id)); if(ri<0) ri=ORDER.indexOf("prontera");
         var pinned=(id==="oman"||id==="iris");
         try{
@@ -2850,9 +2964,18 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         var jx=parseFloat(j.style.left)||50, jy=parseFloat(j.style.top)||50;
         var ix=parseFloat(i.style.left)||50, iy=parseFloat(i.style.top)||50;
         var dxp=(jx-ix)*SW/100, dyp=(jy-iy)*SH/100, dist=Math.sqrt(dxp*dxp+dyp*dyp);
-        if(dist>95){
-          try{ await walkAcross("iris", jx - 3.0, jy + 1.0, 1500); }catch(_){}
-          if($g("agent-iris")) setStatus("iris","idle");
+        // Deadzone: only re-home when GENUINELY far. The rest offset (jx-3,jy+1) is
+        // ~190px from oman, so the old dist>95 trigger re-fired every tick on a settled
+        // Iris -> constant micro-twitch. FAR must EXCEED the rest offset so she settles,
+        // and we also skip tiny moves (<50px) so no jitter near the target.
+        var FAR=260;
+        if(dist>FAR){
+          var tx=jx - 3.0, ty=jy + 1.0;
+          var mvpx=Math.sqrt(Math.pow((tx-ix)*SW/100,2)+Math.pow((ty-iy)*SH/100,2));
+          if(mvpx>50){
+            try{ await walkAcross("iris", tx, ty, 1500); }catch(_){}
+            if($g("agent-iris")) setStatus("iris","idle");
+          }
         }
       }
     })();
@@ -2873,6 +2996,19 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     wrap.appendChild(bar);
     $g("zoomout").onclick=function(){ CAM.mode="overview"; CAM.apply(); };
     $g("zoomin").onclick=function(){ CAM.mode="room"; CAM.apply(); };
+    // ── DEPTH one-shot (task 3B/C): give every STATIC floor sprite a y-based z so
+    //   agents y-sort against them (ysort handles the moving agents). Same formula as
+    //   ysort: z=round(top%*10)+100. Overrides the flat CSS z-index on decos/flags.
+    //   .npc background NPCs are left at their CSS z-index:3 (pure backdrop, by design).
+    try{
+      document.querySelectorAll(".deco, .deco-flag").forEach(function(d){
+        var t=parseFloat(d.style.top); if(isNaN(t)) t=30;
+        d.style.zIndex = String(Math.round(t*10)+100);
+      });
+      // .poring-real top is ROOM-relative %, not stage %, so it can't use the global
+      // formula directly — pin it to mid-floor depth so agents sort around it.
+      document.querySelectorAll(".poring-real").forEach(function(p){ p.style.zIndex="700"; });
+    }catch(_){}
     document.querySelectorAll(".warp-portal").forEach(function(wp){ wp.addEventListener("click", function(){
       var a=wp.dataset.a, b=wp.dataset.b, here=curRoom("oman");
       gotoRoom(here===b ? a : b);            // step across the divider to the other room
@@ -2967,22 +3103,71 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
           var id=el.id.replace("agent-",""); if(typeof AGENTS==="undefined"||!AGENTS[id]) return; openChat(id); });
       });
     })();
-    // ── 📊 DASHBOARD: big popup summarising ALL agents + ALL tickets ──
+    // ── ☰ MENU: tabbed control center (OBSERVE → OPERATE → CONFIGURE) ──
+    //   Replaces the old Dashboard button + popup with one additive tabbed block.
+    //   Dashboard tab keeps the /dashboard fetch unchanged; Model Setup tab RE-PARENTS
+    //   the live #setupBoard + CEO/Iris/Vera .ctrl-panel so all /set_model wiring + the
+    //   first-colon backend:model split survive intact (we move the DOM, not the JS).
     (function(){
-      var btn=document.createElement("button"); btn.id="dashBtn"; btn.textContent="📊 Dashboard";
+      function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+      var ROOM_PROJ={prontera:"HQ",geffen:"HostGate.app",payon:"hotel-pms",izlude:"Investment",morroc:"Sales",alberta:"Export",aldebaran:"Standby (bench)"};
+      var btn=document.createElement("button"); btn.id="menuBtn"; btn.textContent="☰ Menu";
       document.body.appendChild(btn);
       var dl=document.createElement("div"); dl.id="dashboard"; dl.hidden=true;
-      dl.innerHTML='<div class="dl-box"><div class="dl-head"><b>📊 Dashboard</b><span id="dl-sub"></span><button id="dl-x" title="ปิด">×</button></div>'
-        +'<div class="dl-body"><div class="dl-col"><h3>👥 Agents (<span id="dl-ac">0</span>)</h3><div id="dl-agents"></div></div>'
-        +'<div class="dl-col dl-col-t"><h3>🎫 Tickets / ผลงานทั้งหมด (<span id="dl-tc">0</span>)</h3><div id="dl-tickets"></div></div></div></div>';
+      var TABS=[
+        ["dash","📊 Dashboard"],["rooms","🏛️ Rooms"],["mana","🔮 Mana Pool"],["log","📜 Live Activity"],
+        ["model","🎛️ Model Setup"],["ctrl","⚙️ Controls"],["grid","🗺️ Grid Reference"]
+      ];
+      var tabsHtml=TABS.map(function(t,i){ return '<button data-tab="'+t[0]+'"'+(i===0?' class="on"':'')+'>'+t[1]+'</button>'; }).join("");
+      dl.innerHTML='<div class="menu-box"><div class="menu-tabs">'+tabsHtml+'<button id="menu-x" title="ปิด">×</button></div>'
+        +'<div class="menu-panels">'
+        // 1 Dashboard — same agents+tickets columns + markup as the old popup
+        +'<div class="menu-panel dash-panel on" data-panel="dash">'
+          +'<div class="dl-col"><h3>👥 Agents (<span id="dl-ac">0</span>)</h3><div id="dl-agents"></div></div>'
+          +'<div class="dl-col dl-col-t"><h3>🎫 Tickets / ผลงานทั้งหมด (<span id="dl-tc">0</span>)</h3><div id="dl-tickets"></div></div>'
+        +'</div>'
+        // 2 Rooms / Projects
+        +'<div class="menu-panel" data-panel="rooms"><h3>🏛️ Rooms / Projects</h3><div class="mn-rooms" id="mn-rooms"></div></div>'
+        // 3 Mana Pool — live token board re-parented here
+        +'<div class="menu-panel" data-panel="mana"><h3>🔮 Mana Pool</h3><div id="mn-mana"></div></div>'
+        // 4 Live Activity / Logs — graceful empty state (no streaming endpoint in the contract)
+        +'<div class="menu-panel" data-panel="log"><h3>📜 Live Activity</h3><div class="mn-empty" id="mn-log">ยังไม่มีฟีดกิจกรรมแบบเรียลไทม์ (live activity feed) — จะปรากฏที่นี่เมื่อเซิร์ฟเวอร์ส่งสตรีมเหตุการณ์</div></div>'
+        // 5 Model Setup — CEO/Iris/Vera + per-agent pickers moved in (wiring preserved)
+        +'<div class="menu-panel" data-panel="model"><h3>🎛️ Model Setup</h3><div id="mn-model-lead"></div><div id="mn-model-agents"></div></div>'
+        // 6 Controls / Settings
+        +'<div class="menu-panel mn-controls" data-panel="ctrl"><h3>⚙️ Controls / Settings</h3>'
+          +'<div class="mn-ctrl-row"><label>เสียง/เอฟเฟกต์ (Ambient)</label><button id="mn-ambient">ON</button></div>'
+          +'<div class="mn-ctrl-row"><label>Claude (global pause/run)</label><span id="mn-claude-slot"></span></div>'
+          +'<div class="mn-ctrl-row"><label>Map zoom</label><button id="mn-zoomin">🔍+ ห้อง</button><button id="mn-zoomout">🔍− ทั้งหมด</button></div>'
+          +'<div class="mn-empty">พื้นที่สำรองสำหรับ flag ทั่วทั้งออฟฟิศในอนาคต (refresh interval, theme/volume, pause all agents)</div>'
+        +'</div>'
+        // 7 Grid Reference — named-cell lookup
+        +'<div class="menu-panel" data-panel="grid"><h3>🗺️ Grid Reference</h3>'
+          +'<input class="mn-grid-search" id="mn-grid-q" placeholder="ค้นหา cell (เช่น PRT-C3) / ห้อง…" autocomplete="off">'
+          +'<div class="mn-grid-list" id="mn-grid-list"></div>'
+        +'</div>'
+        +'</div></div>';
       document.body.appendChild(dl);
-      function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-      async function openDash(){
-        dl.hidden=false;
+      var built={};
+      // ── tab switching ──
+      function show(tab){
+        dl.querySelectorAll(".menu-tabs button[data-tab]").forEach(function(b){ b.classList.toggle("on", b.dataset.tab===tab); });
+        dl.querySelectorAll(".menu-panel").forEach(function(p){ p.classList.toggle("on", p.dataset.panel===tab); });
+        if(tab==="dash" && !built.dash) loadDash();
+        if(tab==="rooms" && !built.rooms) loadRooms();
+        if(tab==="mana" && !built.mana) buildMana();
+        if(tab==="model" && !built.model) buildModel();
+        if(tab==="grid" && !built.grid) buildGrid();
+      }
+      dl.querySelectorAll(".menu-tabs button[data-tab]").forEach(function(b){ b.onclick=function(){ show(b.dataset.tab); }; });
+      // ── 1 Dashboard: /dashboard fetch (unchanged) ──
+      async function loadDash(){
+        built.dash=true;
         var ag=$g("dl-agents"), tk=$g("dl-tickets");
         ag.innerHTML='<div class="dl-empty">กำลังโหลด…</div>'; tk.innerHTML="";
         try{
           var r=await fetch(BACKEND+"/dashboard"); var d=await r.json();
+          window.__dashData=d;
           $g("dl-ac").textContent=d.agentCount; $g("dl-tc").textContent=d.ticketCount;
           ag.innerHTML=(d.agents||[]).map(function(a){
             return '<div class="dl-ag" data-id="'+a.id+'"><div class="dl-ag-n">'+esc(a.name)+'</div>'
@@ -2994,10 +3179,111 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
             return '<div class="dl-tk"><div class="dl-tk-h"><b>'+esc(t.agentName)+'</b><span>'+esc(t.when)+'</span></div>'
               +'<div class="dl-tk-t">'+esc(t.task)+'</div><div class="dl-tk-o">'+esc(t.output)+'</div></div>';
           }).join("")||'<div class="dl-empty">ยังไม่มี ticket</div>';
+          if(built.rooms===true){ built.rooms=false; loadRooms(); }  // refresh room cards if already built
         }catch(e){ ag.innerHTML='<div class="dl-empty">⚠️ โหลด dashboard ไม่ได้ (เซิร์ฟเวอร์ Prontera?)</div>'; }
       }
-      btn.onclick=openDash;
-      $g("dl-x").onclick=function(){ dl.hidden=true; };
+      // ── 2 Rooms / Projects: room lens over the same /dashboard payload ──
+      async function loadRooms(){
+        built.rooms=true;
+        var box=$g("mn-rooms");
+        var d=window.__dashData;
+        if(!d){ try{ var r=await fetch(BACKEND+"/dashboard"); d=await r.json(); window.__dashData=d; }catch(e){} }
+        var ags=(d&&d.agents)||[], tix=(d&&d.tickets)||[];
+        box.innerHTML=ORDER.map(function(rm){
+          function rmOf(a){ var p=$g("agent-"+a.id); var rx=p?(parseFloat(p.style.left)||50):null; return rx==null?(a.room||""):roomAt(rx); }
+          var here=ags.filter(function(a){ return rmOf(a)===rm; });
+          var alist=here.map(function(a){ return esc(a.name)+(a.model?(" ("+esc(a.model)+")"):""); }).join(", ")||"—";
+          var tcount=tix.filter(function(t){ var ow=here.some(function(a){return a.name===t.agentName;}); return ow; }).length;
+          return '<div class="mn-room" data-room="'+rm+'"><div class="mn-room-n">'+esc(rm.toUpperCase())+'</div>'
+            +'<div class="mn-room-s">'+esc(ROOM_PROJ[rm]||"")+'</div>'
+            +'<div class="mn-room-a">👥 '+(here.length)+': '+alist+'</div>'
+            +'<div class="mn-room-t">🎫 '+tcount+' tickets</div>'
+            +'<div class="mn-room-h">'+( (rm==="geffen"||rm==="payon") ? "🌐 live app — health: ดูจากกิจกรรมล่าสุด" : "•" )+'</div></div>';
+        }).join("");
+        box.querySelectorAll(".mn-room").forEach(function(c){ c.onclick=function(){ try{ gotoRoom(c.dataset.room); }catch(e){} dl.hidden=true; }; });
+      }
+      // ── 3 Mana Pool: re-parent the live token board into the tab ──
+      function buildMana(){
+        built.mana=true;
+        var host=$g("mn-mana"), qb=$g("quotaBoard");
+        if(qb){ host.appendChild(qb); qb.style.position="static"; qb.style.transform="none"; qb.style.left="auto"; qb.style.top="auto"; }
+        else host.innerHTML='<div class="mn-empty">ยังไม่มีฟีด token (Mana Pool) — จะปรากฏเมื่อเซิร์ฟเวอร์ส่งข้อมูลการใช้งาน</div>';
+      }
+      // ── 5 Model Setup: re-parent the live pickers (wiring intact) ──
+      function buildModel(){
+        built.model=true;
+        var lead=$g("mn-model-lead"), agents=$g("mn-model-agents");
+        var cp=document.querySelector(".ctrl-panel");   // CEO/Iris/Vera selects + Claude toggle (all wired)
+        if(cp) lead.appendChild(cp);
+        var sb=$g("setupBoard");                          // per-agent /set_model board (wired in initSetup)
+        if(sb){ sb.classList.remove("collapsed"); agents.appendChild(sb); sb.style.position="static"; sb.style.transform="none"; sb.style.left="auto"; sb.style.right="auto"; sb.style.top="auto"; sb.style.bottom="auto"; }
+        else agents.innerHTML='<div class="mn-empty">เปิดผ่านเซิร์ฟเวอร์ Prontera เพื่อตั้งค่าโมเดล</div>';
+      }
+      // ── 6 Controls: ambient toggle + zoom (wired to existing CAM/ambientOn) ──
+      (function(){
+        var amb=$g("mn-ambient");
+        function paintAmb(){ var on=(typeof ambientOn==="undefined")?true:!!ambientOn; amb.textContent=on?"ON":"OFF"; amb.classList.toggle("on",!on); }
+        paintAmb();
+        amb.onclick=function(){ try{ ambientOn=(typeof ambientOn==="undefined")?false:!ambientOn; }catch(e){} paintAmb(); };
+        var zi=$g("mn-zoomin"), zo=$g("mn-zoomout");
+        if(zi) zi.onclick=function(){ if(window.CAM){ window.CAM.mode="room"; window.CAM.apply(); } };
+        if(zo) zo.onclick=function(){ if(window.CAM){ window.CAM.mode="overview"; window.CAM.apply(); } };
+        // The Claude ON/OFF toggle lives inside .ctrl-panel (moved to Model Setup);
+        // mirror it here so the Controls tab can also flip it.
+        var slot=$g("mn-claude-slot");
+        if(slot) slot.innerHTML='<button id="mn-claude" type="button">ดูสวิตช์ใน Model Setup ▸</button>';
+        var mc=$g("mn-claude"); if(mc) mc.onclick=function(){ var b=$g("noClaudeBtn"); if(b) b.click(); };
+      })();
+      // ── 7 Grid Reference: named-cell lookup via window.GRID ──
+      function buildGrid(){
+        built.grid=true;
+        var list=$g("mn-grid-list"), q=$g("mn-grid-q");
+        var ncol=(window.GRID&&window.GRID.ncol)?window.GRID.ncol():19;
+        var nrow=(window.GRID&&window.GRID.nrow)?window.GRID.nrow():14;
+        var cells=[];
+        ORDER.forEach(function(rm){
+          for(var c=0;c<ncol;c++){ for(var r=1;r<=nrow;r++){
+            var cell=GRID_PRE[rm]+"-"+String.fromCharCode(65+c)+r;
+            var xy=window.GRID&&window.GRID.at?window.GRID.at(cell):null;
+            cells.push({cell:cell, room:rm, x:xy?xy.x:0, y:xy?xy.y:0});
+          } }
+        });
+        function render(filter){
+          filter=(filter||"").toUpperCase().trim();
+          var rows=cells.filter(function(c){ return !filter || c.cell.indexOf(filter)>=0 || c.room.toUpperCase().indexOf(filter)>=0; }).slice(0,400);
+          list.innerHTML=rows.map(function(c){
+            return '<div class="mn-grid-row" data-x="'+c.x+'" data-y="'+c.y+'" data-cell="'+c.cell+'">'
+              +'<span class="mn-grid-cell">'+c.cell+'</span>'
+              +'<span class="mn-grid-room">'+esc(c.room)+'</span>'
+              +'<span class="mn-grid-xy">x '+c.x+'% · y '+c.y+'%</span>'
+              +'<button class="mn-grid-copy" title="คัดลอกชื่อ cell">⧉ copy</button>'
+              +'<button class="mn-grid-hl" title="ไฮไลต์บนแผนที่">◎ map</button></div>';
+          }).join("")||'<div class="mn-empty">ไม่พบ cell</div>';
+        }
+        render("");
+        q.oninput=function(){ render(q.value); };
+        list.onclick=function(e){
+          var row=e.target.closest(".mn-grid-row"); if(!row) return;
+          if(e.target.classList.contains("mn-grid-copy")){
+            var cell=row.dataset.cell;
+            try{ navigator.clipboard.writeText(cell); }catch(_){}
+            window.__lastCellRef=cell; try{ systemLog("🗺️ คัดลอก cell "+cell); }catch(_){}
+            e.target.textContent="✓"; setTimeout(function(){ e.target.textContent="⧉ copy"; },900);
+          } else if(e.target.classList.contains("mn-grid-hl")){
+            var x=parseFloat(row.dataset.x), y=parseFloat(row.dataset.y);
+            var gcEl=$g("gridcursor"), st=$g("stage");
+            if(gcEl && st && typeof SW!=="undefined"){
+              gcEl.style.left=(x/100*SW - GC/2)+"px"; gcEl.style.top=(y/100*SH - GC/2)+"px"; gcEl.style.display="block";
+              if(!st.classList.contains("grid-on")) st.classList.add("grid-on");
+              setTimeout(function(){ gcEl.style.display="none"; },2500);
+            }
+            dl.hidden=true;
+          }
+        };
+      }
+      // ── open/close ──
+      btn.onclick=function(){ dl.hidden=false; show("dash"); };
+      $g("menu-x").onclick=function(){ dl.hidden=true; };
       dl.addEventListener("click",function(e){ if(e.target===dl) dl.hidden=true; });
       document.addEventListener("keydown",function(e){ if(e.key==="Escape") dl.hidden=true; });
     })();
