@@ -1141,13 +1141,10 @@
 #wing8-vera{background-image:url(sprites_out/walk8/vera_wing8.png)}
 #wing8-zara{background-image:url(sprites_out/walk8/zara_wing8.png)}
 .wing-aura{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:240px;height:200px;z-index:0;pointer-events:none}
-.wing-aura::before,.wing-aura::after{content:"";position:absolute;inset:0;transform-origin:50% 37%}
-.wa-angel::before{background:radial-gradient(circle at 50% 37%,rgba(255,250,225,.9) 0%,rgba(255,216,104,.6) 15%,rgba(255,186,52,.3) 28%,transparent 44%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
-.wa-angel::after{background:conic-gradient(from 0deg at 50% 37%,transparent 0 13deg,rgba(255,232,150,.16) 13deg 19deg,transparent 19deg 43deg,rgba(255,232,150,.16) 43deg 49deg,transparent 49deg 73deg,rgba(255,232,150,.16) 73deg 79deg,transparent 79deg 103deg,rgba(255,232,150,.16) 103deg 109deg,transparent 109deg);mix-blend-mode:screen;animation:wingAuraSpin 12s linear infinite}
-.wa-demon::before{background:radial-gradient(circle at 50% 37%,rgba(8,2,12,.86) 0%,rgba(34,5,46,.8) 15%,rgba(150,22,138,.55) 30%,rgba(96,14,150,.34) 44%,transparent 58%);animation:wingAuraPulse 2.2s ease-in-out infinite}
-.wa-demon::after{background:conic-gradient(from 0deg at 50% 37%,transparent 0 11deg,rgba(126,18,166,.42) 11deg 16deg,transparent 16deg 41deg,rgba(158,22,158,.36) 41deg 46deg,transparent 46deg 71deg,rgba(126,18,166,.42) 71deg 76deg,transparent 76deg 101deg,rgba(158,22,158,.36) 101deg 106deg,transparent 106deg);animation:wingAuraSpin 9s linear infinite reverse}
+.wing-aura::before{content:"";position:absolute;inset:0;transform-origin:50% 52%}
+.wa-angel::before{background:radial-gradient(circle at 50% 52%,rgba(255,250,225,.9) 0%,rgba(255,216,104,.6) 15%,rgba(255,186,52,.3) 28%,transparent 44%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
+.wa-demon::before{background:radial-gradient(circle at 50% 52%,rgba(8,2,12,.86) 0%,rgba(34,5,46,.8) 15%,rgba(150,22,138,.55) 30%,rgba(96,14,150,.34) 44%,transparent 58%);animation:wingAuraPulse 2.2s ease-in-out infinite}
 @keyframes wingAuraPulse{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
-@keyframes wingAuraSpin{to{transform:rotate(360deg)}}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
 .r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-geffen{left:14.2857%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/geffen_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/geffen_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
@@ -1176,12 +1173,12 @@
 .plat-carpet{position:absolute;left:50%;top:13%;transform:translateX(-50%);width:48%;height:76%;background:url(maps_out/prt_carpet03.png) center/100% 100% no-repeat;border-radius:2px;box-shadow:0 2px 6px rgba(0,0,0,.45)}
 .room-label{position:absolute;transform:translateX(-50%);z-index:6;font:700 15px system-ui;color:#f8ecc8;text-align:center;pointer-events:none;white-space:nowrap;letter-spacing:1px;background:linear-gradient(180deg,#3a2614,#241608);border:2px solid #b9923f;border-radius:5px;padding:5px 14px 6px;box-shadow:3px 3px 0 rgba(0,0,0,.55),inset 0 0 0 1px #5a4424,0 0 10px rgba(0,0,0,.55);text-shadow:1px 1px 0 #000}
 .room-label small{display:block;font-size:9.5px;letter-spacing:1.5px;color:#ecc97e;opacity:.95;margin-top:2px;font-weight:600}
-.warp-portal,#portal{transform:translate(-50%,-50%) scale(.96);width:104px;height:58px;background:url(maps_out/warp_portal.png) 0 0/3328px 58px no-repeat;image-rendering:pixelated;animation:warpSpin 2.4s steps(32) infinite;filter:drop-shadow(0 0 12px rgba(120,170,255,.6))}
+.warp-portal,#portal{transform:translate(-50%,-50%) scale(.92);width:74px;height:100px;background:url(maps_out/warp_portal.png) 0 0/1480px 100px no-repeat;image-rendering:pixelated;animation:warpSpin 1.7s steps(20) infinite;filter:drop-shadow(0 0 12px rgba(120,170,255,.55))}
 .warp-portal{position:absolute;cursor:pointer;pointer-events:auto;z-index:5;opacity:.97}
 .warp-portal::before,.warp-portal::after,#portal::before,#portal::after{display:none!important}
 .warp-portal .beams,.warp-portal .spark,#portal .beams,#portal .spark{display:none!important}
 .warp-portal:hover{filter:drop-shadow(0 0 17px rgba(150,200,255,.95)) brightness(1.12)}
-@keyframes warpSpin{to{background-position-x:-3328px}}
+@keyframes warpSpin{to{background-position-x:-1480px}}
 .aura-green{filter:hue-rotate(72deg) saturate(1.25) brightness(1.05)}
 .cam-btns{position:absolute;right:14px;bottom:14px;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 12px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:6px;padding:7px 12px;cursor:pointer}
