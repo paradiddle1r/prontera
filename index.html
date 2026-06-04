@@ -1140,6 +1140,14 @@
 #wing8-jarvis{background-image:url(sprites_out/walk8/jarvis_wing8.png)}
 #wing8-vera{background-image:url(sprites_out/walk8/vera_wing8.png)}
 #wing8-zara{background-image:url(sprites_out/walk8/zara_wing8.png)}
+.wing-aura{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:240px;height:200px;z-index:0;pointer-events:none}
+.wing-aura::before,.wing-aura::after{content:"";position:absolute;inset:0;transform-origin:50% 37%}
+.wa-angel::before{background:radial-gradient(circle at 50% 37%,rgba(255,250,225,.9) 0%,rgba(255,216,104,.6) 15%,rgba(255,186,52,.3) 28%,transparent 44%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
+.wa-angel::after{background:conic-gradient(from 0deg at 50% 37%,transparent 0 13deg,rgba(255,232,150,.16) 13deg 19deg,transparent 19deg 43deg,rgba(255,232,150,.16) 43deg 49deg,transparent 49deg 73deg,rgba(255,232,150,.16) 73deg 79deg,transparent 79deg 103deg,rgba(255,232,150,.16) 103deg 109deg,transparent 109deg);mix-blend-mode:screen;animation:wingAuraSpin 12s linear infinite}
+.wa-demon::before{background:radial-gradient(circle at 50% 37%,rgba(8,2,12,.86) 0%,rgba(34,5,46,.8) 15%,rgba(150,22,138,.55) 30%,rgba(96,14,150,.34) 44%,transparent 58%);animation:wingAuraPulse 2.2s ease-in-out infinite}
+.wa-demon::after{background:conic-gradient(from 0deg at 50% 37%,transparent 0 11deg,rgba(126,18,166,.42) 11deg 16deg,transparent 16deg 41deg,rgba(158,22,158,.36) 41deg 46deg,transparent 46deg 71deg,rgba(126,18,166,.42) 71deg 76deg,transparent 76deg 101deg,rgba(158,22,158,.36) 101deg 106deg,transparent 106deg);animation:wingAuraSpin 9s linear infinite reverse}
+@keyframes wingAuraPulse{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes wingAuraSpin{to{transform:rotate(360deg)}}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
 .r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-geffen{left:14.2857%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/geffen_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/geffen_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
@@ -1203,7 +1211,7 @@
 
       <div class="agent idle office-1" id="agent-iris" style="left:47.0%; top:33.0%;">
         <div class="bubble" id="bubble-iris"></div>
-        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="wing8" id="wing8-iris"></div><div class="walk8" id="w8-iris"></div></div>
+        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="wing-aura wa-angel"></div><div class="wing8" id="wing8-iris"></div><div class="walk8" id="w8-iris"></div></div>
         <div class="nameplate"><b>IRIS</b>Cardinal · CoS</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1332,7 +1340,7 @@
 
       <div class="agent idle office-1" id="agent-vera" style="left:53.0%; top:33.0%;">
         <div class="bubble" id="bubble-vera"></div>
-        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="wing8" id="wing8-vera"></div><div class="walk8" id="w8-vera"></div></div>
+        <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="wing-aura wa-demon"></div><div class="wing8" id="wing8-vera"></div><div class="walk8" id="w8-vera"></div></div>
         <div class="nameplate"><b>VERA</b>Soul Reaper · Auditor</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
