@@ -440,7 +440,7 @@
     pointer-events: none;
   }
   /* CEO & Iris already glow at the feet — skip the dark oval so it stays clean */
-  #agent-jarvis .sprite::before,
+  #agent-oman .sprite::before,
   #agent-iris   .sprite::before { display: none; }
   .sprite > img.body {
     max-height: 100%; max-width: 100%;
@@ -480,13 +480,13 @@
   #agent-reno .sprite img.wings-img,
   #agent-vex  .sprite img.wings-img { --wing-bottom: 55%; --wing-y: 4%; }
   #agent-iris .sprite img.wings-img { --wing-bottom: 38%; --wing-y: 30%; }
-  #agent-jarvis .sprite img.wings-img {
+  #agent-oman .sprite img.wings-img {
     --wing-bottom: 55%; --wing-y: 0%;
     max-width: 130px; max-height: 110px;
   }
   /* CEO always on top — never obscured by other agents */
-  #agent-jarvis { z-index: 10; }
-  #agent-jarvis:hover { z-index: 11; }
+  #agent-oman { z-index: 10; }
+  #agent-oman:hover { z-index: 11; }
   /* ===== Level 99 aura (RO trans-job glow) ===== */
   .aura99 {
     position: absolute;
@@ -971,7 +971,7 @@
 
   .log .row { margin-bottom: 7px; animation: slideIn 0.3s ease; }
   .log .who { font-weight: 700; }
-  .log .who.jarvis { color: #ffd96b; }
+  .log .who.oman { color: #ffd96b; }
   .log .who.iris   { color: #c080ff; }
   .log .who.mira   { color: #a0a0ff; }
   .log .who.bolt   { color: #ffb060; }
@@ -1102,10 +1102,10 @@
 .grid-on .grid-overlay{opacity:.8}
 #gridcursor{position:absolute;width:64px;height:64px;pointer-events:none;z-index:3;display:none;border:2px solid rgba(90,205,255,.95);border-radius:3px;background:rgba(90,205,255,.16);box-shadow:0 0 12px rgba(90,205,255,.8),inset 0 0 10px rgba(130,225,255,.5);animation:gcPulse 1.1s ease-in-out infinite}
 @keyframes gcPulse{0%,100%{opacity:.7}50%{opacity:1}}
-#agent-jarvis .ceo-mesh{position:absolute;left:50%;bottom:-18px;width:200px;height:210px;transform:translateX(-50%);z-index:0;pointer-events:none;border-radius:48% 52% 50% 50%;background:conic-gradient(from 0deg,#ff2d6f,#ff9e2d,#ffe93d,#3dff8e,#2dd4ff,#7c5cff,#ff2d6f);filter:blur(24px) saturate(1.5);opacity:.5;mix-blend-mode:screen;animation:ceoMeshSpin 7s linear infinite, ceoMeshPulse 3.2s ease-in-out infinite}
+#agent-oman .ceo-mesh{position:absolute;left:50%;bottom:-18px;width:200px;height:210px;transform:translateX(-50%);z-index:0;pointer-events:none;border-radius:48% 52% 50% 50%;background:conic-gradient(from 0deg,#ff2d6f,#ff9e2d,#ffe93d,#3dff8e,#2dd4ff,#7c5cff,#ff2d6f);filter:blur(24px) saturate(1.5);opacity:.5;mix-blend-mode:screen;animation:ceoMeshSpin 7s linear infinite, ceoMeshPulse 3.2s ease-in-out infinite}
 @keyframes ceoMeshSpin{to{transform:translateX(-50%) rotate(360deg)}}
 @keyframes ceoMeshPulse{0%,100%{opacity:.36}50%{opacity:.66}}
-#agent-jarvis .ceo-wingaura{position:absolute;left:50%;top:14px;width:150px;height:92px;transform:translateX(-50%);z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(255,170,70,.5),rgba(255,80,150,.32) 44%,rgba(120,150,255,.16) 70%,transparent 82%);filter:blur(10px);mix-blend-mode:screen;animation:ceoWingAura 2.6s ease-in-out infinite}
+#agent-oman .ceo-wingaura{position:absolute;left:50%;top:14px;width:150px;height:92px;transform:translateX(-50%);z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(255,170,70,.5),rgba(255,80,150,.32) 44%,rgba(120,150,255,.16) 70%,transparent 82%);filter:blur(10px);mix-blend-mode:screen;animation:ceoWingAura 2.6s ease-in-out infinite}
 @keyframes ceoWingAura{0%,100%{opacity:.45;transform:translateX(-50%) scale(.98)}50%{opacity:.85;transform:translateX(-50%) scale(1.07)}}
 .feet-aura{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);width:92px;height:40px;z-index:0;pointer-events:none;border-radius:50%;filter:blur(4px);mix-blend-mode:screen;animation:feetAuraPulse 1.5s ease-in-out infinite}
 .fa-purple{background:radial-gradient(ellipse at 50% 60%,rgba(216,162,255,.58),rgba(170,110,235,.4) 40%,rgba(130,70,210,.16) 66%,transparent 80%)}
@@ -1122,7 +1122,7 @@
 #w8-echo{background-image:url(sprites_out/walk8/echo_walk8.png)}
 #w8-sage{background-image:url(sprites_out/walk8/sage_walk8.png)}
 #w8-shade{background-image:url(sprites_out/walk8/shade_walk8.png)}
-#w8-jarvis{background-image:url(sprites_out/walk8/jarvis_walk8.png)}
+#w8-oman{background-image:url(sprites_out/walk8/oman_walk8.png)}
 #w8-iris{background-image:url(sprites_out/walk8/iris_walk8.png)}
 #w8-vera{background-image:url(sprites_out/walk8/vera_walk8.png)}
 #w8-cass{background-image:url(sprites_out/walk8/cass_walk8.png)}
@@ -1138,7 +1138,7 @@
 #wing8-cass{background-image:url(sprites_out/walk8/cass_wing8.png)}
 #wing8-echo{background-image:url(sprites_out/walk8/echo_wing8.png)}
 #wing8-iris{background-image:url(sprites_out/walk8/iris_wing8.png)}
-#wing8-jarvis{background-image:url(sprites_out/walk8/jarvis_wing8.png)}
+#wing8-oman{background-image:url(sprites_out/walk8/oman_wing8.png)}
 #wing8-vera{background-image:url(sprites_out/walk8/vera_wing8.png)}
 #wing8-zara{background-image:url(sprites_out/walk8/zara_wing8.png)}
 .wing-aura{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:240px;height:200px;z-index:0;pointer-events:none}
@@ -1215,7 +1215,7 @@
 .npc::before{content:"";position:absolute;left:50%;bottom:13px;transform:translateX(-50%);width:44px;height:11px;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.5) 0%,rgba(0,0,0,.3) 45%,transparent 72%);z-index:-1;pointer-events:none}
 .nameplate{white-space:nowrap;display:block;width:max-content;position:relative;left:50%;transform:translateX(-50%)}
 .nameplate .model-badge{white-space:nowrap}
-#agent-jarvis .nameplate{border-color:#ff4040}
+#agent-oman .nameplate{border-color:#ff4040}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
 .r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
 .r-geffen{left:14.2857%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/geffen_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/geffen_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
@@ -1246,10 +1246,10 @@
 .room-label small{display:block;font-size:9.5px;letter-spacing:1.5px;color:#ecc97e;opacity:.95;margin-top:2px;font-weight:600}
 .warp-portal{position:absolute;transform:translate(-50%,-50%) scale(.85) scaleY(.62);cursor:pointer;pointer-events:auto;z-index:5;opacity:.95}
 .warp-portal:hover{filter:brightness(1.35)}
-.cam-btns{position:absolute;right:14px;bottom:14px;z-index:200;display:flex;gap:8px}
-.cam-btns button{font:600 12px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:6px;padding:7px 12px;cursor:pointer}
+.cam-btns{position:absolute;right:14px;top:14px;z-index:200;display:flex;gap:8px}
+.cam-btns button{font:600 15px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:7px;padding:5px 9px;cursor:pointer;line-height:1}
 .cam-btns button:hover{background:rgba(60,46,20,.95);border-color:#f5d68a}
-@media (max-width:760px){.room-label{font-size:12px;padding:3px 9px}.room-label small{font-size:8px}.cam-btns{right:8px;bottom:8px;gap:6px}.cam-btns button{font-size:11px;padding:5px 9px}#gridcursor{display:none !important}}
+@media (max-width:760px){.room-label{font-size:12px;padding:3px 9px}.room-label small{font-size:8px}.cam-btns{right:8px;top:8px;gap:6px}.cam-btns button{font-size:13px;padding:4px 7px}#gridcursor{display:none !important}}
 @media (orientation:landscape) and (max-height:540px){.app{grid-template-columns:1fr 220px !important;grid-template-rows:100dvh !important}.quota-board{transform:scale(.58);transform-origin:top left}.setup-board{transform:scale(.58);transform-origin:bottom right}}
 @media (max-width:760px){.app{height:100dvh}}
 </style>
@@ -1264,9 +1264,9 @@
       <div class="clock" id="clock">--:--:--</div>
 
       <!-- ===== Office 1: Hotel PMS ===== -->
-      <div class="agent idle office-1" id="agent-jarvis" style="left:50.0%; top:33.0%;">
-        <div class="bubble" id="bubble-jarvis"></div>
-        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="wing8" id="wing8-jarvis"></div><div class="walk8" id="w8-jarvis"></div></div>
+      <div class="agent idle office-1" id="agent-oman" style="left:50.0%; top:33.0%;">
+        <div class="bubble" id="bubble-oman"></div>
+        <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="wing8" id="wing8-oman"></div><div class="walk8" id="w8-oman"></div></div>
         <div class="nameplate"><b>OMAN</b>CEO</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
@@ -1517,7 +1517,7 @@ const BACKEND = (location.protocol === "file:" || LOCAL_HOSTS.includes(location.
 // ============= AGENT DATA =============
 const AGENTS = {
   // Office 1: Hotel PMS
-  jarvis: { name: "OMAN", role: "CEO",            office: 1 },
+  oman: { name: "OMAN", role: "CEO",            office: 1 },
   iris:   { name: "Iris",   role: "Cardinal · Chief of Staff",    office: 1 },
   mira:   { name: "Mira",   role: "Wizard · Frontend",            office: 1 },
   bolt:   { name: "Bolt",   role: "Whitesmith · Backend",         office: 1 },
@@ -1543,7 +1543,7 @@ const AGENTS = {
 const MODEL_FALLBACK = {
   iris: "opus",
   vera: "opus",
-  jarvis: "qwen2.5-coder:7b", pino: "deepseek-chat",
+  oman: "qwen2.5-coder:7b", pino: "deepseek-chat",
   cass: "sonnet", zara: "sonnet", aria: "cursor",
   sage: "sonnet", shade: "sonnet", reno: "codex",
   bolt: "sonnet", mira: "sonnet", vex: "sonnet", lumen: "sonnet",
@@ -1561,7 +1561,7 @@ const HOMES = {
   echo: { x: 35.71, y: 33.0, rx: 3, ry: 3, office: 1 },
   sage: { x: 33.33, y: 58, rx: 3, ry: 3, office: 1 },
   shade: { x: 38.1, y: 67, rx: 3, ry: 3, office: 1 },
-  jarvis: { x: 50.0, y: 33.0, rx: 3, ry: 3, office: 1 },
+  oman: { x: 50.0, y: 33.0, rx: 3, ry: 3, office: 1 },
   iris: { x: 47.0, y: 33.0, rx: 3, ry: 3, office: 1 },
   vera: { x: 53.0, y: 33.0, rx: 3, ry: 3, office: 1 },
   cass: { x: 64.29, y: 33.0, rx: 3, ry: 3, office: 1 },
@@ -1674,7 +1674,7 @@ function ysort() {
     const top = parseFloat(a.style.top) || 50;
     a.style.zIndex = String(Math.round(top * 10) + 100);  // 20-92% -> 300-1020
   });
-  const ceo = $('agent-jarvis');
+  const ceo = $('agent-oman');
   if (ceo) ceo.style.zIndex = '100000';
 }
 ysort();
@@ -1751,7 +1751,7 @@ async function work(id, ms = 2200)  { setStatus(id, "working");  await sleep(ms)
 // Only the CEO (Pornchai) gets a workstation — carpet underneath + ornate desk
 // in front, both extracted from data.grf (Prontera interior textures).
 function spawnCeoArea() {
-  const home = HOMES.jarvis;  // CEO slot
+  const home = HOMES.oman;  // CEO slot
   const carpet = document.createElement('div');
   carpet.className = 'ceo-carpet';
   carpet.style.left = home.x + '%';
@@ -1864,7 +1864,7 @@ stampModels();
     const overrides = (cfg && cfg.agent_models) || {};
     body.innerHTML = "";
     Object.entries(roster).forEach(([id, info]) => {
-      if (id === "iris" || id === "jarvis") return;   // CEO + Iris have their own pickers in the MANA POOL panel (top-left)
+      if (id === "iris" || id === "oman") return;   // CEO + Iris have their own pickers in the MANA POOL panel (top-left)
       const row = document.createElement("div"); row.className = "setup-row";
       const name = document.createElement("span"); name.className = "su-name";
       name.textContent = (info && info.name) || id;
@@ -1912,9 +1912,9 @@ stampModels();
       if (!cfg) return;
       const val = (cfg.iris_backend || "claude") + ":" + (cfg.iris_model || "opus");
       if ([...sel.options].some(o => o.value === val)) sel.value = val;
-      // CEO (Pornchai) uses the per-agent override (agent_models.jarvis).
+      // CEO (Pornchai) uses the per-agent override (agent_models.oman).
       if (ceo) {
-        const ov = (cfg.agent_models || {}).jarvis;
+        const ov = (cfg.agent_models || {}).oman;
         let cv = ov ? (ov.backend + ":" + ov.model) : "default";
         if (![...ceo.options].some(o => o.value === cv)) cv = "default";
         ceo.value = cv;
@@ -1931,13 +1931,13 @@ stampModels();
     })
     .catch(() => {});
 
-  // CEO / Pornchai model picker → per-agent override on the "jarvis" agent.
+  // CEO / Pornchai model picker → per-agent override on the "oman" agent.
   if (ceo) ceo.addEventListener("change", () => {
     let backend, model;
     const v = ceo.value;
     if (v === "default") { backend = "default"; model = ""; }
     else { const i = v.indexOf(":"); backend = v.slice(0, i); model = v.slice(i + 1); }
-    fetch(BACKEND + "/set_model?agent=jarvis&backend=" + encodeURIComponent(backend) +
+    fetch(BACKEND + "/set_model?agent=oman&backend=" + encodeURIComponent(backend) +
                     "&model=" + encodeURIComponent(model))
       .then(r => (r.ok ? r.json() : null))
       .then(res => {
@@ -2111,7 +2111,7 @@ async function visitOther(id, partner) {
 const VISIT_LINES = {
   // Office 1 → Office 2
   echo:  ["Tao, ลูกค้าโรงแรม X อยากได้ feature นี้ ↗", "ส่งต่อ feedback จาก field 📋"],
-  jarvis:["Aria, brand messaging review ☕", "Sales pipeline เป็นไงบ้าง?"],
+  oman:["Aria, brand messaging review ☕", "Sales pipeline เป็นไงบ้าง?"],
   sage:  ["Nyx, ขอ funnel data ของสัปดาห์นี้ 📊", "Conversion rate ดูยังไง?"],
   mira:  ["Pino, demo screen ใหม่ผมแก้แล้ว ลองดู 🔮"],
   shade: ["Vex, มี perf issue บน landing page นะ 🔒"],
@@ -2138,11 +2138,11 @@ function pickVisitLine(id, partner) {
 
 const PARTNER_MAP = {
   echo: ['tao'], tao: ['echo', 'lumen'],
-  jarvis: ['aria', 'reno'], aria: ['jarvis', 'mira'],
+  oman: ['aria', 'reno'], aria: ['oman', 'mira'],
   sage: ['nyx'], nyx: ['sage'],
   mira: ['pino'], pino: ['mira', 'bolt'],
   shade: ['vex'], vex: ['shade'],
-  bolt: ['pino'], reno: ['jarvis', 'bolt'],
+  bolt: ['pino'], reno: ['oman', 'bolt'],
   lumen: ['tao'], kira: ['echo'],
   iris: ['aria', 'reno', 'tao'], // Iris travels often
   cass: ['zara'], zara: ['cass'], // PMs sync across offices
@@ -2160,7 +2160,7 @@ const AMBIENT = [
   ["echo",   "Hotel X said they love the calendar ♪"],
   ["shade",  "RLS policies all green 🔒"],
   ["lumen",  "All tests passing ✨"],
-  ["jarvis", "Reviewing investor deck 💰"],
+  ["oman", "Reviewing investor deck 💰"],
   ["iris",   "Tracking 4 open initiatives..."],
   ["aria",   "Drafting blog: 'Why hotels lose money on OTA' 🎵"],
   ["vex",    "Core Web Vitals: 98/100 🛡️"],
@@ -2297,7 +2297,7 @@ async function runBrief(task) {
   const es = new EventSource(url);
 
   // ── Event state + deferred promises ───────────────────────────────
-  let jarvisIntroText = null, plan = null;
+  let omanIntroText = null, plan = null;
   let summaryText = null, rewardText = null;
   const workTexts = {};
   const introD = newDeferred();
@@ -2309,8 +2309,8 @@ async function runBrief(task) {
   let streamFailed = false;
   let veraText = "";
 
-  es.addEventListener("jarvis_intro", (ev) => {
-    try { jarvisIntroText = JSON.parse(ev.data).text || ""; } catch (_) {}
+  es.addEventListener("oman_intro", (ev) => {
+    try { omanIntroText = JSON.parse(ev.data).text || ""; } catch (_) {}
     introD.resolve();
   });
   es.addEventListener("iris_plan", (ev) => {
@@ -2327,7 +2327,7 @@ async function runBrief(task) {
     try { summaryText = JSON.parse(ev.data).text || ""; } catch (_) {}
     summaryD.resolve();
   });
-  es.addEventListener("jarvis_reward", (ev) => {
+  es.addEventListener("oman_reward", (ev) => {
     try { rewardText = JSON.parse(ev.data).text || ""; } catch (_) {}
     rewardD.resolve();
   });
@@ -2346,10 +2346,10 @@ async function runBrief(task) {
 
   // ── 1. Jarvis announces the quest ─────────────────────────────────
   await introD.promise;
-  if (jarvisIntroText) {
-    setStatus("jarvis", "talking");
-    await say("jarvis", jarvisIntroText, sayMs(jarvisIntroText));
-    setStatus("jarvis", "idle");
+  if (omanIntroText) {
+    setStatus("oman", "talking");
+    await say("oman", omanIntroText, sayMs(omanIntroText));
+    setStatus("oman", "idle");
   }
 
   // ── 2. Wait for Iris's routing plan ───────────────────────────────
@@ -2406,8 +2406,8 @@ async function runBrief(task) {
   setStatus("iris", "idle");
 
   await rewardD.promise;
-  await say("jarvis", rewardText || "GG +1500 EXP 🏆", sayMs(rewardText));
-  spawnPopup("jarvis", "+1500 EXP", "xp");
+  await say("oman", rewardText || "GG +1500 EXP 🏆", sayMs(rewardText));
+  spawnPopup("oman", "+1500 EXP", "xp");
 
   queueCount = Math.max(0, queueCount - 1);
   $("queue").textContent = queueCount;
@@ -2648,7 +2648,7 @@ const ROOM_KW={
   aldebaran:["aldebaran","อัลเดบา"]
 };
 const ROOM_CX={aldebaran:7.14,geffen:21.43,izlude:35.71,prontera:50,payon:64.29,morroc:78.57,alberta:92.86};
-const HOME_ROOM={"lumen":"aldebaran","mira":"geffen","bolt":"geffen","zara":"geffen","sage":"izlude","shade":"izlude","echo":"izlude","jarvis":"prontera","iris":"prontera","vera":"prontera","kira":"payon","tao":"payon","cass":"payon","nyx":"morroc","vex":"morroc","reno":"alberta","aria":"alberta","pino":"alberta"};
+const HOME_ROOM={"lumen":"aldebaran","mira":"geffen","bolt":"geffen","zara":"geffen","sage":"izlude","shade":"izlude","echo":"izlude","oman":"prontera","iris":"prontera","vera":"prontera","kira":"payon","tao":"payon","cass":"payon","nyx":"morroc","vex":"morroc","reno":"alberta","aria":"alberta","pino":"alberta"};
 function tryArrangeCommand(t){
   var s=(t||"").toLowerCase();
   if(!/จัดทีม|เข้าห้อง|กลับห้อง|ห้องตัวเอง|ห้องที่เกี่ยว|ตามสายงาน|แต่ละทีม|แต่ละคน|ประจำห้อง|ทุกคนกลับ|จัดห้อง|เข้าประจำ/.test(s)) return false;
@@ -2700,10 +2700,10 @@ async function trigger() {
 // =================== JARVIS CLICK-TO-WALK ===================
 // Click anywhere on the floor — Jarvis walks there. Crossing the seam
 // is routed through the warp portal via walkAcross().
-let jarvisMoving = false;
+let omanMoving = false;
 const stageEl = document.getElementById("stage");
 stageEl.addEventListener("click", async (e) => {
-  if (jarvisMoving) return;
+  if (omanMoving) return;
   // Skip clicks on interactive / informational overlays.
   if (e.target.closest(".agent, .bubble, .nameplate, .bars, .status-pill, .banner, .clock, .portal-label, .popup, .quota-board, .setup-board")) return;
   // Skip clicks that land on a board (the quota board is pointer-events:none so
@@ -2723,13 +2723,13 @@ stageEl.addEventListener("click", async (e) => {
   let cx = Math.max(3, Math.min(97, x));
   let cy = Math.max(20, Math.min(92, y));
   if (window.__gcSnap) { const s = window.__gcSnap(cx, cy); cx = s[0]; cy = s[1]; }
-  jarvisMoving = true;
-  setStatus("jarvis", "walking");
+  omanMoving = true;
+  setStatus("oman", "walking");
   try {
-    await walkAcross("jarvis", cx, cy, 1800);
+    await walkAcross("oman", cx, cy, 1800);
   } finally {
-    setStatus("jarvis", "idle");
-    jarvisMoving = false;
+    setStatus("oman", "idle");
+    omanMoving = false;
   }
 });
 stageEl.style.cursor = "pointer";
@@ -2743,8 +2743,8 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   function $g(id){return document.getElementById(id);}
   var ORDER=["aldebaran","geffen","izlude","prontera","payon","morroc","alberta"], CTR={aldebaran:[7.14,50.0],geffen:[21.43,50.0],izlude:[35.71,50.0],prontera:[50.0,50.0],payon:[64.29,50.0],morroc:[78.57,50.0],alberta:[92.86,50.0]}, RW=14.2857;
   var SW=6300, SH=760, WH=110, GC=64;
-  var PINNED=["cass","echo","iris","jarvis","zara"];   // these stand on their platform and wait for commands (no wander)
-  var POSVER="1d8f0057";    // layout fingerprint for position persistence
+  var PINNED=["cass","echo","iris","oman","zara"];   // these stand on their platform and wait for commands (no wander)
+  var POSVER="21fa3500";    // layout fingerprint for position persistence
   function roomAt(x){ var i=Math.floor(x/RW); return ORDER[Math.max(0,Math.min(ORDER.length-1,i))]; }
   function curRoom(id){ var p=$g("agent-"+id); return roomAt(parseFloat(p&&p.style.left)||50); }
   var CAM={ mode:"room",
@@ -2754,7 +2754,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       if(W<60||H<60||sw<60||sh<60) return;
       var z,cx,cy;
       if(this.mode==="overview"){ z=Math.min(W/sw,H/sh)*0.96; cx=sw/2; cy=sh/2; }
-      else { var i=ORDER.indexOf(curRoom("jarvis")); if(i<0)i=ORDER.indexOf("prontera");
+      else { var i=ORDER.indexOf(curRoom("oman")); if(i<0)i=ORDER.indexOf("prontera");
         var roomW=RW/100*sw; z=Math.min(W/roomW, H/sh)*0.99;
         cx=(i*RW+RW/2)/100*sw; cy=sh/2; }
       s.style.setProperty("transform","translate("+(W/2-cx*z)+"px,"+(H/2-cy*z)+"px) scale("+z+")","important");
@@ -2778,16 +2778,16 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         await sleep(150);
         if(el) el.classList.remove("warping");
         await sleep(140);
-        if(id==="jarvis" && window.CAM) window.CAM.apply();
+        if(id==="oman" && window.CAM) window.CAM.apply();
       }
     }
     await walkTo(id, x, y, ms);
   }
   window.WORLD={ walkVia:walkVia };
-  function gotoRoom(dest){ var j=$g("agent-jarvis"); if(!j) return; CAM.mode="room";
-    walkVia("jarvis", CTR[dest][0], 58, 800).then(function(){CAM.apply();}); CAM.apply(); }
+  function gotoRoom(dest){ var j=$g("agent-oman"); if(!j) return; CAM.mode="room";
+    walkVia("oman", CTR[dest][0], 58, 800).then(function(){CAM.apply();}); CAM.apply(); }
   // Idle wander: when free, each agent strolls around (and pauses). Others may cross
-  // rooms (through the warp); jarvis (camera anchor) + iris (delegator) stay in-room.
+  // rooms (through the warp); oman (camera anchor) + iris (delegator) stay in-room.
   // Paused entirely while a brief runs (ambientOn=false) and only moves .idle agents.
   function startWander(id){
     if(PINNED.indexOf(id)>=0) return;   // platform-standers (CEO/CoS/Cass/Zara) wait for commands
@@ -2799,7 +2799,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         if((typeof ambientOn!=="undefined" && !ambientOn) || window.__wanderOff) continue;
         if(!e || !e.classList.contains("idle") || e.classList.contains("walking")) continue;
         var ri=ORDER.indexOf(curRoom(id)); if(ri<0) ri=ORDER.indexOf("prontera");
-        var pinned=(id==="jarvis"||id==="iris");
+        var pinned=(id==="oman"||id==="iris");
         try{
           if(!pinned && Math.random()<0.13 && ORDER.length>1){
             var dir=(ri===0)?1:(ri===ORDER.length-1)?-1:(Math.random()<0.5?1:-1);
@@ -2813,7 +2813,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       }
     })();
   }
-  // Iris shadows the CEO at a distance: when she drifts too far from jarvis, she walks
+  // Iris shadows the CEO at a distance: when she drifts too far from oman, she walks
   // to a spot just behind/beside him (through the warp if he changed rooms). Paused in briefs.
   function startIrisFollow(){
     (async function(){
@@ -2821,7 +2821,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       while(true){
         await sleep(1400 + Math.random()*1400);
         if((typeof ambientOn!=="undefined" && !ambientOn) || window.__wanderOff) continue;
-        var j=$g("agent-jarvis"), i=$g("agent-iris");
+        var j=$g("agent-oman"), i=$g("agent-iris");
         if(!j||!i) continue;
         if(!i.classList.contains("idle")) continue;   // follow OMAN only when free (idle)
         if(i.classList.contains("walking")||i.classList.contains("thinking")||i.classList.contains("talking")) continue;
@@ -2847,12 +2847,12 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       if(b && wrap && b.parentNode!==wrap) wrap.appendChild(b);
     });
     var bar=document.createElement("div"); bar.className="cam-btns";
-    bar.innerHTML='<button id="zoomout">🗺 ทั้งหมด</button><button id="zoomin">🔍 Pornchai</button>';
+    bar.innerHTML='<button id="zoomout" title="ดูทั้งหมด (zoom out)">🔍−</button><button id="zoomin" title="ซูมเข้าห้อง (zoom in)">🔍+</button>';
     wrap.appendChild(bar);
     $g("zoomout").onclick=function(){ CAM.mode="overview"; CAM.apply(); };
     $g("zoomin").onclick=function(){ CAM.mode="room"; CAM.apply(); };
     document.querySelectorAll(".warp-portal").forEach(function(wp){ wp.addEventListener("click", function(){
-      var a=wp.dataset.a, b=wp.dataset.b, here=curRoom("jarvis");
+      var a=wp.dataset.a, b=wp.dataset.b, here=curRoom("oman");
       gotoRoom(here===b ? a : b);            // step across the divider to the other room
     }); });
     // ── Click an agent -> PRIVATE popup: 💬 persistent chat + 📋 report (tickets/details/self) ──
