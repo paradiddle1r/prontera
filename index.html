@@ -2679,7 +2679,7 @@ function tryArrangeCommand(t){
   for(var rm in byRoom){ if(!ROOM_CX[rm]) continue; var cx=ROOM_CX[rm], list=byRoom[rm];
     list.forEach(function(id,i){ if(!document.getElementById("agent-"+id)) return;
       var x=cx + (i-(list.length-1)/2)*4.5;
-      try{ setStatus(id,"walking"); walkAcross(id, x, 58, 1700).then(function(){ if($g("agent-"+id)) setStatus(id,"idle"); }); }catch(e){}
+      try{ setStatus(id,"walking"); walkAcross(id, x, 58, 1700).finally(function(){ if(document.getElementById("agent-"+id)) setStatus(id,"idle"); }); }catch(e){}
       moved++;
     });
   }
@@ -2702,7 +2702,7 @@ function tryMoveCommand(t){
   ids.forEach((id,i)=>{
     const x=cx + (i-(ids.length-1)/2)*4.2;
     setStatus(id,"walking");
-    walkAcross(id, x, 58, 1600).then(function(){ if($g("agent-"+id)) setStatus(id,"idle"); });
+    walkAcross(id, x, 58, 1600).finally(function(){ if(document.getElementById("agent-"+id)) setStatus(id,"idle"); });
     say(id, "ไปประจำห้อง "+room.toUpperCase()+" แล้ว", 2200);
   });
   systemLog("➡️ ย้าย "+ids.map(i=>AGENTS[i].name||i).join(", ")+" → "+room.toUpperCase());
