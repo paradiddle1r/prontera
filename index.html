@@ -1141,9 +1141,9 @@
 #wing8-vera{background-image:url(sprites_out/walk8/vera_wing8.png)}
 #wing8-zara{background-image:url(sprites_out/walk8/zara_wing8.png)}
 .wing-aura{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:240px;height:200px;z-index:0;pointer-events:none}
-.wing-aura::before{content:"";position:absolute;inset:0;transform-origin:50% 52%}
-.wa-angel::before{background:radial-gradient(circle at 50% 52%,rgba(255,250,225,.9) 0%,rgba(255,216,104,.6) 15%,rgba(255,186,52,.3) 28%,transparent 44%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
-.wa-demon::before{background:radial-gradient(circle at 50% 52%,rgba(8,2,12,.86) 0%,rgba(34,5,46,.8) 15%,rgba(150,22,138,.55) 30%,rgba(96,14,150,.34) 44%,transparent 58%);animation:wingAuraPulse 2.2s ease-in-out infinite}
+.wing-aura::before{content:"";position:absolute;inset:0;transform-origin:50% 78%}
+.wa-angel::before{background:radial-gradient(circle at 50% 78%,rgba(255,250,225,.9) 0%,rgba(255,216,104,.6) 15%,rgba(255,186,52,.3) 28%,transparent 44%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
+.wa-demon::before{background:radial-gradient(circle at 50% 78%,rgba(8,2,12,.86) 0%,rgba(34,5,46,.8) 15%,rgba(150,22,138,.55) 30%,rgba(96,14,150,.34) 44%,transparent 58%);animation:wingAuraPulse 2.2s ease-in-out infinite}
 @keyframes wingAuraPulse{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
 .r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
@@ -1173,12 +1173,8 @@
 .plat-carpet{position:absolute;left:50%;top:13%;transform:translateX(-50%);width:48%;height:76%;background:url(maps_out/prt_carpet03.png) center/100% 100% no-repeat;border-radius:2px;box-shadow:0 2px 6px rgba(0,0,0,.45)}
 .room-label{position:absolute;transform:translateX(-50%);z-index:6;font:700 15px system-ui;color:#f8ecc8;text-align:center;pointer-events:none;white-space:nowrap;letter-spacing:1px;background:linear-gradient(180deg,#3a2614,#241608);border:2px solid #b9923f;border-radius:5px;padding:5px 14px 6px;box-shadow:3px 3px 0 rgba(0,0,0,.55),inset 0 0 0 1px #5a4424,0 0 10px rgba(0,0,0,.55);text-shadow:1px 1px 0 #000}
 .room-label small{display:block;font-size:9.5px;letter-spacing:1.5px;color:#ecc97e;opacity:.95;margin-top:2px;font-weight:600}
-.warp-portal,#portal{transform:translate(-50%,-50%) scale(.92);width:74px;height:100px;background:url(maps_out/warp_portal.png) 0 0/1480px 100px no-repeat;image-rendering:pixelated;animation:warpSpin 1.7s steps(20) infinite;filter:drop-shadow(0 0 12px rgba(120,170,255,.55))}
-.warp-portal{position:absolute;cursor:pointer;pointer-events:auto;z-index:5;opacity:.97}
-.warp-portal::before,.warp-portal::after,#portal::before,#portal::after{display:none!important}
-.warp-portal .beams,.warp-portal .spark,#portal .beams,#portal .spark{display:none!important}
-.warp-portal:hover{filter:drop-shadow(0 0 17px rgba(150,200,255,.95)) brightness(1.12)}
-@keyframes warpSpin{to{background-position-x:-1480px}}
+.warp-portal{position:absolute;transform:translate(-50%,-50%) scale(.85) scaleY(.62);cursor:pointer;pointer-events:auto;z-index:5;opacity:.95}
+.warp-portal:hover{filter:brightness(1.35)}
 .aura-green{filter:hue-rotate(72deg) saturate(1.25) brightness(1.05)}
 .cam-btns{position:absolute;right:14px;bottom:14px;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 12px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:6px;padding:7px 12px;cursor:pointer}
@@ -1201,7 +1197,7 @@
       <div class="agent idle office-1" id="agent-jarvis" style="left:50.0%; top:33.0%;">
         <div class="bubble" id="bubble-jarvis"></div>
         <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="wing8" id="wing8-jarvis"></div><div class="walk8" id="w8-jarvis"></div></div>
-        <div class="nameplate"><b>PORNCHAI</b>Rebellion · CEO</div>
+        <div class="nameplate"><b>OMAN</b>CEO</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
@@ -1354,7 +1350,7 @@
         <div class="quota-foot">— Janitor-01 reporting</div>
         <div class="ctrl-panel">
           <div class="ctrl-row">
-            <label for="ceoModel">PORNCHAI 👑</label>
+            <label for="ceoModel">OMAN 👑</label>
             <select id="ceoModel">
               <option value="default">— Default —</option>
               <option value="claude:opus">Opus · Claude</option>
@@ -1451,7 +1447,7 @@ const BACKEND = (location.protocol === "file:" || LOCAL_HOSTS.includes(location.
 // ============= AGENT DATA =============
 const AGENTS = {
   // Office 1: Hotel PMS
-  jarvis: { name: "Pornchai", role: "Rebellion · CEO",            office: 1 },
+  jarvis: { name: "OMAN", role: "CEO",            office: 1 },
   iris:   { name: "Iris",   role: "Cardinal · Chief of Staff",    office: 1 },
   mira:   { name: "Mira",   role: "Wizard · Frontend",            office: 1 },
   bolt:   { name: "Bolt",   role: "Whitesmith · Backend",         office: 1 },
@@ -2617,7 +2613,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
   function $g(id){return document.getElementById(id);}
   var ORDER=["aldebaran","geffen","izlude","prontera","payon","morroc","alberta"], CTR={aldebaran:[7.14,50.0],geffen:[21.43,50.0],izlude:[35.71,50.0],prontera:[50.0,50.0],payon:[64.29,50.0],morroc:[78.57,50.0],alberta:[92.86,50.0]}, RW=14.2857;
   var SW=6300, SH=760, WH=110, GC=64;
-  var PINNED=["cass","echo","iris","jarvis","vera","zara"];   // these stand on their platform and wait for commands (no wander)
+  var PINNED=["cass","echo","iris","jarvis","zara"];   // these stand on their platform and wait for commands (no wander)
   var POSVER="1d8f0057";    // layout fingerprint for position persistence
   function roomAt(x){ var i=Math.floor(x/RW); return ORDER[Math.max(0,Math.min(ORDER.length-1,i))]; }
   function curRoom(id){ var p=$g("agent-"+id); return roomAt(parseFloat(p&&p.style.left)||50); }
@@ -2697,6 +2693,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         if((typeof ambientOn!=="undefined" && !ambientOn) || window.__wanderOff) continue;
         var j=$g("agent-jarvis"), i=$g("agent-iris");
         if(!j||!i) continue;
+        if(!i.classList.contains("idle")) continue;   // follow OMAN only when free (idle)
         if(i.classList.contains("walking")||i.classList.contains("thinking")||i.classList.contains("talking")) continue;
         var jx=parseFloat(j.style.left)||50, jy=parseFloat(j.style.top)||50;
         var ix=parseFloat(i.style.left)||50, iy=parseFloat(i.style.top)||50;
@@ -2728,6 +2725,27 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       var a=wp.dataset.a, b=wp.dataset.b, here=curRoom("jarvis");
       gotoRoom(here===b ? a : b);            // step across the divider to the other room
     }); });
+    // ── Click an agent to TEXT/CHAT it directly (1:1, bypasses Iris routing) ──
+    document.querySelectorAll(".agent").forEach(function(el){
+      el.style.cursor="pointer";
+      el.addEventListener("click", async function(ev){
+        ev.stopPropagation();                // don't trigger floor walk-to
+        var id=el.id.replace("agent-","");
+        if(typeof AGENTS==="undefined"||!AGENTS[id]) return;
+        var nm=AGENTS[id].name||id;
+        var msg=window.prompt("แชทกับ "+nm+" โดยตรง — พิมพ์ข้อความ:");
+        if(!msg||!msg.trim()) return;
+        setStatus(id,"thinking"); say(id,"…",1500);
+        systemLog("💬 คุณ → "+nm+": "+msg.trim());
+        try{
+          var r=await fetch(BACKEND+"/agent/"+id+"/work?task="+encodeURIComponent(msg.trim()));
+          var d=await r.json(); var txt=(d&&d.text)||"(ไม่มีคำตอบ)";
+          setStatus(id,"talking"); await say(id,txt,sayMs(txt));
+          systemLog(nm+": "+txt);
+        }catch(e){ systemLog("⚠️ คุยกับ "+nm+" ไม่สำเร็จ (เซิร์ฟเวอร์ Prontera?)"); }
+        if($g("agent-"+id)) setStatus(id,"idle");
+      });
+    });
     window.addEventListener("keydown", function(e){ if((e.key==="g"||e.key==="G") && !/input|select|textarea/i.test(e.target.tagName||"")) { var s=$g("stage"); if(s) s.classList.toggle("grid-on"); } });
     if(window.ResizeObserver){ new ResizeObserver(function(){ CAM.apply(); }).observe(wrap); }
     window.addEventListener("resize", function(){ CAM.apply(); });
