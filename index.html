@@ -2560,6 +2560,7 @@ function resolveWho(who) {
   if (who === 'all') return ALL_IDS;
   if (who === 'office1') return ALL_IDS.filter(id => HOMES[id].office === 1);
   if (who === 'office2') return ALL_IDS.filter(id => HOMES[id].office === 2);
+  if (typeof HOME_ROOM !== 'undefined' && typeof ROOM_CX !== 'undefined' && ROOM_CX[who]) return ALL_IDS.filter(id => HOME_ROOM[id] === who);
   if (HOMES[who]) return [who];
   return [];
 }
@@ -2591,6 +2592,8 @@ async function execMove(m) {
       const cx = (off === 1 ? 30 : 58) + col * 5;
       return walkAcross(id, cx, 50 + row * 8, 1900);
     }));
+  } else if (typeof ROOM_CX !== 'undefined' && ROOM_CX[to]) {   // walk to a project room
+    await Promise.all(ids.map((id, i) => walkAcross(id, ROOM_CX[to] + (i % 3 - 1) * 3, 56 + (i % 2) * 9, 1900)));
   } else if (HOMES[to]) {                 // walk to another agent's desk
     const h = HOMES[to];
     await Promise.all(ids.map((id, i) => walkAcross(id, h.x + (i % 3 - 1) * 3.5, h.y + 3 + Math.floor(i / 3) * 3, 1850)));
