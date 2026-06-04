@@ -59,9 +59,9 @@
    "atlas": "at_wing.png",
    "cols": 16,
    "cell": 84,
-   "shown": 242,
-   "ok": 242,
-   "total": 250
+   "shown": 33,
+   "ok": 33,
+   "total": 42
   }
  },
  "grf_total": 221431,
