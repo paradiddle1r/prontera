@@ -1141,9 +1141,9 @@
 #wing8-vera{background-image:url(sprites_out/walk8/vera_wing8.png)}
 #wing8-zara{background-image:url(sprites_out/walk8/zara_wing8.png)}
 .wing-aura{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:240px;height:200px;z-index:0;pointer-events:none}
-.wing-aura::before{content:"";position:absolute;inset:0;transform-origin:50% 78%}
-.wa-angel::before{background:radial-gradient(circle at 50% 78%,rgba(255,250,225,.9) 0%,rgba(255,216,104,.6) 15%,rgba(255,186,52,.3) 28%,transparent 44%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
-.wa-demon::before{background:radial-gradient(circle at 50% 78%,rgba(8,2,12,.86) 0%,rgba(34,5,46,.8) 15%,rgba(150,22,138,.55) 30%,rgba(96,14,150,.34) 44%,transparent 58%);animation:wingAuraPulse 2.2s ease-in-out infinite}
+.wing-aura::before{content:"";position:absolute;inset:0;transform-origin:50% 58%}
+.wa-angel::before{background:radial-gradient(circle 50px at 50% 58%,rgba(255,250,225,.85) 0%,rgba(255,216,104,.55) 34%,rgba(255,186,52,.26) 62%,transparent 100%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
+.wa-demon::before{background:radial-gradient(circle 50px at 50% 58%,rgba(8,2,12,.82) 0%,rgba(34,5,46,.76) 30%,rgba(150,22,138,.5) 58%,rgba(96,14,150,.3) 80%,transparent 100%);animation:wingAuraPulse 2.2s ease-in-out infinite}
 @keyframes wingAuraPulse{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 .room{position:absolute;overflow:hidden;image-rendering:pixelated;border:3px solid #1c130a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4)}
 .r-aldebaran{left:0.0%;top:0;width:14.2857%;height:100%;background:url(maps_out/rooms/aldebaran_wall.png) 0 0/auto 110px repeat-x,url(maps_out/rooms/aldebaran_floor.png) 0 110px/64px 64px;background-repeat:repeat-x,repeat;background-color:#0b0a10}
@@ -1696,24 +1696,31 @@ function spawnCeoArea() {
 spawnCeoArea();
 
 // =================== MODEL BADGES ===================
+function modelConnType(s) {
+  s = String(s || "").toLowerCase();
+  if (s.includes("qwen") || s.includes("llama") || s.includes("ollama")) return "LOCAL";
+  if (s.includes("deepseek")) return s.includes("coder") ? "LOCAL" : "API";
+  if (s.includes("local")) return "LOCAL";
+  return "CLI";   // claude / gemini / codex / cursor / copilot are CLI-backed
+}
 function prettyModel(m) {
   const s = String(m || "").toLowerCase();
-  if (s.includes("opus"))   return "OPUS";
-  if (s.includes("sonnet")) return "SONNET";
-  if (s.includes("haiku"))  return "HAIKU";
-  if (s.includes("gemini")) {
-    if (s.includes("flash")) return "GEMINI FLASH";
-    if (s.includes("pro"))   return "GEMINI PRO";
-    return "GEMINI";
-  }
-  if (s.includes("deepseek")) return s.includes("coder") ? "DEEPSEEK · LOCAL" : "DEEPSEEK";
-  if (s.includes("codex") || s.includes("gpt")) return "CODEX";
-  if (s.includes("cursor") || s.includes("composer")) return "CURSOR";
-  if (s.includes("copilot")) return "COPILOT";
-  if (s.includes("qwen"))   return "QWEN · LOCAL";
-  if (s.includes("llama"))  return "LLAMA · LOCAL";
-  if (s.includes("ollama") || s.includes("local")) return "LOCAL";
-  return s ? s.toUpperCase() : "";
+  let name = "";
+  if (s.includes("opus"))   name = "OPUS";
+  else if (s.includes("sonnet")) name = "SONNET";
+  else if (s.includes("haiku"))  name = "HAIKU";
+  else if (s.includes("gemini")) name = s.includes("flash") ? "GEMINI FLASH" : (s.includes("pro") ? "GEMINI PRO" : "GEMINI");
+  else if (s.includes("deepseek")) name = "DEEPSEEK";
+  else if (s.includes("codex") || s.includes("gpt")) name = "CODEX";
+  else if (s.includes("cursor") || s.includes("composer")) name = "CURSOR";
+  else if (s.includes("copilot")) name = "COPILOT";
+  else if (s.includes("qwen"))   name = "QWEN";
+  else if (s.includes("llama"))  name = "LLAMA";
+  else if (s.includes("ollama") || s.includes("local")) name = "LOCAL";
+  else name = s ? s.toUpperCase() : "";
+  if (!name) return "";
+  if (name === "LOCAL") return "LOCAL";
+  return name + " · " + modelConnType(s);
 }
 function modelFamily(m) {
   const s = String(m || "").toLowerCase();
@@ -1919,7 +1926,7 @@ stampModels();
 // shows EXHAUSTED in red while its agents are auto-served by another backend.
 const BACKEND_META = {
   claude:   { label: "CLAUDE",   color: "#88c0ff", plan: "CLI · Max" },
-  ollama:   { label: "QWEN",     color: "#a6e22e", plan: "Local ∞" },
+  ollama:   { label: "OLLAMA",   color: "#a6e22e", plan: "Local ∞" },
   deepseek: { label: "DEEPSEEK", color: "#7c8cff", plan: "API" },
   gemini:   { label: "GEMINI",   color: "#4dd6c0", plan: "CLI · Free" },
   copilot:  { label: "COPILOT",  color: "#2ac3de", plan: "CLI · Free" },
