@@ -2825,10 +2825,12 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         var here=""; try{ here=curRoom(curId); }catch(e){}
         var task = here ? ("(ตอนนี้คุณอยู่ห้อง "+here.toUpperCase()+") "+msg) : msg;
         var wait=addMsg(nm,"กำลังคิด…","bot wait");
+        try{ setStatus(curId,"thinking"); }catch(e){}   // reflect 'thinking' on the office status pill
         try{
           var r=await fetch(BACKEND+"/agent/"+curId+"/chat?task="+encodeURIComponent(task));
           var d=await r.json(); wait.remove(); addMsg(nm,(d&&d.text)||"(ไม่มีคำตอบ)","bot");
         }catch(e){ wait.remove(); addMsg(nm,"⚠️ เชื่อมต่อเซิร์ฟเวอร์ Prontera ไม่ได้","bot err"); }
+        try{ if($g("agent-"+curId)) setStatus(curId,"idle"); }catch(e){}
         busy=false; inp.focus();
       }
       pop.querySelector("#ac-send").onclick=send;
