@@ -1174,6 +1174,7 @@
 .warp-portal .beams,.warp-portal .spark,#portal .beams,#portal .spark{display:none!important}
 .warp-portal:hover{filter:drop-shadow(0 0 16px rgba(255,185,140,.9)) brightness(1.12)}
 @keyframes warpSpin{to{background-position-x:-1480px}}
+.aura-green{filter:hue-rotate(72deg) saturate(1.25) brightness(1.05)}
 .cam-btns{position:absolute;right:14px;bottom:14px;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 12px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:6px;padding:7px 12px;cursor:pointer}
 .cam-btns button:hover{background:rgba(60,46,20,.95);border-color:#f5d68a}
@@ -1226,7 +1227,7 @@
 
       <div class="agent idle office-1" id="agent-echo" style="left:35.71%; top:33.0%;">
         <div class="bubble" id="bubble-echo"></div>
-        <div class="sprite"><div class="wing8" id="wing8-echo"></div><div class="walk8" id="w8-echo"></div></div>
+        <div class="sprite"><div class="aura-iris aura-green"><div class="aura-iris-beams"></div></div><div class="wing8" id="wing8-echo"></div><div class="walk8" id="w8-echo"></div></div>
         <div class="nameplate"><b>ECHO</b>Minstrel · Investment</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
