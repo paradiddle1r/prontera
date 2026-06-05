@@ -2473,7 +2473,16 @@ async function runBrief(task, qItem) {
   systemLog(`📜 New quest: "${task}" — agents are thinking…`);
 
   // ── Open SSE stream ───────────────────────────────────────────────
-  const url = BACKEND + "/brief?task=" + encodeURIComponent(task);
+  // Owner key for private Gmail/Drive access from a REMOTE (prod) browser. Captured
+  // once from ?key=... in the URL into localStorage; local use needs none. Strangers
+  // have no key, so the backend refuses Iris's email/Drive reads for them.
+  let _gkey = "";
+  try {
+    const _u = new URLSearchParams(location.search).get("key");
+    if (_u) localStorage.setItem("prontera_gkey", _u);   // remember it so ?key= is only needed once
+    _gkey = _u || localStorage.getItem("prontera_gkey") || "";
+  } catch (_) {}
+  const url = BACKEND + "/brief?task=" + encodeURIComponent(task) + (_gkey ? ("&key=" + encodeURIComponent(_gkey)) : "");
   const es = new EventSource(url);
 
   // ── Event state + deferred promises ───────────────────────────────
