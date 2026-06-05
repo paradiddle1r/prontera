@@ -2561,12 +2561,17 @@ async function runBrief(task, qItem) {
     setStatus("vera", "talking");
     await say("vera", veraText, sayMs(veraText));
     setStatus("vera", "idle");
-    try { if (window.STATION && STATION.vera) await walkAcross("vera", STATION.vera.x, STATION.vera.y, 1600); } catch (_) {}
+    // Vera's delivery re-flagged each assignee as "thinking" (she verifies WITH them);
+    // release them back to idle now so they don't FREEZE stuck on the thinking pose.
+    for (const r of plan.routes) { try { setStatus(r.agent, "idle"); } catch (_) {} }
+    try { if (typeof HOMES !== "undefined" && HOMES.vera) await walkAcross("vera", HOMES.vera.x, HOMES.vera.y, 1600); } catch (_) {}
   }
 
-  // ── 7. Iris reports to the CEO — walks to Oman first, then summarises ──────
+  // ── 7. Iris reports to the CEO — WALKS to Oman first, then summarises ──────
+  //      (window.STATION was never defined -> the walk silently no-op'd and the
+  //       report text printed with nobody moving; HOMES is the live position global.)
   await summaryD.promise;
-  try { if (_router !== "ceo" && window.STATION && STATION.oman) await walkAcross(_actor, STATION.oman.x - 3, STATION.oman.y + 7, 1700); } catch (_) {}
+  try { if (_router !== "ceo" && typeof HOMES !== "undefined" && HOMES.oman) await walkAcross(_actor, HOMES.oman.x - 3, HOMES.oman.y + 7, 1700); } catch (_) {}
   setStatus(_actor, "delegating");
   await say(_actor, summaryText || "Quest complete ✓", sayMs(summaryText));
   setStatus(_actor, "idle");
