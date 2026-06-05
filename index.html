@@ -2164,14 +2164,13 @@ stampModels();
 // budget per backend; a backend that hits a real CLI quota error or its budget
 // shows EXHAUSTED in red while its agents are auto-served by another backend.
 const BACKEND_META = {
-  claude:   { label: "CLAUDE",   color: "#88c0ff", plan: "CLI · Max" },
+  claude:   { label: "CLAUDE",   color: "#e0584f", plan: "Max" },
   ollama:   { label: "OLLAMA",   color: "#a6e22e", plan: "Local ∞" },
-  deepseek: { label: "DEEPSEEK", color: "#7c8cff", plan: "API" },
-  gemini:   { label: "GEMINI",   color: "#4dd6c0", plan: "CLI · Free" },
-  copilot:  { label: "COPILOT",  color: "#2ac3de", plan: "CLI · Free" },
-  codex:    { label: "CODEX",    color: "#ff9e64", plan: "CLI · Free" },
-  cursor:   { label: "CURSOR",   color: "#ff7eb6", plan: "CLI · Free" },
-  antigravity: { label: "ANTIGRAVITY", color: "#b48cff", plan: "CLI · Free" },
+  deepseek: { label: "DEEPSEEK", color: "#7c8cff", plan: "Local" },
+  gemini:   { label: "GEMINI",   color: "#4dd6c0", plan: "Free" },
+  copilot:  { label: "COPILOT",  color: "#2ac3de", plan: "Free" },
+  codex:    { label: "CODEX",    color: "#ff9e64", plan: "Free" },
+  cursor:   { label: "CURSOR",   color: "#ff7eb6", plan: "Free" },
 };
 // Ordered by real capacity (local ∞ + Claude Max on top, free tiers below).
 const QUOTA_ORDER = ["claude", "ollama", "deepseek", "gemini", "copilot", "codex", "cursor", "antigravity"];
