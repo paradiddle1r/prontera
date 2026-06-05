@@ -1285,6 +1285,7 @@
 .quota-row.st-ok .qr-dot{background:#2ecc40;box-shadow:0 0 4px #2ecc40,0 0 0 1px rgba(0,0,0,.5)}
 .quota-row.st-bad .qr-dot{background:#ff3b30;box-shadow:0 0 5px #ff3b30,0 0 0 1px rgba(0,0,0,.5);animation:ledBlink 1s steps(1,end) infinite}
 .quota-row.st-unknown .qr-dot{background:#6a6a6a}
+.quota-row.st-over .qr-dot{background:#caa64a;box-shadow:0 0 4px #caa64a,0 0 0 1px rgba(0,0,0,.5)}
 @keyframes ledBlink{50%{opacity:.35}}
 .qr-reason{margin-top:3px;font-size:8px;line-height:1.3;color:#ff9a9a;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #mn-mana{width:100%}
@@ -2208,6 +2209,7 @@ function renderQuota(snap) {
       dead = !!d.exhausted && d.reason !== "budget";
       over = !!d.exhausted && d.reason === "budget";
       if (dead) { stState = "bad"; reason = d.reason || "ไม่ทราบสาเหตุ (no detail)"; }
+      else if (over) { stState = "over"; }   // over the local budget but CLI still works -> amber LED (bar keeps its identity colour)
       else { stState = "ok"; }
       valText = dead ? "DOWN" : (over ? "เต็ม·ใช้ได้" : (fmtTok(rem) + " left" + (d.est ? "~" : "")));
     }
@@ -2223,7 +2225,7 @@ function renderQuota(snap) {
       '<div class="qr-head"><span class="qr-name">' + nameHtml + '</span>' +
       '<span class="qr-val">' + valText + '</span></div>' +
       '<div class="quota-track"><div class="quota-fill" style="width:' + (over ? 100 : pct) +
-      '%;background:' + (dead ? "#ff5050" : (over ? "#caa64a" : meta.color)) + '"></div></div>' +
+      '%;background:' + (dead ? "#ff5050" : meta.color) + '"></div></div>' +
       (dead ? '<div class="qr-reason">⚠ ' + reasonEsc + '</div>' : '');
     rows.appendChild(row);
     window.__manaSnap = snap;   // expose latest snapshot for Vera's mana watchdog
