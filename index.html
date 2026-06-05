@@ -765,7 +765,7 @@
   .quota-board {
     position: absolute;
     left: 1.6%; top: 2%;
-    width: 216px;
+    width: 246px;
     background: linear-gradient(180deg, rgba(36,20,5,0.96), rgba(22,12,4,0.96));
     border: 2px solid var(--gold);
     box-shadow: 3px 3px 0 #000, inset 0 0 0 1px #4a3416;
@@ -782,8 +782,9 @@
   }
   .quota-row { margin-bottom: 6px; }
   .quota-row:last-child { margin-bottom: 0; }
-  .quota-row .qr-head { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 2px; }
-  .quota-row .qr-name { font-weight: 700; letter-spacing: 0.5px; color: #f0e6d2; }
+  .quota-row .qr-head { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 2px; gap: 6px; }
+  .quota-row .qr-name { font-weight: 700; letter-spacing: 0.5px; color: #f0e6d2; white-space: nowrap; }
+  .quota-row .qr-val { white-space: nowrap; }
   .quota-row .qr-plan { font-weight: 500; letter-spacing: 0; color: #9a8c70; }
   .quota-row .qr-val  { color: #cdbb9a; }
   .quota-track { height: 6px; background: #0d0702; border: 1px solid #000; border-radius: 2px; overflow: hidden; }
@@ -1090,18 +1091,28 @@
 /* ===== final: live look + linear room chain + camera ===== */
 .office,.seam,.banner,.upper-deck,.stairs,.ceo-carpet,.ceo-desk{display:none !important}
 .stage-wrap{overflow:hidden !important}
-#stage{width:6300px !important;height:760px !important;transform-origin:0 0 !important;transition:none !important;will-change:transform}
+#stage{width:6615px !important;height:760px !important;transform-origin:0 0 !important;transition:none !important;will-change:transform}
 .sprite{filter:none !important}
 .sprite::before{bottom:-2px !important}
 .nameplate{margin-top:9px !important}
 .npc{transform:translate(-50%,-50%) scale(.85) !important;z-index:3}
 .npc-label{color:#fff6df !important;font-weight:700 !important;letter-spacing:.5px;background:rgba(18,11,4,.72);padding:1px 6px;border-radius:3px;text-shadow:1px 1px 0 #000,0 0 5px #000 !important}
 .stage-wrap > .quota-board{left:14px !important;top:14px !important;z-index:200 !important}
-.stage-wrap > .setup-board{right:14px !important;bottom:54px !important;left:auto !important;top:auto !important;z-index:200 !important}
-.grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:48px 48px;box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
+#queueBoard{position:fixed;top:12px;right:14px;left:auto;transform:none;z-index:300;display:none;background:linear-gradient(180deg,rgba(28,20,8,.97),rgba(18,12,4,.97));border:2px solid #8a6a3a;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.55);padding:7px 12px;font:12px system-ui;color:#f3e7c8;min-width:330px;max-width:92vw}
+#queueBoard .qb-title{color:#ffd884;font-weight:700;font-size:11px;text-align:center;margin-bottom:6px;letter-spacing:.5px}
+#queueBoard .qb-lanes{display:flex;gap:6px}
+#queueBoard .qb-lane{flex:1;background:#15110b;border:1px solid #3a3020;border-radius:7px;padding:5px 7px;min-width:92px;opacity:.5}
+#queueBoard .qb-lane.on{opacity:1;border-color:#8a6a3a;background:#221c12}
+#queueBoard .qb-h{display:block;color:#ffe9a8;font-weight:700;font-size:10px;font-family:ui-monospace,monospace}
+#queueBoard .qb-t{display:block;color:#c4b48c;font-size:10px;line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#queueBoard .qb-pending{margin-top:6px;font-size:10px;color:#88c0ff;border-top:1px solid #3a3020;padding-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){#queueBoard{min-width:0;left:3vw;right:3vw;width:auto;top:6px;padding:5px 8px;transform:none}#queueBoard .qb-t{font-size:9px}}
+.quota-board .ctrl-panel{display:none !important}
+.stage-wrap > .setup-board{display:none !important}
+.grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:calc(100%/147) calc(100%/14);box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
 .grid-on .grid-overlay{opacity:.8}
-#gridcursor{position:absolute;width:48px;height:48px;pointer-events:none;z-index:3;display:none;border:2px solid rgba(120,215,255,.5);border-radius:14px;background:rgba(90,205,255,.12);box-shadow:0 0 22px 6px rgba(90,205,255,.6),inset 0 0 18px rgba(140,228,255,.55);filter:blur(.7px);animation:gcPulse 1.1s ease-in-out infinite}
-@keyframes gcPulse{0%,100%{opacity:.7}50%{opacity:1}}
+#gridcursor{position:absolute;width:45px;height:46.43px;pointer-events:none;z-index:3;display:none;border-radius:13px;background:radial-gradient(ellipse at 50% 55%,rgba(150,233,255,.62),rgba(96,210,255,.36) 52%,rgba(96,210,255,.09) 80%,transparent 100%);box-shadow:0 0 34px 11px rgba(120,220,255,.92),inset 0 0 24px rgba(170,240,255,.78);filter:blur(.5px);animation:gcPulse 1.1s ease-in-out infinite}
+@keyframes gcPulse{0%,100%{opacity:.82}50%{opacity:1}}
 #agent-oman .ceo-mesh{position:absolute;left:50%;bottom:-18px;width:200px;height:210px;transform:translateX(-50%);z-index:0;pointer-events:none;border-radius:48% 52% 50% 50%;background:conic-gradient(from 0deg,#ff2d6f,#ff9e2d,#ffe93d,#3dff8e,#2dd4ff,#7c5cff,#ff2d6f);filter:blur(24px) saturate(1.5);opacity:.5;mix-blend-mode:screen;animation:ceoMeshSpin 7s linear infinite, ceoMeshPulse 3.2s ease-in-out infinite}
 @keyframes ceoMeshSpin{to{transform:translateX(-50%) rotate(360deg)}}
 @keyframes ceoMeshPulse{0%,100%{opacity:.36}50%{opacity:.66}}
@@ -1142,9 +1153,9 @@
 #wing8-vera{background-image:url(sprites_out/walk8/vera_wing8.png)}
 #wing8-zara{background-image:url(sprites_out/walk8/zara_wing8.png)}
 .wing-aura{position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:240px;height:200px;z-index:0;pointer-events:none}
-.wing-aura::before{content:"";position:absolute;inset:0;transform-origin:50% 62%}
-.wa-angel::before{background:radial-gradient(ellipse 46px 72px at 50% 62%,rgba(255,250,225,.85) 0%,rgba(255,216,104,.55) 34%,rgba(255,186,52,.26) 62%,transparent 100%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
-.wa-demon::before{background:radial-gradient(ellipse 46px 72px at 50% 62%,rgba(8,2,12,.82) 0%,rgba(34,5,46,.76) 30%,rgba(150,22,138,.5) 58%,rgba(96,14,150,.3) 80%,transparent 100%);animation:wingAuraPulse 2.2s ease-in-out infinite}
+.wing-aura::before{content:"";position:absolute;inset:0;transform-origin:50% 66%}
+.wa-angel::before{background:radial-gradient(ellipse 46px 72px at 50% 66%,rgba(255,250,225,.85) 0%,rgba(255,216,104,.55) 34%,rgba(255,186,52,.26) 62%,transparent 100%);mix-blend-mode:screen;animation:wingAuraPulse 2.6s ease-in-out infinite}
+.wa-demon::before{background:radial-gradient(ellipse 46px 72px at 50% 66%,rgba(8,2,12,.82) 0%,rgba(34,5,46,.76) 30%,rgba(150,22,138,.5) 58%,rgba(96,14,150,.3) 80%,transparent 100%);animation:wingAuraPulse 2.2s ease-in-out infinite}
 @keyframes wingAuraPulse{0%,100%{opacity:.78;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 #agentChat{position:fixed;right:18px;bottom:92px;width:300px;max-width:84vw;z-index:300;background:linear-gradient(180deg,#1b1710,#13100a);border:2px solid #8a6a3a;border-radius:12px;box-shadow:0 12px 38px rgba(0,0,0,.6);font:13px system-ui;color:#f3e7c8;display:flex;flex-direction:column;overflow:hidden}
 #agentChat[hidden]{display:none}
@@ -1209,21 +1220,80 @@
 .mn-room-t{color:#a6e22e;font-size:11px;margin-top:5px}
 .mn-room-h{font-size:9px;margin-top:5px;color:#7e7256}
 .mn-empty{color:#8a7e60;font-style:italic;padding:14px 4px;text-align:center}
+#mn-model-agents #setupBoard{width:auto;border:none;box-shadow:none;background:none;position:static;overflow:visible}
+#mn-model-agents .setup-title{display:none}
+#mn-model-agents .setup-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;max-height:none;padding:0;overflow:visible}
+.setup-card{background:#221c12;border:1px solid #3a3020;border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
+.setup-card:hover{border-color:#8a6a3a;background:#2a2216}
+.setup-card .sc-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.setup-card .sc-name{color:#ffe9a8;font-weight:700;font-size:13px;font-family:system-ui}
+.setup-card .sc-badge{font-family:ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.3px;color:#88c0ff;background:#15110b;border:1px solid #3a3020;border-radius:5px;padding:1px 5px;white-space:nowrap}
+.setup-card .sc-role{color:#c4b48c;font-size:10px;font-family:system-ui;line-height:1.3}
+.setup-card .sc-proj{color:#a6e22e;font-size:10px;font-family:system-ui}
+.setup-card .sc-proj b{color:#cdebab}
+.setup-card select{width:100%;margin-top:4px;font-family:ui-monospace,monospace;font-size:11px;background:#0d0702;color:#cdbb9a;border:1px solid #4a3416;border-radius:5px;padding:4px 5px;cursor:pointer}
+#mn-model-lead .ctrl-panel{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;align-items:start}
+#mn-model-lead .lead-card{display:flex;flex-direction:column;gap:3px;margin:0;background:#221c12;border:1px solid #6a512c;border-radius:10px;padding:9px 11px}
+#mn-model-lead .lead-card .lc-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+#mn-model-lead .lead-card .lc-name{color:#ffe9a8;font-weight:700;font-size:13px;font-family:system-ui;letter-spacing:0}
+#mn-model-lead .lead-card .lc-tag{font-size:9px;font-weight:700;color:#ffd884;background:#15110b;border:1px solid #6a512c;border-radius:5px;padding:1px 6px}
+#mn-model-lead .lead-card .lc-meta{color:#c4b48c;font-size:10px;font-family:system-ui}
+#mn-model-lead .lead-card .lc-meta b{color:#cdebab}
+#mn-model-lead .lead-card label{font-size:9px;color:#9a8a64;font-family:system-ui;margin-top:3px}
+#mn-model-lead .lead-card select{width:100%;font-family:ui-monospace,monospace;font-size:11px;background:#0d0702;color:#cdbb9a;border:1px solid #4a3416;border-radius:5px;padding:4px 5px;cursor:pointer}
+#mn-model-lead .ctrl-toggle{grid-column:1/-1;margin-top:2px}
 .mn-controls .ctrl-panel{margin:0;border:none;padding:0}
 .mn-ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .mn-ctrl-row label{min-width:150px;color:#e8d9b0;font-weight:600}
 .mn-ctrl-row button{background:#221c12;border:1px solid #8a6a3a;border-radius:7px;color:#f5e3b0;font:600 12px system-ui;padding:6px 11px;cursor:pointer}
 .mn-ctrl-row button:hover{background:#2a2216}
 .mn-ctrl-row button.on{background:#4a1414;color:#ffb0b0;border-color:#a33}
-.mn-grid-search{width:100%;box-sizing:border-box;background:#15110b;border:1px solid #6a512c;border-radius:7px;color:#f3e7c8;font:13px system-ui;padding:7px 10px;margin-bottom:10px}
+.mn-grid-read{position:sticky;top:0;z-index:5;background:#15110b;border:1px solid #6a512c;border-radius:7px;color:#cdbb8c;font:12px ui-monospace,monospace;padding:7px 10px;margin-bottom:10px;line-height:1.5}
+.mn-grid-read b{color:#ffe9a8;font-weight:700}
+.mn-grid-read i{color:#88c0ff;font-style:normal}
 .mn-grid-list{max-height:100%}
-.mn-grid-row{display:flex;align-items:center;gap:10px;padding:5px 8px;border-bottom:1px solid #2a2418}
-.mn-grid-row:hover{background:#221c12}
-.mn-grid-cell{color:#ffe9a8;font-weight:700;font-family:ui-monospace,monospace;min-width:62px}
-.mn-grid-room{color:#c4b48c;font-size:11px;min-width:78px}
-.mn-grid-xy{color:#88c0ff;font-size:10px;flex:1}
-.mn-grid-row button{background:#221c12;border:1px solid #3a3020;border-radius:6px;color:#caa86a;font:600 10px system-ui;padding:3px 7px;cursor:pointer}
-.mn-grid-row button:hover{color:#ffd884;border-color:#8a6a3a}
+.mn-map{margin-bottom:16px}
+.mn-map-h{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.mn-map-h b{color:#ffd884;font:700 13px system-ui}
+.mn-map-h span{color:#7e7256;font-size:10px}
+.mn-map-wall{aspect-ratio:945/110;background-color:#1a160e;background-size:auto 100%;background-repeat:repeat-x;background-position:center;border:1px solid #4a3d24;border-bottom:none;border-radius:6px 6px 0 0;image-rendering:pixelated}
+.mn-map-g{position:relative;display:grid;grid-template-columns:repeat(21,1fr);gap:1px;background-color:#2a2418;background-size:calc(100%/14) calc(100%/10);background-repeat:repeat;border:1px solid #4a3d24;border-top:none;border-radius:0 0 6px 6px;padding:1px;aspect-ratio:21/14;image-rendering:pixelated}
+.mn-map-g i{display:block;background:rgba(10,8,4,.30);cursor:pointer;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.28)}
+.mn-map-g i:hover{background:#5a4a22;outline:1px solid #ffd884;outline-offset:-1px}
+.mn-map-g i.ok{background:#2f5a22;outline:1px solid #a6e22e;outline-offset:-1px}
+.mn-dot{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#88c0ff;border:1px solid #0b0a10;box-shadow:0 0 4px #88c0ff;pointer-events:none;z-index:3}
+.mn-map-plat{position:absolute;left:19%;top:2%;width:62%;height:29%;background:rgba(190,158,96,.20);border:1px dashed rgba(255,228,150,.5);border-radius:3px;pointer-events:none;z-index:2}
+.mn-obj{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:2px;background:#ffb454;border:1px solid #0b0a10;box-shadow:0 0 4px rgba(255,180,84,.85);cursor:grab;z-index:4}
+.mn-obj-new{background:#a6e22e;box-shadow:0 0 4px rgba(166,226,46,.85)}
+.mn-obj.dragging{cursor:grabbing;opacity:.85;box-shadow:0 0 9px #ffd884;z-index:9}
+.mn-cellmenu{position:fixed;z-index:500;background:#15110b;border:1px solid #8a6a3a;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.6);padding:8px;width:220px;color:#f3e7c8;font:12px system-ui}
+.mn-cellmenu[hidden]{display:none}
+.mn-cm-h{color:#ffe9a8;font-weight:700;font-size:11px;margin-bottom:6px;font-family:ui-monospace,monospace}
+.mn-cm-row{display:flex;gap:6px;margin-bottom:7px}
+.mn-cm-row button{flex:1;background:#221c12;border:1px solid #3a3020;border-radius:6px;color:#caa86a;font:600 10px system-ui;padding:5px;cursor:pointer}
+.mn-cm-row button:hover{color:#ffd884;border-color:#8a6a3a}
+.mn-cm-lbl{color:#8a7e60;font-size:9px;margin-bottom:4px}
+.mn-cm-lib{display:grid;grid-template-columns:1fr 1fr;gap:4px;max-height:150px;overflow-y:auto}
+.mn-lib-b{background:#221c12;border:1px solid #3a3020;border-radius:6px;color:#e8d9b0;font:600 10px system-ui;padding:5px 4px;cursor:pointer;text-align:left}
+.mn-lib-b:hover{background:#2a2216;border-color:#8a6a3a;color:#ffe9a8}
+.qr-dot{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:2px;vertical-align:middle;background:#6a6a6a;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.quota-row.st-ok .qr-dot{background:#2ecc40;box-shadow:0 0 4px #2ecc40,0 0 0 1px rgba(0,0,0,.5)}
+.quota-row.st-bad .qr-dot{background:#ff3b30;box-shadow:0 0 5px #ff3b30,0 0 0 1px rgba(0,0,0,.5);animation:ledBlink 1s steps(1,end) infinite}
+.quota-row.st-unknown .qr-dot{background:#6a6a6a}
+@keyframes ledBlink{50%{opacity:.35}}
+.qr-reason{margin-top:3px;font-size:8px;line-height:1.3;color:#ff9a9a;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mn-mana{width:100%}
+#mn-mana .quota-board{position:static;width:100%;max-width:100%;box-sizing:border-box;transform:none;padding:16px 20px;border-radius:10px;font-size:15px;pointer-events:auto;box-shadow:inset 0 0 0 1px #4a3416}
+#mn-mana .quota-title{font-size:17px;letter-spacing:1px;margin-bottom:12px;padding-bottom:8px}
+#mn-mana .quota-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px 22px}
+#mn-mana .quota-row{margin-bottom:0}
+#mn-mana .quota-row .qr-head{font-size:13px;margin-bottom:5px;align-items:baseline}
+#mn-mana .quota-row .qr-name{font-size:13px}
+#mn-mana .quota-row .qr-val{font-size:13px}
+#mn-mana .qr-dot{width:11px;height:11px;margin-right:7px;border-radius:2px}
+#mn-mana .quota-track{height:13px;border-radius:4px}
+#mn-mana .qr-reason{font-size:11px;margin-top:5px;white-space:normal}
+#mn-mana .quota-foot{font-size:11px;margin-top:12px}
 .dl-box{width:min(1040px,94vw);height:min(82vh,760px);background:linear-gradient(180deg,#1b1710,#13100a);border:2px solid #8a6a3a;border-radius:14px;box-shadow:0 18px 60px #000;display:flex;flex-direction:column;overflow:hidden;color:#f3e7c8;font:13px system-ui}
 .dl-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(60,46,20,.6);border-bottom:1px solid #6a512c}
 .dl-head b{font-size:16px;color:#ffd884}
@@ -1276,7 +1346,7 @@
 .poring-real{position:absolute;width:41px;height:45px;image-rendering:pixelated;z-index:2;background:url(sprites_out/fx/poring_walk.png) 0 0/410px 45px;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.4));pointer-events:none;animation:poringWalk 2s steps(10) infinite, poringHopLocal 26s ease-in-out infinite, poringFaceLocal 26s step-end infinite}
 @keyframes poringWalk{to{background-position:-410px 0}}
 @keyframes poringHopLocal{0%{left:22%;top:60%}7%{left:22%;top:60%}16%{left:68%;top:52%}32%{left:68%;top:52%}50%{left:40%;top:70%}59%{left:40%;top:70%}70%{left:78%;top:58%}86%{left:30%;top:64%}94%{left:30%;top:64%}100%{left:22%;top:60%}}
-@keyframes poringFaceLocal{0%{transform:scaleX(-1)}18%{transform:scaleX(1)}38%{transform:scaleX(-1)}58%{transform:scaleX(1)}78%{transform:scaleX(-1)}}
+@keyframes poringFaceLocal{0%{transform:scaleX(1)}7%{transform:scaleX(-1)}32%{transform:scaleX(1)}59%{transform:scaleX(-1)}70%{transform:scaleX(1)}}
 .p-aldebaran{animation-delay:-0.0s,-0.0s,-0.0s;animation-duration:2s,22s,22s}
 .p-geffen{animation-delay:-1.9s,-1.9s,-1.9s;animation-duration:2s,24s,24s}
 .p-izlude{animation-delay:-3.8s,-3.8s,-3.8s;animation-duration:2s,26s,26s}
@@ -1294,10 +1364,10 @@
 .room-label small{display:block;font-size:9.5px;letter-spacing:1.5px;color:#ecc97e;opacity:.95;margin-top:2px;font-weight:600}
 .warp-portal{position:absolute;transform:translate(-50%,-50%) scale(.85) scaleY(.62);cursor:pointer;pointer-events:auto;z-index:5;opacity:.95}
 .warp-portal:hover{filter:brightness(1.35)}
-.cam-btns{position:absolute;right:14px;top:14px;z-index:200;display:flex;gap:8px}
+.cam-btns{position:absolute;left:14px;bottom:84px;right:auto;top:auto;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 15px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:7px;padding:5px 9px;cursor:pointer;line-height:1}
 .cam-btns button:hover{background:rgba(60,46,20,.95);border-color:#f5d68a}
-@media (max-width:760px){.room-label{font-size:12px;padding:3px 9px}.room-label small{font-size:8px}.cam-btns{right:8px;top:8px;gap:6px}.cam-btns button{font-size:13px;padding:4px 7px}#gridcursor{display:none !important}}
+@media (max-width:760px){.room-label{font-size:12px;padding:3px 9px}.room-label small{font-size:8px}.cam-btns{left:8px;bottom:78px;right:auto;top:auto;gap:6px}.cam-btns button{font-size:13px;padding:4px 7px}#gridcursor{display:none !important}}
 @media (orientation:landscape) and (max-height:540px){.app{grid-template-columns:1fr 220px !important;grid-template-rows:100dvh !important}.quota-board{transform:scale(.58);transform-origin:top left}.setup-board{transform:scale(.58);transform-origin:bottom right}}
 @media (max-width:760px){.app{height:100dvh}}
 </style>
@@ -1312,7 +1382,7 @@
       <div class="clock" id="clock">--:--:--</div>
 
       <!-- ===== Office 1: Hotel PMS ===== -->
-      <div class="agent idle office-1" id="agent-oman" style="left:50.0%; top:33.0%;">
+      <div class="agent idle office-1" id="agent-oman" style="left:50.0%; top:29.746%;">
         <div class="bubble" id="bubble-oman"></div>
         <div class="sprite"><div class="aura99"><div class="aura99-beams"></div></div><div class="ceo-mesh"></div><div class="ceo-wingaura"></div><div class="wing8" id="wing8-oman"></div><div class="walk8" id="w8-oman"></div></div>
         <div class="nameplate"><b>OMAN</b>CEO</div>
@@ -1320,7 +1390,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-iris" style="left:47.5%; top:39.5%;">
+      <div class="agent idle office-1" id="agent-iris" style="left:47.959%; top:54.182%;">
         <div class="bubble" id="bubble-iris"></div>
         <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="wing-aura wa-angel"></div><div class="wing8" id="wing8-iris"></div><div class="walk8" id="w8-iris"></div></div>
         <div class="nameplate"><b>IRIS</b>Cardinal · Advisor</div>
@@ -1344,7 +1414,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-echo" style="left:35.71%; top:33.0%;">
+      <div class="agent idle office-1" id="agent-echo" style="left:35.714%; top:29.746%;">
         <div class="bubble" id="bubble-echo"></div>
         <div class="sprite"><div class="feet-aura fa-green"></div><div class="wing8" id="wing8-echo"></div><div class="walk8" id="w8-echo"></div></div>
         <div class="nameplate"><b>ECHO</b>Minstrel · Investment</div>
@@ -1376,7 +1446,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-cass" style="left:64.29%; top:33.0%;">
+      <div class="agent idle office-1" id="agent-cass" style="left:64.286%; top:29.746%;">
         <div class="bubble" id="bubble-cass"></div>
         <div class="sprite"><div class="feet-aura fa-yellow"></div><div class="wing8" id="wing8-cass"></div><div class="walk8" id="w8-cass"></div></div>
         <div class="nameplate"><b>CASS</b>Royal Guard · PM</div>
@@ -1441,7 +1511,7 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-2" id="agent-zara" style="left:21.43%; top:33.0%;">
+      <div class="agent idle office-2" id="agent-zara" style="left:21.429%; top:23.637%;">
         <div class="bubble" id="bubble-zara"></div>
         <div class="sprite"><div class="feet-aura fa-purple"></div><div class="wing8" id="wing8-zara"></div><div class="walk8" id="w8-zara"></div></div>
         <div class="nameplate"><b>ZARA</b>Genetic · PM</div>
@@ -1449,21 +1519,21 @@
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
 
-      <div class="agent idle office-1" id="agent-vera" style="left:52.5%; top:39.5%;">
+      <div class="agent idle office-1" id="agent-vera" style="left:52.041%; top:54.182%;">
         <div class="bubble" id="bubble-vera"></div>
         <div class="sprite"><div class="aura-iris"><div class="aura-iris-beams"></div></div><div class="wing-aura wa-demon"></div><div class="wing8" id="wing8-vera"></div><div class="walk8" id="w8-vera"></div></div>
         <div class="nameplate"><b>VERA</b>Soul Reaper · Auditor</div>
         <div class="bars"><div class="bar hp"><div></div></div><div class="bar sp"><div></div></div></div>
         <span class="status-pill"><span class="state">idle</span></span>
       </div>
-      <div class="deco-flag flag-eagle" style="left:46.5%; top:28%"></div>
-      <div class="deco-flag flag-lion" style="left:53.5%; top:28%"></div>
-      <div class="deco deco-bull" style="left:32.5%; top:33%"></div>
-      <div class="deco deco-bear" style="left:39%; top:31%"></div>
-      <div class="deco deco-board3" style="left:24%; top:33%"></div>
-      <div class="deco deco-ed_orb" style="left:18.5%; top:30%"></div>
+      <div class="deco-flag flag-eagle" style="left:46.79%; top:28%"></div>
+      <div class="deco-flag flag-lion" style="left:53.21%; top:28%"></div>
+      <div class="deco deco-bull" style="left:32.99%; top:28.99%"></div>
+      <div class="deco deco-bear" style="left:38.44%; top:27.54%"></div>
+      <div class="deco deco-board3" style="left:24.83%; top:22.88%"></div>
+      <div class="deco deco-ed_orb" style="left:21.43%; top:33.38%"></div>
       <!-- ===== Background NPCs (decoration) ===== -->
-      <div class="npc bob" style="left:78.6%; top:35%;">
+      <div class="npc bob" style="left:44.6%; top:34.3%;">
         <img src="sprites_out/v2/npc_pubmaster.png" alt="">
         <div class="npc-label">JANITOR-01</div>
       </div>
@@ -1473,8 +1543,10 @@
         <div class="quota-rows" id="quotaRows"></div>
         <div class="quota-foot">— Janitor-01 reporting</div>
         <div class="ctrl-panel">
-          <div class="ctrl-row">
-            <label for="ceoModel">OMAN 👑</label>
+          <div class="ctrl-row lead-card">
+            <div class="lc-head"><span class="lc-name">OMAN 👑</span><span class="lc-tag">CEO</span></div>
+            <div class="lc-meta">หัวหน้าใหญ่ · โปรเจค: <b>HQ</b></div>
+            <label for="ceoModel">โมเดลที่ใช้</label>
             <select id="ceoModel">
               <option value="default">— Default —</option>
               <option value="claude:opus">Opus · Claude</option>
@@ -1489,8 +1561,10 @@
               <option value="antigravity:Gemini 3.5 Flash (Low)">Antigravity</option>
             </select>
           </div>
-          <div class="ctrl-row">
-            <label for="irisModel">IRIS ⚔</label>
+          <div class="ctrl-row lead-card">
+            <div class="lc-head"><span class="lc-name">IRIS ⚔</span><span class="lc-tag">เลขาฯ/ผู้ช่วย</span></div>
+            <div class="lc-meta">มือขวา CEO · โปรเจค: <b>HQ</b></div>
+            <label for="irisModel">โมเดลที่ใช้</label>
             <select id="irisModel">
               <option value="claude:opus">Opus · Claude</option>
               <option value="claude:sonnet">Sonnet · Claude</option>
@@ -1504,8 +1578,10 @@
               <option value="antigravity:Gemini 3.5 Flash (Low)">Antigravity</option>
             </select>
           </div>
-          <div class="ctrl-row">
-            <label for="veraModel">VERA 🪦</label>
+          <div class="ctrl-row lead-card">
+            <div class="lc-head"><span class="lc-name">VERA 🪦</span><span class="lc-tag">ผู้ตรวจสอบ</span></div>
+            <div class="lc-meta">ตรวจทานงาน · โปรเจค: <b>HQ</b></div>
+            <label for="veraModel">โมเดลที่ใช้</label>
             <select id="veraModel"><option value="default">— Default —</option><option value="claude:opus">Opus · Claude</option><option value="claude:sonnet">Sonnet · Claude</option><option value="claude:haiku">Haiku · Claude</option><option value="gemini:gemini-2.5-flash">Gemini Flash</option><option value="deepseek:deepseek-chat">DeepSeek</option><option value="ollama:qwen2.5-coder:7b">Qwen · Local</option><option value="codex:codex">Codex</option><option value="cursor:cursor">Cursor</option><option value="copilot:copilot">Copilot</option></select>
           </div>
           <button id="noClaudeBtn" class="ctrl-toggle" type="button">⚙ Claude: ON</button>
@@ -1516,30 +1592,30 @@
         <button class="setup-title" id="setupToggle" type="button">⚙ MODEL SETUP <span class="setup-caret">▸</span></button>
         <div class="setup-body" id="setupBody"></div>
       </div>
-      <div class="npc bob" style="left:44%; top:25%;">
+      <div class="npc bob" style="left:46.8%; top:28.2%;">
         <img src="sprites_out/v2/npc_merchant_f1.png" alt="">
         <div class="npc-label">GM STAFF</div>
       </div>
-      <div class="npc bob" style="left:56%; top:25%;">
+      <div class="npc bob" style="left:53.9%; top:28.2%;">
         <img src="sprites_out/v2/npc_merchant_f2.png" alt="">
         <div class="npc-label">RECEPTION</div>
       </div>
-      <div class="npc bob" style="left:95%; top:24%;">
+      <div class="npc bob" style="left:41.8%; top:28.2%;">
         <img src="sprites_out/v2/npc_merchant_m.png" alt="">
         <div class="npc-label">JANITOR-02</div>
       </div>
-      <div class="npc bob" style="left:5%; top:89%;">
+      <div class="npc bob" style="left:60.4%; top:40.4%;">
         <img src="sprites_out/v2/npc_pubgirl.png" alt="">
         <div class="npc-label">PANTRY</div>
       </div>
-      <div class="npc bob" style="left:33%; top:91%;">
+      <div class="npc bob" style="left:78.9%; top:34.3%;">
         <img src="sprites_out/v2/npc_oldsage.png" alt="">
         <div class="npc-label">ADMIN</div>
       </div>
     </div>
 
     <div class="statusbar">
-      <span><b>STATUS:</b> 17/17 ONLINE</span>
+      <span><b>STATUS:</b> 18/18 ONLINE</span>
       <span><b>HP:</b> hotel-pms · <b>HG:</b> hostgate.app</span>
       <span><b>QUEUE:</b> <span id="queue">0</span></span>
       <span><b>EXP:</b> <span id="exp">████████░░ 82%</span></span>
@@ -1549,7 +1625,7 @@
   <aside class="panel">
     <div class="panel-head">
       <h2>💬 GUILD CHAT</h2>
-      <div class="sub">Hotel PMS HQ × HostGate HQ · 17 members</div>
+      <div class="sub">Hotel PMS HQ × HostGate HQ · 18 members</div>
     </div>
     <div class="log" id="log"></div>
     <div class="input-row">
@@ -1612,16 +1688,16 @@ const MODEL_FALLBACK = {
 const HOMES = {
   lumen: { x: 4.76, y: 58, rx: 3, ry: 3, office: 1 },
   kira: { x: 9.52, y: 67, rx: 3, ry: 3, office: 1 },
-  zara: { x: 21.43, y: 33.0, rx: 3, ry: 3, office: 1 },
+  zara: { x: 21.429, y: 23.637, rx: 3, ry: 3, office: 1 },
   pino: { x: 17.86, y: 58, rx: 3, ry: 3, office: 1 },
   reno: { x: 21.43, y: 67, rx: 3, ry: 3, office: 1 },
   mira: { x: 25.0, y: 58, rx: 3, ry: 3, office: 1 },
-  echo: { x: 35.71, y: 33.0, rx: 3, ry: 3, office: 1 },
+  echo: { x: 35.714, y: 29.746, rx: 3, ry: 3, office: 1 },
   nyx: { x: 35.71, y: 58, rx: 3, ry: 3, office: 1 },
-  oman: { x: 50.0, y: 33.0, rx: 3, ry: 3, office: 1 },
-  iris: { x: 47.5, y: 39.5, rx: 3, ry: 3, office: 1 },
-  vera: { x: 52.5, y: 39.5, rx: 3, ry: 3, office: 1 },
-  cass: { x: 64.29, y: 33.0, rx: 3, ry: 3, office: 1 },
+  oman: { x: 50.0, y: 29.746, rx: 3, ry: 3, office: 1 },
+  iris: { x: 47.959, y: 54.182, rx: 3, ry: 3, office: 1 },
+  vera: { x: 52.041, y: 54.182, rx: 3, ry: 3, office: 1 },
+  cass: { x: 64.286, y: 29.746, rx: 3, ry: 3, office: 1 },
   sage: { x: 61.9, y: 58, rx: 3, ry: 3, office: 1 },
   tao: { x: 66.67, y: 67, rx: 3, ry: 3, office: 1 },
   shade: { x: 76.19, y: 58, rx: 3, ry: 3, office: 1 },
@@ -1922,12 +1998,30 @@ stampModels();
     if (!roster) { body.innerHTML = '<div class="su-note">เปิดผ่านเซิร์ฟเวอร์ Prontera เพื่อตั้งค่าโมเดล</div>'; return; }
     const overrides = (cfg && cfg.agent_models) || {};
     body.innerHTML = "";
+    // local maps (HOME_ROOM/ROOM_CX live in cam_js scope; the menu's ROOM_PROJ is a
+    // var inside another IIFE — both unreachable here, so hardcode for the cards)
+    const CARD_PROJ = {prontera:"HQ",geffen:"HostGate.app",payon:"hotel-pms",izlude:"Investment",morroc:"Sales",alberta:"Export",aldebaran:"Standby (bench)"};
+    const CARD_ROOM = {lumen:"aldebaran",kira:"aldebaran",zara:"geffen",pino:"geffen",reno:"geffen",mira:"geffen",echo:"izlude",nyx:"izlude",vera:"prontera",cass:"payon",sage:"payon",tao:"payon",shade:"morroc",aria:"morroc",vex:"alberta",bolt:"alberta"};
+    const escCard = (t) => String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     Object.entries(roster).forEach(([id, info]) => {
-      if (id === "iris" || id === "oman") return;   // CEO + Iris have their own pickers in the MANA POOL panel (top-left)
-      const row = document.createElement("div"); row.className = "setup-row";
-      const name = document.createElement("span"); name.className = "su-name";
-      name.textContent = (info && info.name) || id;
+      if (id === "iris" || id === "oman" || id === "vera") return;   // CEO + Iris + Vera have dedicated lead-card pickers (top-left)
+      const rm = CARD_ROOM[id] || (info && info.room) || "";
+      const proj = CARD_PROJ[rm] || "—";
+      const row = document.createElement("div"); row.className = "setup-card";
+      row.innerHTML =
+        '<div class="sc-head"><span class="sc-name">' + escCard((info && info.name) || id) + '</span>'
+        + '<span class="sc-badge" data-family="' + modelFamily(info && info.model) + '">' + (prettyModel(info && info.model) || "—") + '</span></div>'
+        + '<div class="sc-role">' + escCard((info && info.role) || "—") + '</div>'
+        + '<div class="sc-proj">โปรเจค: <b>' + escCard(proj) + '</b></div>';
       const sel = document.createElement("select"); sel.innerHTML = optsHtml;
+      // show real MODEL NAMES (nameplate format) instead of "— Default —"/plain labels;
+      // keep value="default" (it is the revert-to-coded-model path) but label it with the model.
+      [...sel.options].forEach(o => {
+        if (o.value === "default") {
+          const dm = ((typeof MODEL_FALLBACK !== "undefined" && MODEL_FALLBACK[id])) || (info && info.model) || "";
+          o.textContent = "\u21ba " + (prettyModel(dm) || "\u0e2d\u0e31\u0e15\u0e42\u0e19\u0e21\u0e31\u0e15\u0e34");
+        } else { const i = o.value.indexOf(":"); const pm = prettyModel(i>=0?o.value.slice(i+1):o.value); if (pm) o.textContent = pm; }
+      });
       const ov = overrides[id];
       let val = ov ? (ov.backend + ":" + ov.model) : "default";
       if (![...sel.options].some(o => o.value === val)) val = "default";
@@ -1948,7 +2042,7 @@ stampModels();
           })
           .catch(() => systemLog("⚠️ ตั้งค่าโมเดลไม่สำเร็จ (เปิดผ่านเซิร์ฟเวอร์ Prontera)"));
       });
-      row.appendChild(name); row.appendChild(sel); body.appendChild(row);
+      row.appendChild(sel); body.appendChild(row);   // sel is the SAME node carrying the /set_model change listener
     });
   });
 })();
@@ -2081,24 +2175,36 @@ function renderQuota(snap) {
     const d = snap && snap[b];
     const row = document.createElement("div");
     row.className = "quota-row";
-    let valText, pct, dead = false;
+    let valText, pct, dead = false;            // dead = REAL down (CLI error) -> red LED
+    let stState = "unknown", reason = "", over = false;
     if (!d) { valText = "—"; pct = 100; }
     else {
-      dead = !!d.exhausted;
       const rem = Math.max(0, d.remaining != null ? d.remaining : (d.limit - d.used));
       pct = d.limit ? Math.max(0, Math.min(100, Math.round(rem / d.limit * 100))) : 0;
-      valText = dead ? "EXHAUSTED" : (fmtTok(rem) + " left" + (d.est ? "~" : ""));
+      // HONEST status: exhausted with a real error reason = DOWN (red). reason==="budget"
+      // is only the local fake-limit (the CLI still works) -> stays GREEN, bar untouched.
+      dead = !!d.exhausted && d.reason !== "budget";
+      over = !!d.exhausted && d.reason === "budget";
+      if (dead) { stState = "bad"; reason = d.reason || "ไม่ทราบสาเหตุ (no detail)"; }
+      else { stState = "ok"; }
+      valText = dead ? "DOWN" : (over ? "เต็ม·ใช้ได้" : (fmtTok(rem) + " left" + (d.est ? "~" : "")));
     }
     if (dead) row.classList.add("dead");
+    row.classList.add("st-" + stState);
     const plan = (d && d.plan) || meta.plan || "";
-    const nameHtml = meta.label +
+    // reason is server-supplied → escape before innerHTML (this scope has no esc()).
+    const reasonEsc = String(reason).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    // LED = small SQUARE; colour comes from the row's st-* class (green/red/grey)
+    const nameHtml = '<span class="qr-dot" title="' + stState + '"></span>' + meta.label +
       (plan ? ' <span class="qr-plan">· ' + plan + '</span>' : '');
     row.innerHTML =
       '<div class="qr-head"><span class="qr-name">' + nameHtml + '</span>' +
       '<span class="qr-val">' + valText + '</span></div>' +
-      '<div class="quota-track"><div class="quota-fill" style="width:' + pct +
-      '%;background:' + (dead ? "#ff5050" : meta.color) + '"></div></div>';
+      '<div class="quota-track"><div class="quota-fill" style="width:' + (over ? 100 : pct) +
+      '%;background:' + (dead ? "#ff5050" : (over ? "#caa64a" : meta.color)) + '"></div></div>' +
+      (dead ? '<div class="qr-reason">⚠ ' + reasonEsc + '</div>' : '');
     rows.appendChild(row);
+    window.__manaSnap = snap;   // expose latest snapshot for Vera's mana watchdog
   });
 }
 function pollQuota() {
@@ -2338,15 +2444,8 @@ function sayMs(text) {
   return Math.min(9000, Math.max(2800, (text || "").length * 55));
 }
 
-async function runBrief(task) {
-  if (irisOnDuty) {
-    systemLog("Iris is currently delivering another quest...");
-    return;
-  }
-  irisOnDuty = true;
-  ambientOn = false;
-  queueCount++;
-  $("queue").textContent = queueCount;
+async function runBrief(task, qItem) {
+  qItem = qItem || {};
   systemLog(`📜 New quest: "${task}" — agents are thinking…`);
 
   // ── Open SSE stream ───────────────────────────────────────────────
@@ -2404,43 +2503,45 @@ async function runBrief(task) {
   // ── 1. Jarvis announces the quest ─────────────────────────────────
   await introD.promise;
   if (omanIntroText) {
-    setStatus("oman", "talking");
-    await say("oman", omanIntroText, sayMs(omanIntroText));
-    setStatus("oman", "idle");
+    if ((window.__activeBriefs||1) > 1) { systemLog("👑 OMAN: " + omanIntroText); }
+    else { setStatus("oman", "talking"); await say("oman", omanIntroText, sayMs(omanIntroText)); setStatus("oman", "idle"); }
   }
 
   // ── 2. Wait for Iris's routing plan ───────────────────────────────
   await planD.promise;
   if (!plan || !plan.routes || plan.routes.length === 0) {
-    systemLog(streamFailed ? "⚠️ AI stream failed — no plan." : "⚠️ Iris returned no routes.");
-    ambientOn = true;
-    irisOnDuty = false;
-    queueCount = Math.max(0, queueCount - 1);
-    $("queue").textContent = queueCount;
+    if (!(plan && plan.router === "ceo")) systemLog(streamFailed ? "⚠️ AI stream failed — no plan." : "⚠️ no routes.");
     return;
   }
+  // who coordinates THIS lane: iris | vera | (ceo -> Oman acts solo)
+  const _router = (plan && plan.router) || "iris";
+  const _actor = (_router === "ceo") ? "oman" : _router;
+  try { qItem.lane = _router.toUpperCase(); if (typeof renderQueueBoard === "function") renderQueueBoard(); } catch (_) {}
 
-  // ── 3. Iris speaks her intro line ─────────────────────────────────
-  setStatus("iris", "delegating");
-  await say("iris", plan.intro || "รับเรื่องค่ะ ✦", 2600);
+  // ── 3. the lane's router speaks the intro ─────────────────────────
+  setStatus(_actor, "delegating");
+  await say(_actor, plan.intro || "รับเรื่องค่ะ ✦", 2600);
 
   // ── 4. Iris DELIVERS the task by walking to each assignee in turn (real office:
   //       the Chief of Staff comes to you). Inverted from the old summon. Crossing
   //       rooms goes through the warp. Shared impl (window.WORLD.deliver) so Vera
   //       can reuse the same delivery walk for her own routing. ─
-  if (window.WORLD && window.WORLD.deliver) {
-    await window.WORLD.deliver("iris", plan.routes);
+  if (_router === "ceo") {
+    // CEO-solo lane: Oman works at his post — no router-walk to a team.
+    setStatus("oman", "thinking");
+  } else if (window.WORLD && window.WORLD.deliver) {
+    await window.WORLD.deliver(_actor, plan.routes);
   } else {
     for (const r of plan.routes) {
       const id = r.agent; if (!AGENTS[id]) continue;
       const ae = $(`agent-${id}`);
       const ax = parseFloat(ae.style.left) || 50, ay = parseFloat(ae.style.top) || 58;
-      setStatus("iris", "delegating");
-      await walkAcross("iris", ax + (Math.random()*5 - 2.5), ay + 6, 1900);
-      await say("iris", r.task, sayMs(r.task));
+      setStatus(_actor, "delegating");
+      await walkAcross(_actor, ax + (Math.random()*5 - 2.5), ay + 6, 1900);
+      await say(_actor, r.task, sayMs(r.task));
       setStatus(id, "thinking");
     }
-    setStatus("iris", "idle");
+    setStatus(_actor, "idle");
   }
 
   // ── 6. Show each agent's real work output as it arrives ───────────
@@ -2452,28 +2553,83 @@ async function runBrief(task) {
     setStatus(r.agent, "idle"); spawnPopup(r.agent, '+1 STEP', 'xp');
   }
 
-  // ── 6b. Vera's audit (verify-vs-internet / escalation) — only if she spoke ─
+  // ── 6b. Vera's audit — she WALKS to each assignee to verify the data WITH
+  //        them (talk = go to them), then gives her verdict; then back to her post.
   await veraD.promise;
   if (veraText) {
+    try { if (window.WORLD && window.WORLD.deliver) await window.WORLD.deliver("vera", plan.routes); } catch (_) {}
     setStatus("vera", "talking");
     await say("vera", veraText, sayMs(veraText));
     setStatus("vera", "idle");
+    try { if (window.STATION && STATION.vera) await walkAcross("vera", STATION.vera.x, STATION.vera.y, 1600); } catch (_) {}
   }
 
-  // ── 7. Iris summary + Jarvis reward ───────────────────────────────
+  // ── 7. Iris reports to the CEO — walks to Oman first, then summarises ──────
   await summaryD.promise;
-  setStatus("iris", "delegating");
-  await say("iris", summaryText || "Quest complete ✓", sayMs(summaryText));
-  setStatus("iris", "idle");
+  try { if (_router !== "ceo" && window.STATION && STATION.oman) await walkAcross(_actor, STATION.oman.x - 3, STATION.oman.y + 7, 1700); } catch (_) {}
+  setStatus(_actor, "delegating");
+  await say(_actor, summaryText || "Quest complete ✓", sayMs(summaryText));
+  setStatus(_actor, "idle");
 
   await rewardD.promise;
-  await say("oman", rewardText || "GG +1500 EXP 🏆", sayMs(rewardText));
-  spawnPopup("oman", "+1500 EXP", "xp");
+  if ((window.__activeBriefs||1) > 1) { systemLog("🏆 OMAN: " + (rewardText||"+EXP 🏆")); }
+  else { await say("oman", rewardText || "GG +1500 EXP 🏆", sayMs(rewardText)); spawnPopup("oman", "+1500 EXP", "xp"); }
+}
 
-  queueCount = Math.max(0, queueCount - 1);
-  $("queue").textContent = queueCount;
-  ambientOn = true;
-  irisOnDuty = false;
+// ── 3-LANE QUEUE: type ANY number of briefs -> they queue -> up to 3 run at once
+//    (Iris / Vera / CEO lanes, assigned by the backend). A live board shows the
+//    running lanes + the pending queue. ambientOn + camera follow the active count.
+function __qesc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+let __briefSeq = 0;
+const briefQueue = [];          // {id, task, status:"queued"|"running", lane?}
+let activeBriefs = 0;
+const MAX_LANES = 3;
+window.__activeBriefs = 0;
+function submitBrief(task) {
+  task = (task || "").trim(); if (!task) return;
+  briefQueue.push({ id: ++__briefSeq, task: task, status: "queued" });
+  systemLog(`➕ เข้าคิว: "${task}"`);
+  renderQueueBoard();
+  pumpQueue();
+}
+function applyConcurrentCam() {
+  // Camera is fully MANUAL — issuing/queuing commands must NOT auto zoom in or out.
+  // Just re-apply whatever mode the user last chose (🔍+ room / 🔍− overview).
+  // To watch all lanes at once during concurrent work, click 🔍− (zoom out).
+  try { if (window.CAM) { window.CAM.apply(); } } catch (_) {}
+}
+function pumpQueue() {
+  while (activeBriefs < MAX_LANES) {
+    const item = briefQueue.find(b => b.status === "queued");
+    if (!item) break;
+    item.status = "running";
+    activeBriefs++; window.__activeBriefs = activeBriefs;
+    ambientOn = false;
+    applyConcurrentCam();
+    renderQueueBoard();
+    runBrief(item.task, item).catch(() => {}).finally(() => {
+      activeBriefs = Math.max(0, activeBriefs - 1); window.__activeBriefs = activeBriefs;
+      const i = briefQueue.indexOf(item); if (i >= 0) briefQueue.splice(i, 1);
+      if (activeBriefs === 0) ambientOn = true;
+      applyConcurrentCam();
+      renderQueueBoard();
+      pumpQueue();
+    });
+  }
+  renderQueueBoard();
+}
+function renderQueueBoard() {
+  const el = document.getElementById("queueBoard"); if (!el) return;
+  const running = briefQueue.filter(b => b.status === "running");
+  const pending = briefQueue.filter(b => b.status === "queued");
+  el.style.display = (running.length + pending.length) ? "block" : "none";
+  const slot = (b) => b
+    ? '<div class="qb-lane on"><span class="qb-h">' + (b.lane || "●") + '</span><span class="qb-t">' + __qesc(b.task).slice(0, 38) + '</span></div>'
+    : '<div class="qb-lane"><span class="qb-h">—</span><span class="qb-t">ว่าง</span></div>';
+  el.innerHTML = '<div class="qb-title">⚔ คิวงาน · ' + activeBriefs + '/3 ทำงาน' + (pending.length ? (' · รอ ' + pending.length) : '') + '</div>'
+    + '<div class="qb-lanes">' + slot(running[0]) + slot(running[1]) + slot(running[2]) + '</div>'
+    + (pending.length ? '<div class="qb-pending">⏳ ' + pending.map(p => __qesc(p.task).slice(0, 20)).join(" · ") + '</div>' : '');
+  try { $("queue").textContent = activeBriefs + pending.length; } catch (_) {}
 }
 
 function ackLine(id) {
@@ -2750,15 +2906,31 @@ function tryMoveCommand(t){
   systemLog("➡️ ย้าย "+ids.map(i=>AGENTS[i].name||i).join(", ")+" → "+room.toUpperCase());
   return true;
 }
+const STATION={oman:{cell:"PRT-K3",x:50.0,y:29.746},iris:{cell:"PRT-H7",x:47.959,y:54.182},vera:{cell:"PRT-N7",x:52.041,y:54.182},echo:{cell:"IZL-K3",x:35.714,y:29.746},zara:{cell:"GEF-K2",x:21.429,y:23.637},cass:{cell:"PAY-K3",x:64.286,y:29.746}};
+function tryStationCommand(t){
+  const s=(t||"").toLowerCase();
+  if(!/ประจำตำแหน่ง|ประจำการ|กลับตำแหน่ง|เข้าประจำตำแหน่ง|ประจำที่ของตัว|ประจำที่ตัวเอง|กลับที่ประจำ|เข้าที่ประจำ|(take|return|go|back)[a-z ]*(position|station)/.test(s)) return false;
+  const _all=/ทุกคน|ทุกตัว|ทั้งหมด|ทั้งทีม|everyone|all/.test(s);
+  let ids=Object.keys(STATION).filter(function(id){ var nm=((AGENTS[id]&&AGENTS[id].name)||"").toLowerCase(); return s.indexOf(id)>=0||(nm.length>1&&s.indexOf(nm)>=0); });
+  if(_all||!ids.length) ids=Object.keys(STATION);
+  ids.forEach(function(id){ var st=STATION[id]; if(!st||!document.getElementById("agent-"+id)) return;
+    setStatus(id,"walking");
+    walkAcross(id, st.x, st.y, 1600).finally(function(){ if(document.getElementById("agent-"+id)) setStatus(id,"idle"); });
+    say(id, "เข้าประจำตำแหน่ง "+st.cell, 2200);
+  });
+  systemLog("📍 ประจำตำแหน่ง: "+ids.map(function(i){return (AGENTS[i].name||i)+" → "+STATION[i].cell;}).join(", "));
+  return true;
+}
 async function trigger() {
   const t = promptEl.value.trim();
   if (!t) return;
   promptEl.value = "";
   if (tryConfigCommand(t)) return;
+  if (tryStationCommand(t)) return;
   if (tryArrangeCommand(t)) return;
   if (tryMoveCommand(t)) return;
   // 1) instant keyword movement  2) AI director (freeform)  3) AI business brief
-  await runBrief(t);
+  submitBrief(t);
 }
 
 // =================== JARVIS CLICK-TO-WALK ===================
@@ -2801,15 +2973,15 @@ stageEl.style.cursor = "pointer";
 
 // =================== BOOT ===================
 // Silent boot — agents speak only on real briefs / direct calls.
-setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค่ะ."), 400);
+setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=document.querySelector(".statusbar span");if(_sb)_sb.innerHTML="<b>STATUS:</b> "+_n+"/"+_n+" ONLINE";var _su=document.querySelector(".panel .sub");if(_su)_su.textContent="Hotel PMS HQ × HostGate HQ · "+_n+" members";}catch(e){}systemLog("Pornchai & Co. HQ — "+_n+"/"+_n+" online. รอ brief ค่ะ.");})(), 400);
 </script>
 <script>
 (function(){
   function $g(id){return document.getElementById(id);}
   var ORDER=["aldebaran","geffen","izlude","prontera","payon","morroc","alberta"], CTR={aldebaran:[7.14,50.0],geffen:[21.43,50.0],izlude:[35.71,50.0],prontera:[50.0,50.0],payon:[64.29,50.0],morroc:[78.57,50.0],alberta:[92.86,50.0]}, RW=14.2857;
-  var SW=6300, SH=760, WH=110, GC=48;
+  var SW=6615, SH=760, WH=110, NCOL=21, NROW=14, GCX=SW/ORDER.length/NCOL, GCY=(SH-WH)/NROW, GC=GCX;
   var PINNED=["cass","echo","iris","oman","zara"];   // these stand on their platform and wait for commands (no wander)
-  var POSVER="71c4c697";    // layout fingerprint for position persistence
+  var POSVER="96ebc902";    // layout fingerprint for position persistence
   function roomAt(x){ var i=Math.floor(x/RW); return ORDER[Math.max(0,Math.min(ORDER.length-1,i))]; }
   function curRoom(id){ var p=$g("agent-"+id); return roomAt(parseFloat(p&&p.style.left)||50); }
   // ── Grid naming: stage-% <-> "PRT-C3" cell ref (lookup layer only; never re-snaps
@@ -2820,10 +2992,10 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     var ri=Math.max(0,Math.min(ORDER.length-1,Math.floor(x/RW)));
     var sx=x/100*SW, sy=y/100*SH; if(sy<WH) sy=WH;
     var Lpx=ri*RW/100*SW;
-    var ncol=Math.max(1,Math.round(RW/100*SW/GC));     // cols per room
-    var nrow=Math.max(1,Math.round((SH-WH)/GC));        // rows below the wall
-    var col=Math.max(0,Math.min(ncol-1,Math.floor((sx-Lpx)/GC)));
-    var row=Math.max(0,Math.min(nrow-1,Math.floor((sy-WH)/GC)))+1;
+    var ncol=NCOL;     // cols per room (A..T)
+    var nrow=NROW;        // rows below the wall (1..14)
+    var col=Math.max(0,Math.min(ncol-1,Math.floor((sx-Lpx)/GCX)));
+    var row=Math.max(0,Math.min(nrow-1,Math.floor((sy-WH)/GCY)))+1;
     return GRID_PRE[ORDER[ri]]+"-"+String.fromCharCode(65+col)+row;
   }
   function nameToCoords(name){
@@ -2831,10 +3003,82 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     if(!m || !(m[1] in GRID_PRE_R)) return null;
     var ri=GRID_PRE_R[m[1]], col=m[2].charCodeAt(0)-65, row=parseInt(m[3],10)-1;
     var Lpx=ri*RW/100*SW;
-    var sx=Lpx + col*GC + GC/2, sy=WH + row*GC + GC/2;
+    var sx=Lpx + col*GCX + GCX/2, sy=WH + row*GCY + GCY/2;
     return { x:+(sx/SW*100).toFixed(3), y:+(sy/SH*100).toFixed(3), cell:m[1]+"-"+m[2]+m[3] };
   }
-  window.GRID={ name:gridName, at:nameToCoords, ncol:function(){return Math.max(1,Math.round(RW/100*SW/GC));}, nrow:function(){return Math.max(1,Math.round((SH-WH)/GC));} };
+  window.GRID={ name:gridName, at:nameToCoords, ncol:function(){return NCOL;}, nrow:function(){return NROW;} };
+  // ── GRID EDITOR (runtime layer): place library objects/npcs onto cells + drag to
+  //    move them, persisted in localStorage and re-applied on load. It NEVER edits the
+  //    build — it overlays the build-time decos (moves) and adds new instances (placed).
+  (function(){
+    var LIB=[
+      {k:"deco-bull",   n:"🐂 วัว",       kind:"deco", cls:"deco deco-bull"},
+      {k:"deco-bear",   n:"🐻 หมี",       kind:"deco", cls:"deco deco-bear"},
+      {k:"deco-board3", n:"📋 กระดาน",    kind:"deco", cls:"deco deco-board3"},
+      {k:"deco-ed_orb", n:"🔮 ลูกแก้ว",   kind:"deco", cls:"deco deco-ed_orb"},
+      {k:"flag-eagle",  n:"🦅 ธงอินทรี",  kind:"deco", cls:"deco-flag flag-eagle"},
+      {k:"flag-lion",   n:"🦁 ธงสิงโต",   kind:"deco", cls:"deco-flag flag-lion"},
+      {k:"npc_pubmaster",  n:"🧑 Pubmaster",  kind:"npc", img:"npc_pubmaster"},
+      {k:"npc_merchant_f1",n:"👩 Merchant",   kind:"npc", img:"npc_merchant_f1"},
+      {k:"npc_merchant_f2",n:"👩 Merchant 2", kind:"npc", img:"npc_merchant_f2"},
+      {k:"npc_merchant_m", n:"🧹 Janitor-02", kind:"npc", img:"npc_merchant_m"},
+      {k:"npc_pubgirl",    n:"👧 Pub girl",   kind:"npc", img:"npc_pubgirl"},
+      {k:"npc_oldsage",    n:"🧙 Old sage",   kind:"npc", img:"npc_oldsage"}
+    ];
+    var KEY="prontera_editor_v1";
+    function load(){ try{ var d=JSON.parse(localStorage.getItem(KEY)||"null"); return (d&&typeof d==="object")?{placed:d.placed||[],moves:d.moves||{}}:{placed:[],moves:{}}; }catch(e){ return {placed:[],moves:{}}; } }
+    function save(d){ try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} }
+    function objKey(el){
+      if(el.dataset && el.dataset.edUid) return "uid:"+el.dataset.edUid;
+      var m=(el.className||"").match(/deco-(?:bull|bear|board3|ed_orb)|flag-(?:eagle|lion)/);
+      if(m) return m[0];
+      var img=el.querySelector&&el.querySelector("img");
+      if(img){ var mm=(img.getAttribute("src")||"").match(/([a-z0-9_]+)\.png/i); if(mm) return mm[1]; }
+      return null;
+    }
+    function ground(el, cell){
+      var xy=nameToCoords(cell); if(!xy) return;
+      var mm=/-[A-Z](\d+)$/.exec(cell); var row=mm?parseInt(mm[1],10):1;
+      var h=el.offsetHeight||40;
+      var cy=(WH + row*GCY) - h/2;                 // foot rests on the cell's row bottom line
+      el.style.left=xy.x+"%"; el.style.top=(cy/SH*100)+"%";
+      el.style.zIndex=String(Math.round((cy/SH*100)*10)+100);   // y-depth like the rest
+    }
+    function findExisting(key){
+      if(key.indexOf("uid:")===0) return document.querySelector('[data-ed-uid="'+key.slice(4)+'"]');
+      if(/^(deco-|flag-)/.test(key)) return document.querySelector("."+key);
+      var n=null; document.querySelectorAll(".npc").forEach(function(x){ var i=x.querySelector("img"); if(i&&(i.getAttribute("src")||"").indexOf(key+".png")>=0) n=x; }); return n;
+    }
+    function spawn(item, cell, uid){
+      var st=$g("stage"); if(!st) return null;
+      var el=document.createElement("div"); el.className=item.cls||(item.kind==="npc"?"npc bob":"deco");
+      el.dataset.edUid=uid;
+      if(item.kind==="npc"&&item.img) el.innerHTML='<img src="sprites_out/v2/'+item.img+'.png" alt="">';
+      st.appendChild(el); ground(el, cell); return el;
+    }
+    function apply(){
+      var d=load();
+      (d.placed||[]).forEach(function(p){ var it=LIB.filter(function(x){return x.k===p.key;})[0]; if(it && !document.querySelector('[data-ed-uid="'+p.uid+'"]')) spawn(it, p.cell, p.uid); });
+      Object.keys(d.moves||{}).forEach(function(key){ var el=findExisting(key); if(el) ground(el, d.moves[key]); });
+    }
+    function moveObj(el, cell){
+      ground(el, cell); var d=load();
+      if(el.dataset && el.dataset.edUid){ (d.placed||[]).forEach(function(p){ if(p.uid===el.dataset.edUid) p.cell=cell; }); }
+      else { var k=objKey(el); if(k){ d.moves=d.moves||{}; d.moves[k]=cell; } }
+      save(d);
+    }
+    function placeNew(key, cell){
+      var it=LIB.filter(function(x){return x.k===key;})[0]; if(!it) return null;
+      var uid="ed_"+Date.now().toString(36)+"_"+Math.floor(Math.random()*1e4).toString(36);
+      var el=spawn(it, cell, uid); var d=load(); d.placed=d.placed||[]; d.placed.push({key:key,cell:cell,uid:uid}); save(d); return el;
+    }
+    function removePlaced(el){
+      if(!(el.dataset&&el.dataset.edUid)) return false; var uid=el.dataset.edUid;
+      var d=load(); d.placed=(d.placed||[]).filter(function(p){return p.uid!==uid;}); save(d);
+      if(el.parentNode) el.parentNode.removeChild(el); return true;
+    }
+    window.GRIDED={ LIB:LIB, load:load, objKey:objKey, ground:ground, findExisting:findExisting, spawn:spawn, apply:apply, moveObj:moveObj, placeNew:placeNew, removePlaced:removePlaced };
+  })();
   var CAM={ mode:"room",
     apply:function(){
       var wrap=document.querySelector(".stage-wrap"), s=$g("stage"); if(!wrap||!s) return;
@@ -2980,6 +3224,33 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       }
     })();
   }
+  // Vera shadows the CEO too when idle — RIGHT side (oman.x+3) so she flanks opposite
+  // Iris (oman.x-3), never stacking. Same deadzone; paused in briefs / when she's busy
+  // (mana watchdog / cross-check set walking|talking, which this skips).
+  function startVeraFollow(){
+    (async function(){
+      await sleep(4200);
+      while(true){
+        await sleep(1500 + Math.random()*1500);
+        if((typeof ambientOn!=="undefined" && !ambientOn) || window.__wanderOff) continue;
+        var j=$g("agent-oman"), v=$g("agent-vera");
+        if(!j||!v) continue;
+        if(!v.classList.contains("idle")) continue;
+        if(v.classList.contains("walking")||v.classList.contains("thinking")||v.classList.contains("talking")) continue;
+        var jx=parseFloat(j.style.left)||50, jy=parseFloat(j.style.top)||50;
+        var vx=parseFloat(v.style.left)||50, vy=parseFloat(v.style.top)||50;
+        var dxp=(jx-vx)*SW/100, dyp=(jy-vy)*SH/100, dist=Math.sqrt(dxp*dxp+dyp*dyp);
+        if(dist>260){
+          var tx=jx + 3.0, ty=jy + 1.0;
+          var mvpx=Math.sqrt(Math.pow((tx-vx)*SW/100,2)+Math.pow((ty-vy)*SH/100,2));
+          if(mvpx>50){
+            try{ await walkAcross("vera", tx, ty, 1500); }catch(_){}
+            if($g("agent-vera")) setStatus("vera","idle");
+          }
+        }
+      }
+    })();
+  }
   function init(){
     var wrap=document.querySelector(".stage-wrap");
     // Re-parent the AI MANA POOL + setup boards OUT of #stage so they don't scale
@@ -3001,7 +3272,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     //   ysort: z=round(top%*10)+100. Overrides the flat CSS z-index on decos/flags.
     //   .npc background NPCs are left at their CSS z-index:3 (pure backdrop, by design).
     try{
-      document.querySelectorAll(".deco, .deco-flag").forEach(function(d){
+      document.querySelectorAll(".deco, .deco-flag, .npc").forEach(function(d){
         var t=parseFloat(d.style.top); if(isNaN(t)) t=30;
         d.style.zIndex = String(Math.round(t*10)+100);
       });
@@ -3141,9 +3412,9 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
           +'<div class="mn-ctrl-row"><label>Map zoom</label><button id="mn-zoomin">🔍+ ห้อง</button><button id="mn-zoomout">🔍− ทั้งหมด</button></div>'
           +'<div class="mn-empty">พื้นที่สำรองสำหรับ flag ทั่วทั้งออฟฟิศในอนาคต (refresh interval, theme/volume, pause all agents)</div>'
         +'</div>'
-        // 7 Grid Reference — named-cell lookup
+        // 7 Grid Reference — visual mini-maps (hover = ดูพิกัด, คลิก = คัดลอกชื่อ cell)
         +'<div class="menu-panel" data-panel="grid"><h3>🗺️ Grid Reference</h3>'
-          +'<input class="mn-grid-search" id="mn-grid-q" placeholder="ค้นหา cell (เช่น PRT-C3) / ห้อง…" autocomplete="off">'
+          +'<div class="mn-grid-read" id="mn-grid-read">เลื่อนเมาส์ไปบนช่อง เพื่อดูพิกัด · คลิก = คัดลอกชื่อ cell · Shift+คลิก = ไฮไลต์บนแผนที่จริง</div>'
           +'<div class="mn-grid-list" id="mn-grid-list"></div>'
         +'</div>'
         +'</div></div>';
@@ -3216,7 +3487,7 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         var cp=document.querySelector(".ctrl-panel");   // CEO/Iris/Vera selects + Claude toggle (all wired)
         if(cp) lead.appendChild(cp);
         var sb=$g("setupBoard");                          // per-agent /set_model board (wired in initSetup)
-        if(sb){ sb.classList.remove("collapsed"); agents.appendChild(sb); sb.style.position="static"; sb.style.transform="none"; sb.style.left="auto"; sb.style.right="auto"; sb.style.top="auto"; sb.style.bottom="auto"; }
+        if(sb){ sb.classList.remove("collapsed"); agents.appendChild(sb); sb.style.position="static"; sb.style.transform="none"; sb.style.left="auto"; sb.style.right="auto"; sb.style.top="auto"; sb.style.bottom="auto"; sb.style.width="auto"; }
         else agents.innerHTML='<div class="mn-empty">เปิดผ่านเซิร์ฟเวอร์ Prontera เพื่อตั้งค่าโมเดล</div>';
       }
       // ── 6 Controls: ambient toggle + zoom (wired to existing CAM/ambientOn) ──
@@ -3235,51 +3506,128 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
         var mc=$g("mn-claude"); if(mc) mc.onclick=function(){ var b=$g("noClaudeBtn"); if(b) b.click(); };
       })();
       // ── 7 Grid Reference: named-cell lookup via window.GRID ──
+      // 1960 cells = 7 rooms x 20col x 14row. Built ONCE (built.grid) as bare
+      // <i data-c> nodes — name+x%/y% show in #mn-grid-read on hover, NOT per node.
+      // NCOL/NROW are the pinned contract (A..T, 1..14): hardcoded, never derived
+      // from window.GRID.ncol() (which may be 19 pre-refactor). window.GRID.at(cell)
+      // is trusted for the x%/y% readout. Two delegated listeners only.
+      var NCOL=21, NROW=14;
+      var ROOM_TITLE={aldebaran:"🕰 ALDEBARAN",geffen:"✦ GEFFEN",izlude:"🌊 IZLUDE",prontera:"⛪ PRONTERA",payon:"🏯 PAYON",morroc:"☀ MORROC",alberta:"⚓ ALBERTA"};
+      function mapDotXY(lx,ty){   // stage % -> {room-map, fx%, fy%}
+        var idx=Math.max(0,Math.min(ORDER.length-1,Math.floor(lx/RW)));
+        return { idx:idx, fx:Math.max(0,Math.min(1,(lx-idx*RW)/RW))*100, fy:Math.max(0,Math.min(1,((ty/100*SH)-WH)/(SH-WH)))*100 };
+      }
+      function placeDots(){
+        try{
+          var list=$g("mn-grid-list"); if(!list) return;
+          list.querySelectorAll(".mn-dot,.mn-obj").forEach(function(d){ d.remove(); });
+          document.querySelectorAll(".agent").forEach(function(a){
+            var id=(a.id||"").replace("agent-","");
+            var p=mapDotXY(parseFloat(a.style.left)||0, parseFloat(a.style.top)||0);
+            var g=$g("map-"+ORDER[p.idx]); if(!g) return;
+            var dot=document.createElement("div"); dot.className="mn-dot";
+            dot.style.left=p.fx+"%"; dot.style.top=p.fy+"%";
+            dot.title=(window.AGENTS&&AGENTS[id]&&AGENTS[id].name)?AGENTS[id].name:id;
+            g.appendChild(dot);
+          });
+          // object/npc markers (draggable) — decos, flags, npcs (incl. editor-placed)
+          document.querySelectorAll(".deco, .deco-flag, .npc").forEach(function(o){
+            var key=window.GRIDED&&GRIDED.objKey(o); if(!key) return;
+            var p=mapDotXY(parseFloat(o.style.left)||0, parseFloat(o.style.top)||0);
+            var g=$g("map-"+ORDER[p.idx]); if(!g) return;
+            var dot=document.createElement("div"); dot.className="mn-obj"+((o.dataset&&o.dataset.edUid)?" mn-obj-new":"");
+            dot.style.left=p.fx+"%"; dot.style.top=p.fy+"%";
+            dot.dataset.objkey=key; dot.title=key+" — ลากเพื่อย้าย"+((o.dataset&&o.dataset.edUid)?" · คลิกขวา=ลบ":"");
+            g.appendChild(dot);
+          });
+        }catch(_){}
+      }
       function buildGrid(){
         built.grid=true;
-        var list=$g("mn-grid-list"), q=$g("mn-grid-q");
-        var ncol=(window.GRID&&window.GRID.ncol)?window.GRID.ncol():19;
-        var nrow=(window.GRID&&window.GRID.nrow)?window.GRID.nrow():14;
-        var cells=[];
+        var list=$g("mn-grid-list"), read=$g("mn-grid-read");
+        var html="";
         ORDER.forEach(function(rm){
-          for(var c=0;c<ncol;c++){ for(var r=1;r<=nrow;r++){
-            var cell=GRID_PRE[rm]+"-"+String.fromCharCode(65+c)+r;
-            var xy=window.GRID&&window.GRID.at?window.GRID.at(cell):null;
-            cells.push({cell:cell, room:rm, x:xy?xy.x:0, y:xy?xy.y:0});
+          var pre=GRID_PRE[rm];
+          var PLAT_SET={prontera:1,geffen:1,payon:1,izlude:1};   // rooms with a raised dais (แท่น)
+          html+='<div class="mn-map"><div class="mn-map-h"><b>'+pre+'</b><span>'+esc(ROOM_TITLE[rm]||rm)+'</span></div>'
+            +'<div class="mn-map-wall" style="background-image:url(maps_out/rooms/'+rm+'_wall.png)"></div>'
+            +'<div class="mn-map-g" id="map-'+rm+'" style="background-image:url(maps_out/rooms/'+rm+'_floor.png)">'
+            +(PLAT_SET[rm]?'<div class="mn-map-plat" title="แท่น (dais)"></div>':'');
+          for(var r=1;r<=NROW;r++){ for(var c=0;c<NCOL;c++){
+            html+='<i data-c="'+pre+'-'+String.fromCharCode(65+c)+r+'"></i>';
           } }
+          html+='</div></div>';
         });
-        function render(filter){
-          filter=(filter||"").toUpperCase().trim();
-          var rows=cells.filter(function(c){ return !filter || c.cell.indexOf(filter)>=0 || c.room.toUpperCase().indexOf(filter)>=0; }).slice(0,400);
-          list.innerHTML=rows.map(function(c){
-            return '<div class="mn-grid-row" data-x="'+c.x+'" data-y="'+c.y+'" data-cell="'+c.cell+'">'
-              +'<span class="mn-grid-cell">'+c.cell+'</span>'
-              +'<span class="mn-grid-room">'+esc(c.room)+'</span>'
-              +'<span class="mn-grid-xy">x '+c.x+'% · y '+c.y+'%</span>'
-              +'<button class="mn-grid-copy" title="คัดลอกชื่อ cell">⧉ copy</button>'
-              +'<button class="mn-grid-hl" title="ไฮไลต์บนแผนที่">◎ map</button></div>';
-          }).join("")||'<div class="mn-empty">ไม่พบ cell</div>';
+        list.innerHTML=html;
+        placeDots();
+        function readoutFor(cell){
+          var xy=(window.GRID&&window.GRID.at)?window.GRID.at(cell):null;
+          var x=xy?xy.x:0, y=xy?xy.y:0;
+          read.innerHTML='<b>'+cell+'</b> · <i>x '+x+'% · y '+y+'%</i> · คลิกเพื่อคัดลอก · Shift+คลิก = ไฮไลต์';
         }
-        render("");
-        q.oninput=function(){ render(q.value); };
-        list.onclick=function(e){
-          var row=e.target.closest(".mn-grid-row"); if(!row) return;
-          if(e.target.classList.contains("mn-grid-copy")){
-            var cell=row.dataset.cell;
-            try{ navigator.clipboard.writeText(cell); }catch(_){}
-            window.__lastCellRef=cell; try{ systemLog("🗺️ คัดลอก cell "+cell); }catch(_){}
-            e.target.textContent="✓"; setTimeout(function(){ e.target.textContent="⧉ copy"; },900);
-          } else if(e.target.classList.contains("mn-grid-hl")){
-            var x=parseFloat(row.dataset.x), y=parseFloat(row.dataset.y);
-            var gcEl=$g("gridcursor"), st=$g("stage");
-            if(gcEl && st && typeof SW!=="undefined"){
-              gcEl.style.left=(x/100*SW - GC/2)+"px"; gcEl.style.top=(y/100*SH - GC/2)+"px"; gcEl.style.display="block";
-              if(!st.classList.contains("grid-on")) st.classList.add("grid-on");
-              setTimeout(function(){ gcEl.style.display="none"; },2500);
-            }
-            dl.hidden=true;
-          }
-        };
+        var DEFAULT_READ='เลื่อนเมาส์ไปบนช่อง เพื่อดูพิกัด · คลิก = คัดลอกชื่อ cell · Shift+คลิก = ไฮไลต์บนแผนที่จริง';
+        list.addEventListener("mouseover",function(e){
+          var t=e.target.closest("i[data-c]"); if(!t) return; readoutFor(t.dataset.c);
+        });
+        list.addEventListener("mouseleave",function(){ read.textContent=DEFAULT_READ; });
+        function flashCell(cell){ var xy=nameToCoords(cell), gcEl=$g("gridcursor"), st=$g("stage");
+          if(xy&&gcEl&&st){ gcEl.style.left=(xy.x/100*SW-GC/2)+"px"; gcEl.style.top=(xy.y/100*SH-GC/2)+"px"; gcEl.style.display="block";
+            if(!st.classList.contains("grid-on")) st.classList.add("grid-on"); setTimeout(function(){ gcEl.style.display="none"; },2500); } }
+        // cell popup: copy / highlight / PLACE a library object|npc onto this cell
+        var menu=document.createElement("div"); menu.className="mn-cellmenu"; menu.hidden=true; document.body.appendChild(menu);
+        function hideMenu(){ menu.hidden=true; }
+        function openMenu(cell, x, y){
+          var xy=nameToCoords(cell)||{x:0,y:0};
+          var libHtml=(window.GRIDED?GRIDED.LIB:[]).map(function(it){ return '<button class="mn-lib-b" data-k="'+it.k+'">'+it.n+'</button>'; }).join("");
+          menu.innerHTML='<div class="mn-cm-h"><b>'+cell+'</b> · x '+xy.x+'% y '+xy.y+'%</div>'
+            +'<div class="mn-cm-row"><button class="mn-cm-copy">📋 คัดลอกชื่อ</button><button class="mn-cm-hl">🎯 ไฮไลต์</button></div>'
+            +'<div class="mn-cm-lbl">วางวัตถุ/NPC ที่ช่องนี้:</div><div class="mn-cm-lib">'+libHtml+'</div>';
+          menu.dataset.cell=cell;
+          menu.style.left=Math.max(6,Math.min(x, window.innerWidth-232))+"px";
+          menu.style.top=Math.max(6,Math.min(y+6, window.innerHeight-210))+"px"; menu.hidden=false;
+        }
+        list.addEventListener("click",function(e){
+          var t=e.target.closest("i[data-c]"); if(!t) return;
+          if(e.shiftKey){ flashCell(t.dataset.c); try{ systemLog("🎯 ไฮไลต์ "+t.dataset.c); }catch(_){} return; }
+          openMenu(t.dataset.c, e.clientX, e.clientY);
+        });
+        menu.addEventListener("click",function(e){
+          var cell=menu.dataset.cell;
+          if(e.target.classList.contains("mn-cm-copy")){ try{ navigator.clipboard.writeText(cell); }catch(_){} window.__lastCellRef=cell; try{ systemLog("🗺️ คัดลอก cell "+cell); }catch(_){} hideMenu(); return; }
+          if(e.target.classList.contains("mn-cm-hl")){ flashCell(cell); hideMenu(); return; }
+          var lb=e.target.closest(".mn-lib-b");
+          if(lb && window.GRIDED){ GRIDED.placeNew(lb.dataset.k, cell); placeDots(); try{ systemLog("📦 วาง "+lb.dataset.k+" ที่ "+cell); }catch(_){} hideMenu(); }
+        });
+        document.addEventListener("mousedown",function(e){ if(!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+        // DRAG an object marker -> drop on a cell -> move the real object on the stage + persist
+        var drag=null;
+        list.addEventListener("mousedown",function(e){
+          var m=e.target.closest(".mn-obj"); if(!m) return; e.preventDefault(); hideMenu();
+          drag={el:m, key:m.dataset.objkey}; m.classList.add("dragging"); m.style.pointerEvents="none";
+        });
+        document.addEventListener("mousemove",function(e){
+          if(!drag||!drag.el.parentElement) return; var r=drag.el.parentElement.getBoundingClientRect();
+          drag.el.style.left=(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*100)+"%";
+          drag.el.style.top=(Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))*100)+"%";
+        });
+        document.addEventListener("mouseup",function(e){
+          if(!drag) return; var d=drag; drag=null; d.el.classList.remove("dragging"); d.el.style.pointerEvents="";
+          var under=document.elementFromPoint(e.clientX, e.clientY);
+          var cellEl=under&&under.closest?under.closest("i[data-c]"):null;
+          var mapEl=under&&under.closest?under.closest(".mn-map-g"):null;
+          var cell=cellEl?cellEl.dataset.c:null;
+          if(!cell && mapEl){ var r=mapEl.getBoundingClientRect(); var idx=ORDER.indexOf(mapEl.id.replace("map-",""));
+            if(idx>=0) cell=gridName(idx*RW + Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*RW, (WH + Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))*(SH-WH))/SH*100); }
+          var realEl=window.GRIDED&&GRIDED.findExisting(d.key);
+          if(cell && realEl){ GRIDED.moveObj(realEl, cell); try{ systemLog("📦 ย้าย "+d.key+" → "+cell); }catch(_){} }
+          placeDots();
+        });
+        // right-click an editor-PLACED marker -> remove it
+        list.addEventListener("contextmenu",function(e){
+          var m=e.target.closest(".mn-obj-new"); if(!m) return; e.preventDefault();
+          var el=window.GRIDED&&GRIDED.findExisting(m.dataset.objkey);
+          if(el && GRIDED.removePlaced(el)){ try{ systemLog("🗑️ ลบ "+m.dataset.objkey); }catch(_){} placeDots(); }
+        });
       }
       // ── open/close ──
       btn.onclick=function(){ dl.hidden=false; show("dash"); };
@@ -3294,6 +3642,53 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
     setInterval(function(){ CAM.apply(); }, 1500);
     try{ Object.keys(AGENTS).forEach(startWander); }catch(_){}   // ambient idle wandering
     try{ startIrisFollow(); }catch(_){}                          // Iris shadows the CEO
+    try{ startVeraFollow(); }catch(_){}                          // Vera shadows the CEO too (right side)
+    // model labels: relabel the CEO/Iris/Vera lead pickers to nameplate format (prettyModel)
+    // and show the CEO's default model name instead of "— Default —" (keep value="default").
+    try{
+      var _FB=(typeof MODEL_FALLBACK!=="undefined"?MODEL_FALLBACK:{});
+      [["ceoModel","oman"],["irisModel","iris"],["veraModel","vera"]].forEach(function(p){
+        var sel=$g(p[0]); if(!sel||typeof prettyModel!=="function") return;
+        [].forEach.call(sel.options,function(o){
+          if(o.value==="default"){ o.textContent="↺ "+(prettyModel(_FB[p[1]]||"")||"อัตโนมัติ"); }
+          else { var i=o.value.indexOf(":"); var pm=prettyModel(i>=0?o.value.slice(i+1):o.value); if(pm) o.textContent=pm; }
+        });
+      });
+    }catch(_){}
+    // ── Vera: MANA-POOL watchdog. Reads the live /limits snapshot (window.__manaSnap,
+    //    set by renderQuota). A backend counts as DOWN only on a real CLI error
+    //    (exhausted && reason!="budget") — the local "budget" estimate never counts
+    //    (the CLI still works), so the board stays honest. On a state change Vera walks
+    //    to the board corner to "check" + reports; silent otherwise / during a brief.
+    (function(){
+      var lastDown=null;
+      function manaCheck(){
+        if(window.__wanderOff) return;
+        if(typeof ambientOn!=="undefined" && ambientOn===false) return;   // not during a brief
+        var snap=window.__manaSnap; if(!snap) return;
+        var down=[]; for(var b in snap){ var d=snap[b]; if(d && d.exhausted && d.reason!=="budget") down.push(b); }
+        down.sort(); var key=down.join(",");
+        if(lastDown===null){ lastDown=key; return; }     // first reading = baseline, stay quiet
+        if(key===lastDown) return;                       // no change -> quiet
+        var wasDown=lastDown; lastDown=key;
+        var ve=$g("agent-vera"); if(!ve) return;
+        function report(){
+          if(down.length){
+            var names=down.map(function(b){ return (window.BACKEND_META&&BACKEND_META[b]&&BACKEND_META[b].label)||b.toUpperCase(); });
+            setStatus("vera","talking"); say("vera","⚠ mana pool: "+names.join(", ")+" ล่ม (CLI error) — สลับ backend ให้แล้ว เช็คแล้วค่ะ", 3400);
+            try{ systemLog("🩺 Vera ตรวจ mana pool: "+names.join(", ")+" ล่ม"); }catch(_){}
+          } else if(wasDown){
+            setStatus("vera","talking"); say("vera","✓ mana pool กลับมาปกติทุกตัวแล้วค่ะ", 2600);
+            try{ systemLog("🩺 Vera: mana pool ปกติทุก backend"); }catch(_){}
+          }
+          setTimeout(function(){ try{ setStatus("vera","idle"); var st=window.STATION&&STATION.vera; if(st) walkAcross("vera", st.x, st.y, 1600); }catch(_){} }, 1400);
+        }
+        try{ setStatus("vera","walking"); walkAcross("vera", 44.5, 23.0, 1700).then(report).catch(report); }
+        catch(e){ report(); }
+      }
+      setInterval(manaCheck, 50000);
+      setTimeout(manaCheck, 9000);
+    })();
     // persist positions across reloads (per layout version) so agents keep their
     // CURRENT spot on refresh instead of snapping back to defaults.
     try{
@@ -3301,25 +3696,29 @@ setTimeout(() => systemLog("Pornchai & Co. HQ — 17/17 online. รอ brief ค
       if(_sv){ for(var _pid in _sv){ var _pe=$g("agent-"+_pid); if(_pe && _sv[_pid]){ _pe.style.left=_sv[_pid][0]+"%"; _pe.style.top=_sv[_pid][1]+"%"; } }
         if(typeof ysort==="function") ysort(); CAM.apply(); }
     }catch(_){}
+    // apply the grid-editor layer (moved + newly-placed objects from localStorage)
+    try{ if(window.GRIDED) GRIDED.apply(); }catch(_){}
+    // live QUEUE board (3-lane): created hidden; renderQueueBoard fills/shows it
+    try{ if(!$g("queueBoard")){ var _qb=document.createElement("div"); _qb.id="queueBoard"; _qb.style.display="none"; document.body.appendChild(_qb); } if(typeof renderQueueBoard==="function") renderQueueBoard(); }catch(_){}
     setInterval(function(){ try{ var _o={};
       document.querySelectorAll(".agent").forEach(function(a){ _o[a.id.replace("agent-","")]=[parseFloat(a.style.left)||0, parseFloat(a.style.top)||0]; });
       localStorage.setItem("prontera_pos_"+POSVER, JSON.stringify(_o)); }catch(_){} }, 3000);
     // hover grid cursor: a glowing blue cell follows the mouse over the floor; the
     // existing stage-click handler walks the CEO to it (snapped to the cell centre).
-    var st0=$g("stage"); var gc=document.createElement("div"); gc.id="gridcursor";
+    var st0=$g("stage"); var gc=document.createElement("div"); gc.id="gridcursor"; gc.style.width=GCX+"px"; gc.style.height=GCY+"px";
     if(st0){ st0.appendChild(gc);
       window.__gcSnap=function(xPct,yPct){      // snap a stage-% point to its grid-cell centre %
         var sx=xPct/100*SW, sy=yPct/100*SH;
-        if(sy<WH) sy=WH+GC/2;
-        var col=Math.floor(sx/GC), row=Math.floor((sy-WH)/GC);
-        return [ (col*GC+GC/2)/SW*100, (WH+row*GC+GC/2)/SH*100 ];
+        if(sy<WH) sy=WH+GCY/2;
+        var col=Math.floor(sx/GCX), row=Math.floor((sy-WH)/GCY);
+        return [ (col*GCX+GCX/2)/SW*100, (WH+row*GCY+GCY/2)/SH*100 ];
       };
       st0.addEventListener("mousemove", function(e){
         var r=st0.getBoundingClientRect();
         var sx=(e.clientX-r.left)/r.width*SW, sy=(e.clientY-r.top)/r.height*SH;
         if(sy<WH || sy>SH){ gc.style.display="none"; return; }
-        var col=Math.floor(sx/GC), row=Math.floor((sy-WH)/GC);
-        gc.style.left=(col*GC)+"px"; gc.style.top=(WH+row*GC)+"px"; gc.style.display="block";
+        var col=Math.floor(sx/GCX), row=Math.floor((sy-WH)/GCY);
+        gc.style.left=(col*GCX)+"px"; gc.style.top=(WH+row*GCY)+"px"; gc.style.display="block";
       });
       st0.addEventListener("mouseleave", function(){ gc.style.display="none"; });
     }
