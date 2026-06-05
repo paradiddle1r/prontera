@@ -1276,6 +1276,11 @@
 .mn-cm-lib{display:grid;grid-template-columns:1fr 1fr;gap:4px;max-height:150px;overflow-y:auto}
 .mn-lib-b{background:#221c12;border:1px solid #3a3020;border-radius:6px;color:#e8d9b0;font:600 10px system-ui;padding:5px 4px;cursor:pointer;text-align:left}
 .mn-lib-b:hover{background:#2a2216;border-color:#8a6a3a;color:#ffe9a8}
+.mn-cellmenu .mn-cm-del{background:#3a1614;border:1px solid #7a2a24;color:#ff9a8a}
+.mn-cellmenu .mn-cm-del:hover{background:#52201c;border-color:#e0584f;color:#ffd0c8}
+#mn-grid-reset{margin-left:auto;background:#221c12;border:1px solid #6a512c;border-radius:6px;color:#caa86a;font:600 10px system-ui;padding:3px 9px;cursor:pointer}
+#mn-grid-reset:hover{color:#ffd884;border-color:#8a6a3a}
+.menu-panel[data-panel="grid"] h3{display:flex;align-items:center;gap:8px}
 .qr-dot{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:2px;vertical-align:middle;background:#6a6a6a;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
 .quota-row.st-ok .qr-dot{background:#2ecc40;box-shadow:0 0 4px #2ecc40,0 0 0 1px rgba(0,0,0,.5)}
 .quota-row.st-bad .qr-dot{background:#ff3b30;box-shadow:0 0 5px #ff3b30,0 0 0 1px rgba(0,0,0,.5);animation:ledBlink 1s steps(1,end) infinite}
@@ -2171,6 +2176,7 @@ const BACKEND_META = {
   copilot:  { label: "COPILOT",  color: "#2ac3de", plan: "Free" },
   codex:    { label: "CODEX",    color: "#ff9e64", plan: "Free" },
   cursor:   { label: "CURSOR",   color: "#ff7eb6", plan: "Free" },
+  antigravity: { label: "ANTIGRAVITY", color: "#b48cff", plan: "Free" },
 };
 // Ordered by real capacity (local ∞ + Claude Max on top, free tiers below).
 const QUOTA_ORDER = ["claude", "ollama", "deepseek", "gemini", "copilot", "codex", "cursor", "antigravity"];
@@ -2185,7 +2191,9 @@ function renderQuota(snap) {
   if (!rows) return;
   rows.innerHTML = "";
   QUOTA_ORDER.forEach(b => {
-    const meta = BACKEND_META[b];
+    // never let a QUOTA_ORDER entry missing from BACKEND_META throw and halt the
+    // whole script (that silently killed the menu/grid/ambient init before).
+    const meta = BACKEND_META[b] || { label: String(b).toUpperCase(), color: "#9aa0b0", plan: "" };
     const d = snap && snap[b];
     const row = document.createElement("div");
     row.className = "quota-row";
@@ -3076,7 +3084,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       {k:"npc_oldsage",    n:"🧙 Old sage",   kind:"npc", img:"npc_oldsage"}
     ];
     var KEY="prontera_editor_v1";
-    function load(){ try{ var d=JSON.parse(localStorage.getItem(KEY)||"null"); return (d&&typeof d==="object")?{placed:d.placed||[],moves:d.moves||{}}:{placed:[],moves:{}}; }catch(e){ return {placed:[],moves:{}}; } }
+    function load(){ try{ var d=JSON.parse(localStorage.getItem(KEY)||"null"); return (d&&typeof d==="object")?{placed:d.placed||[],moves:d.moves||{},hidden:d.hidden||[]}:{placed:[],moves:{},hidden:[]}; }catch(e){ return {placed:[],moves:{},hidden:[]}; } }
     function save(d){ try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} }
     function objKey(el){
       if(el.dataset && el.dataset.edUid) return "uid:"+el.dataset.edUid;
@@ -3110,6 +3118,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       var d=load();
       (d.placed||[]).forEach(function(p){ var it=LIB.filter(function(x){return x.k===p.key;})[0]; if(it && !document.querySelector('[data-ed-uid="'+p.uid+'"]')) spawn(it, p.cell, p.uid); });
       Object.keys(d.moves||{}).forEach(function(key){ var el=findExisting(key); if(el) ground(el, d.moves[key]); });
+      (d.hidden||[]).forEach(function(key){ var el=findExisting(key); if(el && el.parentNode) el.parentNode.removeChild(el); });   // deleted objects stay gone
     }
     function moveObj(el, cell){
       ground(el, cell); var d=load();
@@ -3127,7 +3136,19 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       var d=load(); d.placed=(d.placed||[]).filter(function(p){return p.uid!==uid;}); save(d);
       if(el.parentNode) el.parentNode.removeChild(el); return true;
     }
-    window.GRIDED={ LIB:LIB, load:load, objKey:objKey, ground:ground, findExisting:findExisting, spawn:spawn, apply:apply, moveObj:moveObj, placeNew:placeNew, removePlaced:removePlaced };
+    // Delete ANY object: editor-placed -> drop from `placed`; build-time deco/flag/npc
+    // -> add its key to `hidden` (persisted) so it stays gone after reload.
+    function removeObj(el){
+      if(!el) return false;
+      if(el.dataset && el.dataset.edUid) return removePlaced(el);
+      var k=objKey(el); if(!k) return false;
+      var d=load(); d.hidden=d.hidden||[]; if(d.hidden.indexOf(k)<0) d.hidden.push(k);
+      if(d.moves && d.moves[k]) delete d.moves[k];
+      save(d);
+      if(el.parentNode) el.parentNode.removeChild(el); return true;
+    }
+    function reset(){ try{ localStorage.removeItem(KEY); }catch(e){} }   // restore all (undo every delete/move/place)
+    window.GRIDED={ LIB:LIB, load:load, objKey:objKey, ground:ground, findExisting:findExisting, spawn:spawn, apply:apply, moveObj:moveObj, placeNew:placeNew, removePlaced:removePlaced, removeObj:removeObj, reset:reset };
   })();
   var CAM={ mode:"room",
     apply:function(){
@@ -3495,7 +3516,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           +'<div class="mn-empty">พื้นที่สำรองสำหรับ flag ทั่วทั้งออฟฟิศในอนาคต (refresh interval, theme/volume, pause all agents)</div>'
         +'</div>'
         // 7 Grid Reference — visual mini-maps (hover = ดูพิกัด, คลิก = คัดลอกชื่อ cell)
-        +'<div class="menu-panel" data-panel="grid"><h3>🗺️ Grid Reference</h3>'
+        +'<div class="menu-panel" data-panel="grid"><h3>🗺️ Grid Reference <button id="mn-grid-reset" title="คืนค่าเริ่มต้น — ยกเลิกการลบ/ย้าย/วางวัตถุทั้งหมด">↺ รีเซ็ตผัง</button></h3>'
           +'<div class="mn-grid-read" id="mn-grid-read">เลื่อนเมาส์ไปบนช่อง เพื่อดูพิกัด · คลิก = คัดลอกชื่อ cell · Shift+คลิก = ไฮไลต์บนแผนที่จริง</div>'
           +'<div class="mn-grid-list" id="mn-grid-list"></div>'
         +'</div>'
@@ -3619,7 +3640,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
             var g=$g("map-"+ORDER[p.idx]); if(!g) return;
             var dot=document.createElement("div"); dot.className="mn-obj"+((o.dataset&&o.dataset.edUid)?" mn-obj-new":"");
             dot.style.left=p.fx+"%"; dot.style.top=p.fy+"%";
-            dot.dataset.objkey=key; dot.title=key+" — ลากเพื่อย้าย"+((o.dataset&&o.dataset.edUid)?" · คลิกขวา=ลบ":"");
+            dot.dataset.objkey=key; dot.title=key+" — ลากย้าย · คลิกขวา=ลบ";
             g.appendChild(dot);
           });
         }catch(_){}
@@ -3661,8 +3682,14 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         function openMenu(cell, x, y){
           var xy=nameToCoords(cell)||{x:0,y:0};
           var libHtml=(window.GRIDED?GRIDED.LIB:[]).map(function(it){ return '<button class="mn-lib-b" data-k="'+it.k+'">'+it.n+'</button>'; }).join("");
+          // is there an object (deco/flag/npc) sitting on this cell? -> offer to delete it
+          var occKey=null;
+          try{ document.querySelectorAll(".deco, .deco-flag, .npc").forEach(function(o){
+            var k=window.GRIDED&&GRIDED.objKey(o); if(k && gridName(parseFloat(o.style.left)||0, parseFloat(o.style.top)||0)===cell) occKey=k;
+          }); }catch(_){}
           menu.innerHTML='<div class="mn-cm-h"><b>'+cell+'</b> · x '+xy.x+'% y '+xy.y+'%</div>'
             +'<div class="mn-cm-row"><button class="mn-cm-copy">📋 คัดลอกชื่อ</button><button class="mn-cm-hl">🎯 ไฮไลต์</button></div>'
+            +(occKey?'<div class="mn-cm-row"><button class="mn-cm-del" data-k="'+occKey+'">🗑️ ลบ '+occKey+'</button></div>':'')
             +'<div class="mn-cm-lbl">วางวัตถุ/NPC ที่ช่องนี้:</div><div class="mn-cm-lib">'+libHtml+'</div>';
           menu.dataset.cell=cell;
           menu.style.left=Math.max(6,Math.min(x, window.innerWidth-232))+"px";
@@ -3677,6 +3704,8 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           var cell=menu.dataset.cell;
           if(e.target.classList.contains("mn-cm-copy")){ try{ navigator.clipboard.writeText(cell); }catch(_){} window.__lastCellRef=cell; try{ systemLog("🗺️ คัดลอก cell "+cell); }catch(_){} hideMenu(); return; }
           if(e.target.classList.contains("mn-cm-hl")){ flashCell(cell); hideMenu(); return; }
+          var db=e.target.closest(".mn-cm-del");
+          if(db && window.GRIDED){ var rel=GRIDED.findExisting(db.dataset.k); if(rel && GRIDED.removeObj(rel)){ try{ systemLog("🗑️ ลบ "+db.dataset.k+" ที่ "+cell); }catch(_){} placeDots(); } hideMenu(); return; }
           var lb=e.target.closest(".mn-lib-b");
           if(lb && window.GRIDED){ GRIDED.placeNew(lb.dataset.k, cell); placeDots(); try{ systemLog("📦 วาง "+lb.dataset.k+" ที่ "+cell); }catch(_){} hideMenu(); }
         });
@@ -3704,12 +3733,15 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           if(cell && realEl){ GRIDED.moveObj(realEl, cell); try{ systemLog("📦 ย้าย "+d.key+" → "+cell); }catch(_){} }
           placeDots();
         });
-        // right-click an editor-PLACED marker -> remove it
+        // right-click ANY object marker -> delete it (editor-placed OR build-time)
         list.addEventListener("contextmenu",function(e){
-          var m=e.target.closest(".mn-obj-new"); if(!m) return; e.preventDefault();
+          var m=e.target.closest(".mn-obj"); if(!m) return; e.preventDefault();
           var el=window.GRIDED&&GRIDED.findExisting(m.dataset.objkey);
-          if(el && GRIDED.removePlaced(el)){ try{ systemLog("🗑️ ลบ "+m.dataset.objkey); }catch(_){} placeDots(); }
+          if(el && GRIDED.removeObj(el)){ try{ systemLog("🗑️ ลบ "+m.dataset.objkey); }catch(_){} placeDots(); }
         });
+        // reset everything (undo all deletes/moves/placements) back to defaults
+        var _grst=$g("mn-grid-reset");
+        if(_grst) _grst.onclick=function(){ try{ if(confirm("คืนผังกลับค่าเริ่มต้นทั้งหมด? (ยกเลิกการลบ/ย้าย/วางวัตถุทุกอย่าง)")){ GRIDED.reset(); location.reload(); } }catch(_){} };
       }
       // ── open/close ──
       btn.onclick=function(){ dl.hidden=false; show("dash"); };
