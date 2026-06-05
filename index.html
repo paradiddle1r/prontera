@@ -2568,18 +2568,21 @@ async function runBrief(task, qItem) {
   }
 
   // ── 6. Show each agent's real work output as it arrives ───────────
-  const _ocTopic = /openclaw/i.test(task) && !!window.__openclawAt;
+  const _ocTopic = /openclaw/i.test(task) && !!(window.openclawTarget && window.openclawTarget());
   for (const r of plan.routes) {
     const text = await workDs[r.agent].promise;
     if (!text) continue;
     // Part C (topic-based): if the brief is ABOUT openclaw, the assignee first WALKS
-    // to the OpenClaw NPC (King Dramoh @ PRT-S4) to consult it, then reports the
+    // to the OpenClaw NPC (wherever it currently sits) to consult it, then reports the
     // answer (which the backend grounded in the real openclaw facts) in place.
     if (_ocTopic && typeof AGENTS !== "undefined" && AGENTS[r.agent]) {
       try {
-        setStatus(r.agent, "walking");
-        await walkAcross(r.agent, window.__openclawAt.x + (Math.random()*3-1.5), window.__openclawAt.y + 7, 1900);
-        setStatus(r.agent, "talking"); await say(r.agent, "ขอเช็คกับ OpenClaw ก่อนนะ 🐉", 1400);
+        const _oa = window.openclawTarget();
+        if (_oa) {
+          setStatus(r.agent, "walking");
+          await walkAcross(r.agent, _oa.x + (Math.random()*3-1.5), _oa.y + 7, 1900);
+          setStatus(r.agent, "talking"); await say(r.agent, "ขอเช็คกับ OpenClaw ก่อนนะ 🐉", 1400);
+        }
       } catch (_) {}
     }
     setStatus(r.agent, "talking"); await say(r.agent, text, sayMs(text));
@@ -2602,10 +2605,11 @@ async function runBrief(task, qItem) {
   }
 
   // ── 6c. Part C: every agent escalated to openclaw WALKS to the OpenClaw NPC
-  //        (King Dramoh @ PRT-S4) and uses it (the real report_to_openclaw path),
-  //        then returns to idle. veraOpenclaw comes from the vera_verify payload. ──
-  if (veraOpenclaw && veraOpenclaw.length && window.__openclawAt) {
-    const _oa = window.__openclawAt;
+  //        (wherever it currently sits) and uses it (the real report_to_openclaw
+  //        path), then returns to idle. veraOpenclaw comes from the vera_verify payload. ──
+  const _ocEsc = (window.openclawTarget && window.openclawTarget()) || null;
+  if (veraOpenclaw && veraOpenclaw.length && _ocEsc) {
+    const _oa = _ocEsc;
     for (const aid of veraOpenclaw) {
       if (typeof AGENTS === "undefined" || !AGENTS[aid]) continue;
       try {
@@ -3088,7 +3092,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
     function save(d){ try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} }
     function objKey(el){
       if(el.dataset && el.dataset.edUid) return "uid:"+el.dataset.edUid;
-      var m=(el.className||"").match(/deco-(?:bull|bear|board3|ed_orb)|flag-(?:eagle|lion)/);
+      var m=(el.className||"").match(/deco-(?:bull|bear|board3|ed_orb)|flag-(?:eagle|lion)|npc-openclaw/);
       if(m) return m[0];
       var img=el.querySelector&&el.querySelector("img");
       if(img){ var mm=(img.getAttribute("src")||"").match(/([a-z0-9_]+)\.png/i); if(mm) return mm[1]; }
@@ -3096,16 +3100,38 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
     }
     function ground(el, cell){
       var xy=nameToCoords(cell); if(!xy) return;
-      var mm=/-[A-Z](\d+)$/.exec(cell); var row=mm?parseInt(mm[1],10):1;
-      var h=el.offsetHeight||40;
-      var cy=(WH + row*GCY) - h/2;                 // foot rests on the cell's row bottom line
-      el.style.left=xy.x+"%"; el.style.top=(cy/SH*100)+"%";
-      el.style.zIndex=String(Math.round((cy/SH*100)*10)+100);   // y-depth like the rest
+      // CENTER the object on the cell (sprites are translate(-50%,-50%) anchored) so
+      // each object owns exactly one cell and its gridName matches the cell you click.
+      el.style.left=xy.x+"%"; el.style.top=xy.y+"%";
+      el.style.zIndex=String(Math.round(xy.y*10)+100);   // y-depth sorting (front over back)
     }
     function findExisting(key){
       if(key.indexOf("uid:")===0) return document.querySelector('[data-ed-uid="'+key.slice(4)+'"]');
-      if(/^(deco-|flag-)/.test(key)) return document.querySelector("."+key);
+      if(/^(deco-|flag-)/.test(key) || key==="npc-openclaw") return document.querySelector("."+key);
       var n=null; document.querySelectorAll(".npc").forEach(function(x){ var i=x.querySelector("img"); if(i&&(i.getAttribute("src")||"").indexOf(key+".png")>=0) n=x; }); return n;
+    }
+    function cellOf(el){ return gridName(parseFloat(el.style.left)||0, parseFloat(el.style.top)||0); }
+    function gridObjs(){ return [].slice.call(document.querySelectorAll(".deco, .deco-flag, .npc")).filter(function(o){ return !!objKey(o); }); }
+    function occupant(cell, except){ var f=null; gridObjs().forEach(function(o){ if(o!==except && cellOf(o)===cell) f=o; }); return f; }
+    function freeCellFrom(cell, isTaken){
+      if(!isTaken(cell)) return cell;
+      var m=/^([A-Z]{3})-([A-Z])(\d+)$/.exec(cell); if(!m) return cell;
+      var pre=m[1], col=m[2].charCodeAt(0)-65, row=parseInt(m[3],10), R=Math.max(NCOL,NROW);
+      for(var rad=1; rad<R; rad++){ for(var dr=-rad; dr<=rad; dr++){ for(var dc=-rad; dc<=rad; dc++){
+        if(Math.max(Math.abs(dc),Math.abs(dr))!==rad) continue;
+        var nc=col+dc, nr=row+dr; if(nc<0||nc>=NCOL||nr<1||nr>NROW) continue;
+        var cand=pre+"-"+String.fromCharCode(65+nc)+nr; if(!isTaken(cand)) return cand;
+      }}}
+      return cell;
+    }
+    // Snap every object to the CENTRE of a cell, one object per cell (request:
+    // "อยู่กลาง grid และอยู่ช่องเดียวกันไม่ได้"). Deterministic by DOM order.
+    function normalize(){
+      var taken={};
+      gridObjs().forEach(function(o){
+        var cell=freeCellFrom(cellOf(o), function(c){ return !!taken[c]; });
+        taken[cell]=true; ground(o, cell);
+      });
     }
     function spawn(item, cell, uid){
       var st=$g("stage"); if(!st) return null;
@@ -3121,13 +3147,16 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       (d.hidden||[]).forEach(function(key){ var el=findExisting(key); if(el && el.parentNode) el.parentNode.removeChild(el); });   // deleted objects stay gone
     }
     function moveObj(el, cell){
+      // one object per cell: if the target is taken, snap back (predictable) + tell the user.
+      if(occupant(cell, el)){ try{ if(typeof systemLog==="function") systemLog("⛔ ช่องนี้มีของอยู่แล้ว — "+cell); }catch(_){} ground(el, cellOf(el)); return false; }
       ground(el, cell); var d=load();
       if(el.dataset && el.dataset.edUid){ (d.placed||[]).forEach(function(p){ if(p.uid===el.dataset.edUid) p.cell=cell; }); }
       else { var k=objKey(el); if(k){ d.moves=d.moves||{}; d.moves[k]=cell; } }
-      save(d);
+      save(d); return true;
     }
     function placeNew(key, cell){
       var it=LIB.filter(function(x){return x.k===key;})[0]; if(!it) return null;
+      cell=freeCellFrom(cell, function(c){ return !!occupant(c, null); });   // never stack onto an occupied cell
       var uid="ed_"+Date.now().toString(36)+"_"+Math.floor(Math.random()*1e4).toString(36);
       var el=spawn(it, cell, uid); var d=load(); d.placed=d.placed||[]; d.placed.push({key:key,cell:cell,uid:uid}); save(d); return el;
     }
@@ -3148,7 +3177,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       if(el.parentNode) el.parentNode.removeChild(el); return true;
     }
     function reset(){ try{ localStorage.removeItem(KEY); }catch(e){} }   // restore all (undo every delete/move/place)
-    window.GRIDED={ LIB:LIB, load:load, objKey:objKey, ground:ground, findExisting:findExisting, spawn:spawn, apply:apply, moveObj:moveObj, placeNew:placeNew, removePlaced:removePlaced, removeObj:removeObj, reset:reset };
+    window.GRIDED={ LIB:LIB, load:load, objKey:objKey, ground:ground, findExisting:findExisting, spawn:spawn, apply:apply, normalize:normalize, occupant:occupant, moveObj:moveObj, placeNew:placeNew, removePlaced:removePlaced, removeObj:removeObj, reset:reset };
   })();
   var CAM={ mode:"room",
     apply:function(){
@@ -3349,7 +3378,14 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         _oc.innerHTML='<div class="oc-sprite"></div><div class="npc-label oc-label">OpenClaw</div>';
         $g("stage").appendChild(_oc);
         try{ window.GRIDED.ground(_oc, "PRT-S4"); }catch(_){}
-        try{ window.__openclawAt=(window.GRID&&window.GRID.at)?window.GRID.at("PRT-S4"):null; }catch(_){ window.__openclawAt=null; }
+        // Walk-target follows OpenClaw's LIVE position (it can be moved/deleted in the
+        // grid editor now). Falls back to PRT-S4's cell centre if the NPC is gone.
+        window.openclawTarget=function(){
+          try{ var n=document.getElementById("npc-openclaw");
+            if(n && window.GRID) return window.GRID.at(window.GRID.name(parseFloat(n.style.left)||0, parseFloat(n.style.top)||0)); }catch(_){}
+          try{ return (window.GRID&&window.GRID.at)?window.GRID.at("PRT-S4"):null; }catch(_){ return null; }
+        };
+        try{ window.__openclawAt=window.openclawTarget(); }catch(_){ window.__openclawAt=null; }
         var _ocInfo=[
           ["เวอร์ชัน","2026.6.1 (2e08f0f)"],
           ["รันไทม์","Node CLI · npm global"],
@@ -3811,7 +3847,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         if(typeof ysort==="function") ysort(); CAM.apply(); }
     }catch(_){}
     // apply the grid-editor layer (moved + newly-placed objects from localStorage)
-    try{ if(window.GRIDED) GRIDED.apply(); }catch(_){}
+    try{ if(window.GRIDED){ GRIDED.apply(); GRIDED.normalize(); } }catch(_){}   // restore edits, then centre every object on its own cell
     // live QUEUE board (3-lane): created hidden; renderQueueBoard fills/shows it
     try{ if(!$g("queueBoard")){ var _qb=document.createElement("div"); _qb.id="queueBoard"; _qb.style.display="none"; document.body.appendChild(_qb); } if(typeof renderQueueBoard==="function") renderQueueBoard(); }catch(_){}
     setInterval(function(){ try{ var _o={};
