@@ -1389,6 +1389,20 @@
 #ocPanel .oc-note{margin-top:10px;color:#9a8a64;font-size:10px;border-top:1px solid #3a3020;padding-top:7px;line-height:1.4}
 #ocPanel .oc-x{position:absolute;top:7px;right:11px;cursor:pointer;color:#caa86a;font-size:20px;line-height:1;background:none;border:none}
 #ocPanel .oc-x:hover{color:#ffd884}
+/* SET market-data NPC (izlude) — clickable info node for Echo's Thai-stock prices */
+.npc-set{pointer-events:auto !important;cursor:pointer;z-index:5}
+.npc-set .npc-label{color:#aee0ff !important;background:rgba(8,24,36,.86) !important;border:1px solid #3fa7d6 !important;border-radius:4px;padding:1px 7px;font-size:10px !important;margin-top:3px !important;font-weight:700 !important}
+#setPanel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:400;width:min(430px,92vw);background:linear-gradient(180deg,rgba(8,22,32,.98),rgba(4,12,18,.98));border:2px solid #3fa7d6;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.6);padding:14px 16px 13px;font:12px system-ui;color:#dceaf3}
+#setPanel h3{margin:0 0 2px;color:#7fd1ff;font-size:16px}
+#setPanel .oc-sub{color:#6aa6c8;font-size:11px;font-style:italic;margin-bottom:9px}
+#setPanel table{width:100%;border-collapse:collapse}
+#setPanel td{padding:4px 6px;vertical-align:top;border-top:1px solid #25323a;font-size:11px}
+#setPanel td.k{color:#aee0ff;font-weight:700;white-space:nowrap;width:92px}
+#setPanel td.v{color:#cfe2ee;line-height:1.45}
+#setPanel code{background:#06121a;color:#9fe0ff;padding:1px 4px;border-radius:3px;font-size:10px}
+#setPanel .oc-note{margin-top:10px;color:#7a93a3;font-size:10px;border-top:1px solid #25323a;padding-top:7px;line-height:1.4}
+#setPanel .oc-x{position:absolute;top:7px;right:11px;cursor:pointer;color:#6aa6c8;font-size:20px;line-height:1;background:none;border:none}
+#setPanel .oc-x:hover{color:#7fd1ff}
 @keyframes deco_ed_orb{to{background-position:-1798px 0,center bottom}}
 .npc::before{content:"";position:absolute;left:50%;bottom:13px;transform:translateX(-50%);width:44px;height:11px;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.5) 0%,rgba(0,0,0,.3) 45%,transparent 72%);z-index:-1;pointer-events:none}
 .nameplate{white-space:nowrap;display:block;width:max-content;position:relative;left:50%;transform:translateX(-50%)}
@@ -3119,7 +3133,7 @@ const stageEl = document.getElementById("stage");
 stageEl.addEventListener("click", async (e) => {
   if (omanMoving || window.__omanBusy) return;
   // Skip clicks on interactive / informational overlays.
-  if (e.target.closest(".agent, .bubble, .nameplate, .bars, .status-pill, .banner, .clock, .portal-label, .popup, .quota-board, .setup-board, .npc-openclaw, #ocPanel")) return;
+  if (e.target.closest(".agent, .bubble, .nameplate, .bars, .status-pill, .banner, .clock, .portal-label, .popup, .quota-board, .setup-board, .npc-openclaw, #ocPanel, .npc-set, #setPanel")) return;
   // Skip clicks that land on a board (the quota board is pointer-events:none so
   // the click target is the floor behind it — rect-test catches it either way).
   for (const bid of ["quotaBoard", "setupBoard"]) {
@@ -3210,7 +3224,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
     function save(d){ try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} }
     function objKey(el){
       if(el.dataset && el.dataset.edUid) return "uid:"+el.dataset.edUid;
-      var m=(el.className||"").match(/deco-(?:bull|bear|board3|ed_orb)|flag-(?:eagle|lion)|npc-openclaw/);
+      var m=(el.className||"").match(/deco-(?:bull|bear|board3|ed_orb)|flag-(?:eagle|lion)|npc-openclaw|npc-set/);
       if(m) return m[0];
       var img=el.querySelector&&el.querySelector("img");
       if(img){ var mm=(img.getAttribute("src")||"").match(/([a-z0-9_]+)\.png/i); if(mm) return mm[1]; }
@@ -3225,7 +3239,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
     }
     function findExisting(key){
       if(key.indexOf("uid:")===0) return document.querySelector('[data-ed-uid="'+key.slice(4)+'"]');
-      if(/^(deco-|flag-)/.test(key) || key==="npc-openclaw") return document.querySelector("."+key);
+      if(/^(deco-|flag-)/.test(key) || key==="npc-openclaw" || key==="npc-set") return document.querySelector("."+key);
       var n=null; document.querySelectorAll(".npc").forEach(function(x){ var i=x.querySelector("img"); if(i&&(i.getAttribute("src")||"").indexOf(key+".png")>=0) n=x; }); return n;
     }
     function cellOf(el){ return gridName(parseFloat(el.style.left)||0, parseFloat(el.style.top)||0); }
@@ -3574,6 +3588,35 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         document.body.appendChild(_ocp);
         _oc.addEventListener("click", function(e){ e.stopPropagation(); _ocp.hidden=!_ocp.hidden; });
         _ocp.querySelector(".oc-x").addEventListener("click", function(){ _ocp.hidden=true; });
+      }
+    } catch(_){}
+    // ── SET market-data NPC (izlude) — Echo's Thai-stock price source. Clickable
+    //    -> PUBLIC-SAFE info panel (no app id / secret / PIN / account numbers; those
+    //    live backend-only). The real Settrade calls happen in the backend (Echo). ──
+    try {
+      if (window.GRIDED && $g("stage") && !$g("npc-set")) {
+        var _set=document.createElement("div");
+        _set.className="npc bob npc-set"; _set.id="npc-set";
+        _set.innerHTML='<img src="sprites_out/v2/npc_oldsage.png" alt=""><div class="npc-label">📈 SET</div>';
+        $g("stage").appendChild(_set);
+        try{ window.GRIDED.ground(_set, "IZL-K10"); }catch(_){}
+        var _setInfo=[
+          ["เชื่อมต่อ","Settrade Open API"],
+          ["โหมด","<code>SANDBOX</code> (เงินจำลอง)"],
+          ["ข้อมูล","ราคาหุ้นไทย (SET) — read-only"],
+          ["ผู้ใช้","Echo · Investment Lead (izlude)"],
+          ["ใช้ตอบ","ลูกค้า/ทีมถามราคาหุ้น เช่น “PTT ราคาเท่าไหร่”"],
+          ["ขอบเขต","ดูราคาอย่างเดียว — คีย์/บัญชีเก็บฝั่ง backend เท่านั้น"]
+        ];
+        var _setRows=_setInfo.map(function(r){return '<tr><td class="k">'+r[0]+'</td><td class="v">'+r[1]+'</td></tr>';}).join("");
+        var _setp=document.createElement("div"); _setp.id="setPanel"; _setp.hidden=true;
+        _setp.innerHTML='<button class="oc-x" title="ปิด">×</button>'
+          +'<h3>📈 SET</h3><div class="oc-sub">ราคาหุ้นไทยสำหรับ Echo · Settrade sandbox</div>'
+          +'<table>'+_setRows+'</table>'
+          +'<div class="oc-note">ℹ️ NPC นี้คือจุดเชื่อมข้อมูลราคา ไม่เก็บ/ไม่โชว์ความลับ (app id, secret, PIN, เลขบัญชี) — อยู่ฝั่ง Mac เท่านั้น</div>';
+        document.body.appendChild(_setp);
+        _set.addEventListener("click", function(e){ e.stopPropagation(); _setp.hidden=!_setp.hidden; });
+        _setp.querySelector(".oc-x").addEventListener("click", function(){ _setp.hidden=true; });
       }
     } catch(_){}
     // ── DEPTH one-shot (task 3B/C): give every STATIC floor sprite a y-based z so
