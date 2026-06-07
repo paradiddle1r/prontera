@@ -2563,6 +2563,13 @@ async function runBrief(task, qItem) {
     reworks.push(d);
     workTexts[d.agent] = d.text || workTexts[d.agent];   // summary should reflect the corrected output
   });
+  es.addEventListener("model_panel", (ev) => {
+    let d; try { d = JSON.parse(ev.data); } catch (_) { return; }
+    const models = (d.agreed || []).join(", ");
+    if (d.consensus) systemLog("🔬 ยืนยันข้ามโมเดล (" + models + "): " + d.consensus);
+    else if (d.panel && d.panel.length) systemLog("🔬 เทียบ " + d.panel.length + " โมเดล: " +
+      d.panel.map(p => "[" + p.model + "] " + String(p.answer || "").slice(0, 60)).join("  |  "));
+  });
   es.addEventListener("done", () => { try { es.close(); } catch (_) {} veraD.resolve(); });
   es.onerror = () => {
     streamFailed = true;
