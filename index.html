@@ -791,6 +791,11 @@
   .quota-fill  { height: 100%; transition: width 0.5s ease; }
   .quota-row.dead .qr-name, .quota-row.dead .qr-val { color: #ff6b6b; }
   .quota-foot { margin-top: 7px; font-size: 8px; color: var(--muted); text-align: right; font-style: italic; }
+  .quota-title #manaRefresh { float: right; background: rgba(20,16,8,.6); border: 1px solid #6a512c; color: #f5d68a; border-radius: 5px; font-size: 11px; line-height: 1; padding: 2px 5px; cursor: pointer; }
+  .quota-title #manaRefresh:hover { background: rgba(60,46,20,.95); border-color: #f5d68a; }
+  .quota-title #manaRefresh.spin { animation: manaSpin 0.6s linear; }
+  @keyframes manaSpin { to { transform: rotate(360deg); } }
+  .qr-reset { opacity: 0.62; font-weight: 500; }
   /* Iris model picker + "don't spend Claude" switch (re-enable clicks: the
      board itself is pointer-events:none so it never blocks sprites) */
   .ctrl-panel { margin-top: 7px; border-top: 1px solid #4a3416; padding-top: 6px; pointer-events: auto; }
@@ -1567,7 +1572,7 @@
       </div>
       <!-- Janitor-01's live AI quota board — token limits per backend -->
       <div class="quota-board" id="quotaBoard">
-        <div class="quota-title">📊 AI MANA POOL</div>
+        <div class="quota-title">📊 AI MANA POOL <button id="manaRefresh" title="รีเฟรชสถานะตอนนี้">🔄</button></div>
         <div class="quota-rows" id="quotaRows"></div>
         <div class="quota-foot">— Janitor-01 reporting</div>
         <div class="ctrl-panel">
@@ -1817,9 +1822,10 @@ function setPos(id, x, y) {
   // pace. ms-per-cell falls from ~560 (1 cell) to 280 (>=4 cells); clamp 450-2800ms.
   const _dpx = Math.hypot(dx/100*6300, dy/100*760);
   const _cells = _dpx/64;
-  // idle wandering = slow (speed 1-2); during a brief / active use (ambientOn=false) = speed 3
-  const _mpc = (typeof ambientOn!=="undefined" && ambientOn===false) ? 360 : 640;
-  const _dur = Math.max(420, Math.min(3200, Math.round(_cells*_mpc)));
+  // idle wandering = slow (speed 1-2); during a brief / active use (ambientOn=false) = speed 3.
+  // __omanWarp = a CEO warp hop in progress -> move FAST through the portal.
+  const _mpc = window.__omanWarp ? 150 : ((typeof ambientOn!=="undefined" && ambientOn===false) ? 360 : 640);
+  const _dur = Math.max(300, Math.min(3200, Math.round(_cells*_mpc)));
   a.style.transition = 'left '+_dur+'ms ease-in-out, top '+_dur+'ms ease-in-out, opacity 0.35s ease';
   a.classList.add('walking');
   a.style.left = x + '%';
@@ -1845,8 +1851,8 @@ async function walkTo(id, x, y, ms = 2200, noClamp = false) {
   const ox = parseFloat(a.style.left)||x, oy = parseFloat(a.style.top)||y;
   const dpx = Math.hypot((x-ox)/100*6300, (y-oy)/100*760);
   const cells = dpx/64;
-  const mpc = (typeof ambientOn!=="undefined" && ambientOn===false) ? 360 : 640;  // brief=3, idle=1-2
-  const dur = Math.max(420, Math.min(3200, Math.round(cells*mpc)));
+  const mpc = window.__omanWarp ? 150 : ((typeof ambientOn!=="undefined" && ambientOn===false) ? 360 : 640);  // warp=fast, brief=3, idle=1-2
+  const dur = Math.max(300, Math.min(3200, Math.round(cells*mpc)));
   setPos(id, x, y);
   await sleep(dur);
   a.classList.remove('walking');
@@ -2194,6 +2200,14 @@ function fmtTok(n) {
   if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "k";
   return String(n);
 }
+function fmtDur(s) {
+  s = Math.max(0, Math.round(+s || 0));
+  if (s < 60) return s + "s";
+  var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), d = Math.floor(h / 24);
+  if (d >= 1) return d + "d" + (h % 24 ? " " + (h % 24) + "h" : "");
+  if (h >= 1) return h + "h" + (m ? " " + m + "m" : "");
+  return m + "m";
+}
 function renderQuota(snap) {
   const rows = $("quotaRows");
   if (!rows) return;
@@ -2219,6 +2233,9 @@ function renderQuota(snap) {
       else if (over) { stState = "over"; }   // over the local budget but CLI still works -> amber LED (bar keeps its identity colour)
       else { stState = "ok"; }
       valText = dead ? "DOWN" : (over ? "เต็ม·ใช้ได้" : (fmtTok(rem) + " left" + (d.est ? "~" : "")));
+      // show when the budget auto-refills to full (not shown for real DOWN)
+      if (!dead && d.resets_in != null && d.resets_in > 0)
+        valText += ' <span class="qr-reset">· รีเซ็ต ' + fmtDur(d.resets_in) + '</span>';
     }
     if (dead) row.classList.add("dead");
     row.classList.add("st-" + stState);
@@ -2247,6 +2264,14 @@ function pollQuota() {
 renderQuota(null);   // static placeholder bars (works on file://)
 pollQuota();
 setInterval(pollQuota, 5000);
+// 🔄 manual refresh button on the Mana board (delegated — the board can be re-parented)
+document.addEventListener("click", function(e){
+  var b = e.target && e.target.closest ? e.target.closest("#manaRefresh") : null;
+  if (!b) return;
+  e.stopPropagation();
+  b.classList.remove("spin"); void b.offsetWidth; b.classList.add("spin");
+  pollQuota();
+});
 
 // =================== CROSS-OFFICE VISIT ===================
 async function crossPortal(id) {
@@ -3019,7 +3044,7 @@ async function trigger() {
 let omanMoving = false;
 const stageEl = document.getElementById("stage");
 stageEl.addEventListener("click", async (e) => {
-  if (omanMoving) return;
+  if (omanMoving || window.__omanBusy) return;
   // Skip clicks on interactive / informational overlays.
   if (e.target.closest(".agent, .bubble, .nameplate, .bars, .status-pill, .banner, .clock, .portal-label, .popup, .quota-board, .setup-board, .npc-openclaw, #ocPanel")) return;
   // Skip clicks that land on a board (the quota board is pointer-events:none so
@@ -3040,13 +3065,15 @@ stageEl.addEventListener("click", async (e) => {
   let cy = Math.max(20, Math.min(92, y));
   if (window.__gcSnap) { const s = window.__gcSnap(cx, cy); cx = s[0]; cy = s[1]; }
   if (window.WORLD && window.WORLD.clamp) { const s2 = window.WORLD.clamp(cx, cy); cx = s2[0]; cy = s2[1]; }
-  omanMoving = true;
+  omanMoving = true; window.__omanBusy = true;
+  if (window.CAM) { window.CAM.focus = null; window.CAM.mode = "room"; }   // CEO walks -> snap camera back to following the CEO
   setStatus("oman", "walking");
   try {
     await walkAcross("oman", cx, cy, 1800);
   } finally {
     setStatus("oman", "idle");
-    omanMoving = false;
+    omanMoving = false; window.__omanBusy = false;
+    if (window.CAM) window.CAM.apply();
   }
 });
 stageEl.style.cursor = "pointer";
@@ -3274,8 +3301,39 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
     try{ setStatus(routerId, "idle"); }catch(_){}
   }
   window.WORLD={ walkVia:walkVia, clamp:clampToRoom, deliver:deliverToAgents };
-  function gotoRoom(dest){ var j=$g("agent-oman"); if(!j) return; CAM.mode="room";
-    walkVia("oman", CTR[dest][0], 58, 800).then(function(){CAM.apply();}); CAM.apply(); }
+  // CEO -> walk to a room THROUGH the warp portal(s): approach the divider portal,
+  // fade, emerge just inside the next room, repeat per room, then into the centre.
+  // Single-flight (window.__omanBusy) so portal/stage clicks can't stack & bounce;
+  // fast (window.__omanWarp) so the hop is snappy; re-tracks the CEO (focus=null).
+  function gotoRoom(dest){
+    var j=$g("agent-oman"); if(!j) return;
+    var ci=ORDER.indexOf(curRoom("oman")), ti=ORDER.indexOf(dest);
+    if(ci<0||ti<0) return;
+    if(window.__omanBusy) return;                 // already walking — ignore the click
+    window.__omanBusy=true; window.__omanWarp=true;
+    CAM.focus=null; CAM.mode="room";              // looking elsewhere via arrows? snap back to the CEO
+    if(typeof setStatus==="function"){ try{ setStatus("oman","walking"); }catch(_){ } }
+    (async function(){
+      try{
+        var step = ti>ci ? 1 : -1;
+        for(var i=ci; i!==ti; i+=step){
+          var border=(step>0?(i+1):i)*RW;          // the divider line where the portal sits
+          await walkTo("oman", border + (step>0?-0.5:0.5), 84, 600, true);  // walk onto the portal (bottom)
+          j.classList.add("warping"); await sleep(180);
+          setPos("oman", border + (step>0?0.5:-0.5), 84);                   // emerge just inside the next room
+          CAM.apply(); await sleep(150);
+          j.classList.remove("warping"); await sleep(110);
+        }
+        await walkTo("oman", CTR[dest][0], 58, 600);   // step into the room centre
+        CAM.apply();
+      } finally {
+        window.__omanBusy=false; window.__omanWarp=false;
+        if(typeof setStatus==="function"){ try{ setStatus("oman","idle"); }catch(_){ } }
+        CAM.apply();
+      }
+    })();
+    CAM.apply();
+  }
   // Per-backend RESTLESSNESS (task 9): probability an idle agent acts on a given
   // wander tick. Leadership / heavy reasoning models stay more; light/fast models
   // roam more. Family comes from the nameplate badge (modelFamily) with a static
@@ -3455,7 +3513,8 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       // formula directly — pin it to mid-floor depth so agents sort around it.
       document.querySelectorAll(".poring-real").forEach(function(p){ p.style.zIndex="700"; });
     }catch(_){}
-    document.querySelectorAll(".warp-portal").forEach(function(wp){ wp.addEventListener("click", function(){
+    document.querySelectorAll(".warp-portal").forEach(function(wp){ wp.addEventListener("click", function(e){
+      e.stopPropagation();                   // don't also fire the floor click-to-walk (that caused the bounce/wall-clip)
       var a=wp.dataset.a, b=wp.dataset.b, here=curRoom("oman");
       gotoRoom(here===b ? a : b);            // step across the divider to the other room
     }); });
