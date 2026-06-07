@@ -1098,15 +1098,15 @@
 .npc{transform:translate(-50%,-50%) scale(.85) !important;z-index:3}
 .npc-label{color:#fff6df !important;font-weight:700 !important;letter-spacing:.5px;background:rgba(18,11,4,.72);padding:1px 6px;border-radius:3px;text-shadow:1px 1px 0 #000,0 0 5px #000 !important}
 .stage-wrap > .quota-board{left:14px !important;top:14px !important;z-index:200 !important}
-#queueBoard{position:fixed;top:12px;right:14px;left:auto;transform:none;z-index:300;display:none;background:linear-gradient(180deg,rgba(28,20,8,.97),rgba(18,12,4,.97));border:2px solid #8a6a3a;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.55);padding:7px 12px;font:12px system-ui;color:#f3e7c8;min-width:330px;max-width:92vw}
+#queueBoard{position:fixed;top:12px;right:354px;left:auto;transform:none;z-index:300;display:none;background:linear-gradient(180deg,rgba(28,20,8,.97),rgba(18,12,4,.97));border:2px solid #8a6a3a;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.55);padding:7px 12px;font:12px system-ui;color:#f3e7c8;width:190px;min-width:170px;max-width:46vw;max-height:calc(100vh - 24px);overflow:auto}
 #queueBoard .qb-title{color:#ffd884;font-weight:700;font-size:11px;text-align:center;margin-bottom:6px;letter-spacing:.5px}
-#queueBoard .qb-lanes{display:flex;gap:6px}
+#queueBoard .qb-lanes{display:flex;flex-direction:column;gap:6px}
 #queueBoard .qb-lane{flex:1;background:#15110b;border:1px solid #3a3020;border-radius:7px;padding:5px 7px;min-width:92px;opacity:.5}
 #queueBoard .qb-lane.on{opacity:1;border-color:#8a6a3a;background:#221c12}
 #queueBoard .qb-h{display:block;color:#ffe9a8;font-weight:700;font-size:10px;font-family:ui-monospace,monospace}
 #queueBoard .qb-t{display:block;color:#c4b48c;font-size:10px;line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #queueBoard .qb-pending{margin-top:6px;font-size:10px;color:#88c0ff;border-top:1px solid #3a3020;padding-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media (max-width:760px){#queueBoard{min-width:0;left:3vw;right:3vw;width:auto;top:6px;padding:5px 8px;transform:none}#queueBoard .qb-t{font-size:9px}}
+@media (max-width:760px){#queueBoard{min-width:0;left:auto;right:3vw;width:160px;max-width:60vw;top:6px;padding:5px 8px;transform:none}#queueBoard .qb-t{font-size:9px}}
 .quota-board .ctrl-panel{display:none !important}
 .stage-wrap > .setup-board{display:none !important}
 .grid-overlay{position:absolute;left:0;top:110px;right:0;bottom:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .2s;background-image:linear-gradient(to right,rgba(95,235,255,.9) 1.5px,transparent 1.5px),linear-gradient(to bottom,rgba(95,235,255,.9) 1.5px,transparent 1.5px);background-size:calc(100%/147) calc(100%/14);box-shadow:inset 0 0 0 1.5px rgba(95,235,255,.9)}}
@@ -1388,6 +1388,13 @@
 .cam-btns{position:absolute;left:14px;bottom:84px;right:auto;top:auto;z-index:200;display:flex;gap:8px}
 .cam-btns button{font:600 15px system-ui;color:#f5e3b0;background:rgba(20,16,8,.85);border:2px solid #8a6a3a;border-radius:7px;padding:5px 9px;cursor:pointer;line-height:1}
 .cam-btns button:hover{background:rgba(60,46,20,.95);border-color:#f5d68a}
+.nav-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:201;width:46px;height:66px;display:flex;align-items:center;justify-content:center;font:700 26px system-ui;color:#f5e3b0;background:rgba(20,16,8,.62);border:2px solid #8a6a3a;border-radius:9px;cursor:pointer;line-height:1;user-select:none;opacity:.72;transition:opacity .15s,background .15s}
+.nav-arrow:hover{opacity:1;background:rgba(60,46,20,.95);border-color:#f5d68a}
+.nav-arrow.left{left:12px}
+.nav-arrow.right{right:12px}
+.nav-arrow:disabled{opacity:.22;cursor:default}
+@media (max-width:760px){.nav-arrow{width:38px;height:54px;font-size:21px}}
+.ed-label{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:3px;white-space:nowrap;font:700 10px system-ui;color:#fff6df;background:rgba(18,11,4,.78);padding:1px 6px;border-radius:3px;text-shadow:1px 1px 0 #000;box-shadow:0 0 5px #000;pointer-events:none;z-index:7}
 @media (max-width:760px){.room-label{font-size:12px;padding:3px 9px}.room-label small{font-size:8px}.cam-btns{left:8px;bottom:78px;right:auto;top:auto;gap:6px}.cam-btns button{font-size:13px;padding:4px 7px}#gridcursor{display:none !important}}
 @media (orientation:landscape) and (max-height:540px){.app{grid-template-columns:1fr 220px !important;grid-template-rows:100dvh !important}.quota-board{transform:scale(.58);transform-origin:top left}.setup-board{transform:scale(.58);transform-origin:bottom right}}
 @media (max-width:760px){.app{height:100dvh}}
@@ -3144,16 +3151,19 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         taken[cell]=true; ground(o, cell);
       });
     }
-    function spawn(item, cell, uid){
+    function spawn(item, cell, uid, label){
       var st=$g("stage"); if(!st) return null;
       var el=document.createElement("div"); el.className=item.cls||(item.kind==="npc"?"npc bob":"deco");
       el.dataset.edUid=uid;
-      if(item.kind==="npc"&&item.img) el.innerHTML='<img src="sprites_out/v2/'+item.img+'.png" alt="">';
+      var inner=(item.kind==="npc"&&item.img)?'<img src="sprites_out/v2/'+item.img+'.png" alt="">':"";
+      label=(label==null?"":String(label)).trim();
+      if(label){ el.dataset.edLabel=label; inner+='<div class="npc-label ed-label">'+label.replace(/[<>&]/g,"").slice(0,24)+'</div>'; }
+      el.innerHTML=inner;
       st.appendChild(el); ground(el, cell); return el;
     }
     function apply(){
       var d=load();
-      (d.placed||[]).forEach(function(p){ var it=LIB.filter(function(x){return x.k===p.key;})[0]; if(it && !document.querySelector('[data-ed-uid="'+p.uid+'"]')) spawn(it, p.cell, p.uid); });
+      (d.placed||[]).forEach(function(p){ var it=LIB.filter(function(x){return x.k===p.key;})[0]; if(it && !document.querySelector('[data-ed-uid="'+p.uid+'"]')) spawn(it, p.cell, p.uid, p.label); });
       Object.keys(d.moves||{}).forEach(function(key){ var el=findExisting(key); if(el) ground(el, d.moves[key]); });
       (d.hidden||[]).forEach(function(key){ var el=findExisting(key); if(el && el.parentNode) el.parentNode.removeChild(el); });   // deleted objects stay gone
     }
@@ -3165,11 +3175,12 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       else { var k=objKey(el); if(k){ d.moves=d.moves||{}; d.moves[k]=cell; } }
       save(d); return true;
     }
-    function placeNew(key, cell){
+    function placeNew(key, cell, label){
       var it=LIB.filter(function(x){return x.k===key;})[0]; if(!it) return null;
       cell=freeCellFrom(cell, function(c){ return !!occupant(c, null); });   // never stack onto an occupied cell
       var uid="ed_"+Date.now().toString(36)+"_"+Math.floor(Math.random()*1e4).toString(36);
-      var el=spawn(it, cell, uid); var d=load(); d.placed=d.placed||[]; d.placed.push({key:key,cell:cell,uid:uid}); save(d); return el;
+      label=(label==null?"":String(label)).trim();
+      var el=spawn(it, cell, uid, label); var d=load(); d.placed=d.placed||[]; d.placed.push({key:key,cell:cell,uid:uid,label:label}); save(d); return el;
     }
     function removePlaced(el){
       if(!(el.dataset&&el.dataset.edUid)) return false; var uid=el.dataset.edUid;
@@ -3190,18 +3201,25 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
     function reset(){ try{ localStorage.removeItem(KEY); }catch(e){} }   // restore all (undo every delete/move/place)
     window.GRIDED={ LIB:LIB, load:load, objKey:objKey, ground:ground, findExisting:findExisting, spawn:spawn, apply:apply, normalize:normalize, occupant:occupant, moveObj:moveObj, placeNew:placeNew, removePlaced:removePlaced, removeObj:removeObj, reset:reset };
   })();
-  var CAM={ mode:"room",
+  var CAM={ mode:"room", focus:null,
+    // effective centred room index: a manual arrow focus, else the CEO's room
+    _idx:function(){ var i=(this.focus!=null)?this.focus:ORDER.indexOf(curRoom("oman")); if(i<0)i=ORDER.indexOf("prontera"); return i; },
     apply:function(){
       var wrap=document.querySelector(".stage-wrap"), s=$g("stage"); if(!wrap||!s) return;
       var W=wrap.clientWidth, H=wrap.clientHeight, sw=s.offsetWidth, sh=s.offsetHeight;
       if(W<60||H<60||sw<60||sh<60) return;
       var z,cx,cy;
       if(this.mode==="overview"){ z=Math.min(W/sw,H/sh)*0.96; cx=sw/2; cy=sh/2; }
-      else { var i=ORDER.indexOf(curRoom("oman")); if(i<0)i=ORDER.indexOf("prontera");
+      else { var i=this._idx();
         var roomW=RW/100*sw; z=Math.min(W/roomW, H/sh)*0.99;
         cx=(i*RW+RW/2)/100*sw; cy=sh/2; }
       s.style.setProperty("transform","translate("+(W/2-cx*z)+"px,"+(H/2-cy*z)+"px) scale("+z+")","important");
-    }
+      this.updateArrows();
+    },
+    // arrow nav: pan one room left/right, independent of where the CEO stands
+    panBy:function(d){ this.mode="room"; var n=this._idx()+d; n=Math.max(0,Math.min(ORDER.length-1,n)); this.focus=n; this.apply(); },
+    followCEO:function(){ this.focus=null; this.mode="room"; this.apply(); },   // 🔍+ : drop manual focus, track the CEO again
+    updateArrows:function(){ try{ var i=this._idx(); var L=$g("navL"),R=$g("navR"); if(L)L.disabled=(i<=0); if(R)R.disabled=(i>=ORDER.length-1); }catch(e){} }
   };
   window.CAM=CAM;
   async function walkVia(id, x, y, ms){
@@ -3377,7 +3395,14 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
     bar.innerHTML='<button id="zoomout" title="ดูทั้งหมด (zoom out)">🔍−</button><button id="zoomin" title="ซูมเข้าห้อง (zoom in)">🔍+</button>';
     wrap.appendChild(bar);
     $g("zoomout").onclick=function(){ CAM.mode="overview"; CAM.apply(); };
-    $g("zoomin").onclick=function(){ CAM.mode="room"; CAM.apply(); };
+    $g("zoomin").onclick=function(){ CAM.followCEO(); };
+    // ── edge arrows: pan to the previous / next room (independent of the CEO) ──
+    var navL=document.createElement("button"); navL.id="navL"; navL.className="nav-arrow left"; navL.title="ห้องก่อนหน้า (ทางซ้าย)"; navL.textContent="◀";
+    var navR=document.createElement("button"); navR.id="navR"; navR.className="nav-arrow right"; navR.title="ห้องถัดไป (ทางขวา)"; navR.textContent="▶";
+    navL.onclick=function(e){ e.stopPropagation(); CAM.panBy(-1); };
+    navR.onclick=function(e){ e.stopPropagation(); CAM.panBy(1); };
+    wrap.appendChild(navL); wrap.appendChild(navR);
+    CAM.updateArrows();
     // ── OpenClaw NPC (King Dramoh) at PRT-S4 — the openclaw escalation/repair node.
     //    Holds a build-time, PUBLIC-SAFE profile of the openclaw bound to this Mac
     //    (no device IDs / auth / home path). Clickable -> info panel. Agents walk
@@ -3730,10 +3755,21 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           var xy=nameToCoords(cell)||{x:0,y:0};
           var libHtml=(window.GRIDED?GRIDED.LIB:[]).map(function(it){ return '<button class="mn-lib-b" data-k="'+it.k+'">'+it.n+'</button>'; }).join("");
           // is there an object (deco/flag/npc) sitting on this cell? -> offer to delete it
+          // Which object can this cell delete? Sprites are bigger than one cell, so
+          // accept an exact hit OR the nearest object within a 1-cell radius (users
+          // usually click where the sprite LOOKS, not its centre cell) -> fixes "ลบไม่ได้".
           var occKey=null;
-          try{ document.querySelectorAll(".deco, .deco-flag, .npc").forEach(function(o){
-            var k=window.GRIDED&&GRIDED.objKey(o); if(k && gridName(parseFloat(o.style.left)||0, parseFloat(o.style.top)||0)===cell) occKey=k;
-          }); }catch(_){}
+          try{
+            var _pp=function(c){ var m=/^([A-Z]{3})-([A-Z])(\d+)$/.exec(c||""); return m?{p:m[1],c:m[2].charCodeAt(0)-65,r:+m[3]}:null; };
+            var pc=_pp(cell), near=null, nearD=99;
+            document.querySelectorAll(".deco, .deco-flag, .npc").forEach(function(o){
+              var k=window.GRIDED&&GRIDED.objKey(o); if(!k) return;
+              var oc=gridName(parseFloat(o.style.left)||0, parseFloat(o.style.top)||0);
+              if(oc===cell){ occKey=k; return; }
+              var p2=_pp(oc); if(pc&&p2&&p2.p===pc.p){ var dd=Math.max(Math.abs(p2.c-pc.c),Math.abs(p2.r-pc.r)); if(dd<=1 && dd<nearD){ nearD=dd; near=k; } }
+            });
+            if(!occKey && near) occKey=near;
+          }catch(_){}
           menu.innerHTML='<div class="mn-cm-h"><b>'+cell+'</b> · x '+xy.x+'% y '+xy.y+'%</div>'
             +'<div class="mn-cm-row"><button class="mn-cm-copy">📋 คัดลอกชื่อ</button><button class="mn-cm-hl">🎯 ไฮไลต์</button></div>'
             +(occKey?'<div class="mn-cm-row"><button class="mn-cm-del" data-k="'+occKey+'">🗑️ ลบ '+occKey+'</button></div>':'')
@@ -3754,7 +3790,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           var db=e.target.closest(".mn-cm-del");
           if(db && window.GRIDED){ var rel=GRIDED.findExisting(db.dataset.k); if(rel && GRIDED.removeObj(rel)){ try{ systemLog("🗑️ ลบ "+db.dataset.k+" ที่ "+cell); }catch(_){} placeDots(); } hideMenu(); return; }
           var lb=e.target.closest(".mn-lib-b");
-          if(lb && window.GRIDED){ GRIDED.placeNew(lb.dataset.k, cell); placeDots(); try{ systemLog("📦 วาง "+lb.dataset.k+" ที่ "+cell); }catch(_){} hideMenu(); }
+          if(lb && window.GRIDED){ var _nm=""; try{ _nm=(window.prompt("ตั้งชื่อวัตถุ/NPC นี้ (เว้นว่าง = ไม่ตั้งชื่อ):","")||"").trim(); }catch(_){} GRIDED.placeNew(lb.dataset.k, cell, _nm); placeDots(); try{ systemLog("📦 วาง "+lb.dataset.k+(_nm?(" «"+_nm+"»"):"")+" ที่ "+cell); }catch(_){} hideMenu(); }
         });
         document.addEventListener("mousedown",function(e){ if(!menu.hidden && !menu.contains(e.target)) hideMenu(); });
         // DRAG an object marker -> drop on a cell -> move the real object on the stage + persist
