@@ -2885,7 +2885,7 @@ async function runDirector(text) {
   if (stageBusy || irisOnDuty) { systemLog("กำลังทำงานอยู่ รอแป๊บ…"); return true; }
   let plan = null;
   try {
-    const res = await fetch("/direct?task=" + encodeURIComponent(text));
+    const res = await fetch(BACKEND + "/direct?task=" + encodeURIComponent(text));
     if (res.ok) plan = await res.json();
   } catch (_) { /* offline / file:// — fall through to brief */ }
   if (!plan || plan.kind !== "move" || !Array.isArray(plan.moves) || !plan.moves.length) {
