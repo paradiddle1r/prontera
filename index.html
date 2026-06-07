@@ -3133,8 +3133,8 @@ stageEl.addEventListener("click", async (e) => {
   const y = ((e.clientY - rect.top) / rect.height) * 100;
   // Clamp to the walkable floor — full tile area, just keep clear of the
   // top wall strip (~160px ≈ 18% of viewport) and the very bottom edge.
-  let cx = Math.max(3, Math.min(97, x));
-  let cy = Math.max(20, Math.min(92, y));
+  let cx = Math.max(1, Math.min(99, x));
+  let cy = Math.max(15.5, Math.min(95, y));
   if (window.__gcSnap) { const s = window.__gcSnap(cx, cy); cx = s[0]; cy = s[1]; }
   if (window.WORLD && window.WORLD.clamp) { const s2 = window.WORLD.clamp(cx, cy); cx = s2[0]; cy = s2[1]; }
   omanMoving = true; window.__omanBusy = true;
@@ -3348,9 +3348,12 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
   //    and walkVia's divider-approach legs pass noClamp=true so warps still reach the
   //    exact border. WMX=1.6 side margin; floor y in [18,90].
   function clampToRoom(x, y){
+    // Keep only a thin clearance from the room's side border + the top wall strip
+    // (WH≈14.5%) and the very bottom, so nearly the WHOLE visible floor is walkable.
+    // (Was 1.6% per side / y[18,90] — that left ~11% of each room's width unreachable.)
     var ri=Math.max(0,Math.min(ORDER.length-1,Math.floor(x/RW)));
-    var lo=ri*RW+1.6, hi=(ri+1)*RW-1.6;
-    return [ Math.max(lo, Math.min(hi, x)), Math.max(18, Math.min(90, y)) ];
+    var lo=ri*RW+0.6, hi=(ri+1)*RW-0.6;
+    return [ Math.max(lo, Math.min(hi, x)), Math.max(15.5, Math.min(95, y)) ];
   }
   // ── DELIVERY (task 6, reusable for task 7): the ROUTER walks to each assigned
   //    agent in turn to deliver the task (real office: boss comes to you). Crossing
