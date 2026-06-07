@@ -2530,6 +2530,7 @@ async function runBrief(task, qItem) {
   let streamFailed = false;
   let veraText = "";
   let veraOpenclaw = [];
+  const reworks = [];        // {agent,task,text,round} — agents redoing after Vera flagged ⚠
 
   es.addEventListener("oman_intro", (ev) => {
     try { omanIntroText = JSON.parse(ev.data).text || ""; } catch (_) {}
@@ -2556,6 +2557,11 @@ async function runBrief(task, qItem) {
   es.addEventListener("vera_verify", (ev) => {
     try { var _vd = JSON.parse(ev.data); veraText = _vd.text || ""; veraOpenclaw = _vd.openclaw || []; } catch (_) {}
     veraD.resolve();
+  });
+  es.addEventListener("agent_rework", (ev) => {
+    let d; try { d = JSON.parse(ev.data); } catch (_) { return; }
+    reworks.push(d);
+    workTexts[d.agent] = d.text || workTexts[d.agent];   // summary should reflect the corrected output
   });
   es.addEventListener("done", () => { try { es.close(); } catch (_) {} veraD.resolve(); });
   es.onerror = () => {
@@ -2641,6 +2647,24 @@ async function runBrief(task, qItem) {
     setStatus("vera", "talking");
     await say("vera", veraText, sayMs(veraText));
     setStatus("vera", "idle");
+    // ── RE-WORK: when Vera flagged ⚠, the agents she named actually REDID the work
+    //    (backend re-ran them with her feedback until it passed / capped). Show each
+    //    one going back to fix it and reporting the corrected result. ──
+    if (reworks.length) {
+      const seen = {};
+      for (const rw of reworks) {
+        const id = rw.agent; if (!AGENTS[id]) continue;
+        try {
+          setStatus(id, "thinking"); await sleep(700);
+          setStatus(id, "talking");
+          await say(id, "แก้ตามที่ Vera ทักครับ (รอบ " + (rw.round || 1) + ")", 1500);
+          if (rw.text) await say(id, rw.text, sayMs(rw.text));
+          await say(id, "เรียบร้อย แก้ให้ถูกแล้วครับ ✓", 1300);
+          setStatus(id, "idle"); spawnPopup(id, "+FIX", "xp");
+        } catch (_) { try { setStatus(id, "idle"); } catch (_) {} }
+        seen[id] = 1;
+      }
+    }
     // Vera's delivery re-flagged each assignee as "thinking" (she verifies WITH them);
     // release them back to idle now so they don't FREEZE stuck on the thinking pose.
     for (const r of plan.routes) { try { setStatus(r.agent, "idle"); } catch (_) {} }
