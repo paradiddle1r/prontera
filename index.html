@@ -855,6 +855,9 @@
   .inv-tbl .inv-up { color:#7ee08a; }
   .inv-tbl .inv-down { color:#ff8a8a; }
   .inv-foot { margin-top:12px; color:#7e7256; font-size:10px; font-style:italic; border-top:1px solid #2a2216; padding-top:8px; }
+  .inv-news { margin-bottom:14px; }
+  .inv-news .nv-h { color:#7fd1ff; font:700 12px system-ui; margin-bottom:5px; }
+  .inv-news .nv-b { background:#0c1620; border:1px solid #25323a; border-radius:8px; padding:9px 11px; color:#cfe2ee; font-size:12px; line-height:1.5; white-space:pre-wrap; }
 
   /* ===== Model setup board (bottom-right) — pick each agent's model ===== */
   .setup-board {
@@ -3205,6 +3208,37 @@ stageEl.addEventListener("click", async (e) => {
 });
 stageEl.style.cursor = "pointer";
 
+// ── Nyx market-news watch: poll the backend; when a NEW Nyx report arrives,
+//    Nyx walks over to Echo (both in izlude) to report it for buy/sell consideration. ──
+(function(){
+  let _newsTs = 0, _newsBusy = false;
+  async function pollNews(){
+    if (_newsBusy) return;
+    try {
+      const r = await fetch(BACKEND + "/news"); if (!r.ok) return;
+      const n = await r.json(); if (!n || !n.ts || n.ts === _newsTs) return;
+      const first = (_newsTs === 0); _newsTs = n.ts;
+      const head = String(n.text || "").split("\n")[0].slice(0, 80);
+      if (first) { return; }                     // don't animate on the very first sync
+      const nyx = $("agent-nyx"), echo = $("agent-echo");
+      if (!nyx || !echo) return;
+      _newsBusy = true;
+      try {
+        const ex = parseFloat(echo.style.left) || 0, ey = parseFloat(echo.style.top) || 58;
+        setStatus("nyx", "walking");
+        await walkAcross("nyx", ex + (Math.random()*4 - 2), ey + 6, 1900);
+        setStatus("nyx", "talking");
+        await say("nyx", "ข่าวตลาดมาแล้ว Echo 📰 " + head, 2800);
+        setStatus("nyx", "idle");
+        systemLog("📰 Nyx รายงานข่าวให้ Echo: " + head);
+      } catch (_) {}
+      _newsBusy = false;
+    } catch (_) { _newsBusy = false; }
+  }
+  setInterval(pollNews, 60000);
+  setTimeout(pollNews, 8000);
+})();
+
 // =================== BOOT ===================
 // Silent boot — agents speak only on real briefs / direct calls.
 setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=document.querySelector(".statusbar span");if(_sb)_sb.innerHTML="<b>STATUS:</b> "+_n+"/"+_n+" ONLINE";var _su=document.querySelector(".panel .sub");if(_su)_su.textContent="Hotel PMS HQ × HostGate HQ · "+_n+" members";}catch(e){}systemLog("Pornchai & Co. HQ — "+_n+"/"+_n+" online. รอ brief ค่ะ.");})(), 400);
@@ -3811,7 +3845,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           +'<div class="mn-empty">พื้นที่สำรองสำหรับ flag ทั่วทั้งออฟฟิศในอนาคต (refresh interval, theme/volume, pause all agents)</div>'
         +'</div>'
         // 6b Investment — Settrade sandbox account / portfolio / orders (owner-gated, read-only)
-        +'<div class="menu-panel" data-panel="invest"><div class="mn-panel-head"><h3>📈 Investment <span class="inv-env">SANDBOX</span></h3><button id="mn-invest-refresh" title="รีเฟรช">🔄</button></div><div id="mn-invest"><div class="mn-empty">กำลังโหลด…</div></div></div>'
+        +'<div class="menu-panel" data-panel="invest"><div class="mn-panel-head"><h3>📈 Investment <span class="inv-env">SANDBOX</span></h3><button id="mn-invest-refresh" title="รีเฟรช">🔄</button></div><div id="mn-news" class="inv-news"></div><div id="mn-invest"><div class="mn-empty">กำลังโหลด…</div></div></div>'
         // 7 Grid Reference — visual mini-maps (hover = ดูพิกัด, คลิก = คัดลอกชื่อ cell)
         +'<div class="menu-panel" data-panel="grid"><h3>🗺️ Grid Reference <button id="mn-grid-reset" title="คืนค่าเริ่มต้น — ยกเลิกการลบ/ย้าย/วางวัตถุทั้งหมด">↺ รีเซ็ตผัง</button></h3>'
           +'<div class="mn-grid-read" id="mn-grid-read">เลื่อนเมาส์ไปบนช่อง เพื่อดูพิกัด · คลิก = คัดลอกชื่อ cell · Shift+คลิก = ไฮไลต์บนแผนที่จริง</div>'
@@ -3906,6 +3940,14 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         built.invest=true;
         var box=$g("mn-invest"); if(!box) return;
         var _ir=$g("mn-invest-refresh"); if(_ir) _ir.onclick=function(){ buildInvest(); };
+        // latest Nyx market-news report
+        try{
+          var nv=$g("mn-news");
+          if(nv){ fetch(BACKEND+"/news").then(function(r){return r.ok?r.json():null;}).then(function(n){
+            if(n && n.text){ nv.innerHTML='<div class="nv-h">📰 ข่าว/ตลาด (Nyx · '+esc(n.when||"")+')</div><div class="nv-b">'+esc(n.text)+'</div>'; }
+            else nv.innerHTML='';
+          }).catch(function(){ nv.innerHTML=''; }); }
+        }catch(_){}
         box.innerHTML='<div class="mn-empty">กำลังโหลดพอร์ตจาก Settrade (sandbox)…</div>';
         var key=""; try{ var u=new URLSearchParams(location.search).get("key"); if(u) localStorage.setItem("prontera_gkey",u); key=u||localStorage.getItem("prontera_gkey")||""; }catch(_){}
         fetch(BACKEND + "/investment" + (key?("?key="+encodeURIComponent(key)):""))
