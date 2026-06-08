@@ -2342,6 +2342,10 @@ function renderQuota(snap) {
     rows.appendChild(row);
     window.__manaSnap = snap;   // expose latest snapshot for Vera's mana watchdog
   });
+  // Mirror into the Model Setup copy (#quotaRows2) so the stage HUD board never
+  // has to be moved/removed (that was making it vanish until refresh).
+  var _r2 = document.getElementById("quotaRows2");
+  if (_r2) _r2.innerHTML = rows.innerHTML;
 }
 function pollQuota() {
   fetch(BACKEND + "/limits")
@@ -3973,9 +3977,14 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       }
       function buildMana(){
         built.mana=true;
-        var host=$g("mn-mana"), qb=$g("quotaBoard");
-        if(qb){ host.appendChild(qb); qb.style.position="static"; qb.style.transform="none"; qb.style.left="auto"; qb.style.top="auto"; }
-        else host.innerHTML='<div class="mn-empty">ยังไม่มีฟีด token (Mana Pool) — จะปรากฏเมื่อเซิร์ฟเวอร์ส่งข้อมูลการใช้งาน</div>';
+        var host=$g("mn-mana"); if(!host) return;
+        // Do NOT move the stage HUD board (that made it disappear). Render a synced
+        // MIRROR here instead — renderQuota fills both #quotaRows and #quotaRows2.
+        if(!document.getElementById("quotaRows2")){
+          host.innerHTML='<div class="quota-board" style="position:static;transform:none;left:auto;top:auto;width:100%;max-width:680px"><div class="quota-title">📊 AI MANA POOL</div><div class="quota-rows" id="quotaRows2"></div><div class="quota-foot">— Janitor-01 reporting</div></div>';
+        }
+        try{ if(typeof renderQuota==="function") renderQuota(window.__manaSnap||null); }catch(_){}
+        try{ if(typeof pollQuota==="function") pollQuota(); }catch(_){}
       }
       // ── 5 Model Setup: re-parent the live pickers (wiring intact) ──
       function buildModel(){
