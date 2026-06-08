@@ -858,6 +858,11 @@
   .inv-news { margin-bottom:14px; }
   .inv-news .nv-h { color:#7fd1ff; font:700 12px system-ui; margin-bottom:5px; }
   .inv-news .nv-b { background:#0c1620; border:1px solid #25323a; border-radius:8px; padding:9px 11px; color:#cfe2ee; font-size:12px; line-height:1.5; white-space:pre-wrap; }
+  .inv-charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-bottom:14px; }
+  .inv-chart { background:#0c1118; border:1px solid #25323a; border-radius:9px; padding:9px 11px; }
+  .inv-chart .ic-lbl { color:#9a8a64; font-size:11px; margin-bottom:6px; }
+  .inv-chart .ic-svg { width:100%; height:70px; display:block; }
+  .inv-chart-empty { background:#0c1118; border:1px solid #25323a; border-radius:9px; padding:14px; color:#7e7256; font-size:11px; }
 
   /* ===== Model setup board (bottom-right) — pick each agent's model ===== */
   .setup-board {
@@ -3911,6 +3916,15 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       // ── 6b Investment: Settrade sandbox account/portfolio/orders (owner-gated) ──
       function _invNum(v){ if(v==null||v==="") return "—"; var n=Number(v); return isNaN(n)?esc(String(v)):n.toLocaleString("en-US",{maximumFractionDigits:2}); }
       function _invCls(v){ var n=Number(v); return n>0?"inv-up":(n<0?"inv-down":""); }
+      function _invChart(vals, label, color){
+        vals=(vals||[]).map(Number).filter(function(v){return !isNaN(v);});
+        if(vals.length<2) return '<div class="inv-chart-empty">'+esc(label)+': ยังไม่มีข้อมูลพอ</div>';
+        var w=300,h=70, mn=Math.min.apply(0,vals), mx=Math.max.apply(0,vals), rng=(mx-mn)||1;
+        var pts=vals.map(function(v,i){ return ((i/(vals.length-1))*w).toFixed(1)+","+(h-((v-mn)/rng)*h).toFixed(1); }).join(" ");
+        var last=vals[vals.length-1], up=last>=vals[0], col=color||(up?"#7ee08a":"#ff8a8a");
+        return '<div class="inv-chart"><div class="ic-lbl">'+esc(label)+' <b style="color:'+col+'">'+_invNum(last)+'</b></div>'
+          +'<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" class="ic-svg"><polyline fill="none" stroke="'+col+'" stroke-width="1.6" points="'+pts+'"/></svg></div>';
+      }
       function renderInvest(box, d){
         if(!d || d.error){ box.innerHTML='<div class="mn-empty">⚠️ '+esc((d&&(d.message||d.error))||"ดึงข้อมูลไม่ได้")+'<br><span style="opacity:.7">(ติดตั้ง settrade_v2 + รีสตาร์ท server ถ้าเพิ่งเพิ่มฟีเจอร์)</span></div>'; return; }
         var acc=d.account||{}, pf=d.portfolio||{}, list=Array.isArray(pf.portfolioList)?pf.portfolioList:[], orders=Array.isArray(d.orders)?d.orders:[];
@@ -3920,6 +3934,8 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           +'<div class="inv-card"><div class="ic-k">วงเงินเครดิต</div><div class="ic-v">'+_invNum(acc.creditLimit)+'</div></div>'
           +'<div class="inv-card"><div class="ic-k">บัญชี</div><div class="ic-v sm">'+esc(acc.accountType||d.account_no||"—")+'</div></div>'
           +'</div>';
+        var _si=(d.set_index&&d.set_index.close)||[], _nav=(Array.isArray(d.nav_history)?d.nav_history:[]).map(function(p){return p&&p.nav;});
+        h+='<div class="inv-charts">'+_invChart(_si,"SET Index","#7fd1ff")+_invChart(_nav,"NAV (พอร์ตรวม)",null)+'</div>';
         h+='<h4 class="inv-h">พอร์ตหุ้น ('+list.length+')</h4>';
         if(list.length){
           h+='<table class="inv-tbl"><thead><tr><th>หุ้น</th><th>จำนวน</th><th>เฉลี่ย</th><th>ตลาด</th><th>มูลค่า</th><th>กำไร/ขาดทุน</th><th>%</th></tr></thead><tbody>';
