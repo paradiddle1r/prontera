@@ -1271,6 +1271,8 @@
 #mn-model-agents #setupBoard{width:auto;border:none;box-shadow:none;background:none;position:static;overflow:visible}
 #mn-model-agents .setup-title{display:none}
 #mn-model-agents{margin-top:16px;padding-top:14px;border-top:1px solid #3a3020}
+.mn-model-mana{margin-top:18px;padding-top:14px;border-top:1px solid #3a3020}
+.mn-model-mana #mn-mana{max-width:680px}
 #mn-model-agents .setup-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;align-items:stretch;max-height:none;padding:0;overflow:visible}
 .setup-card{background:#221c12;border:1px solid #3a3020;border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:5px;min-height:96px}
 .setup-card:hover{border-color:#8a6a3a;background:#2a2216}
@@ -3783,7 +3785,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       document.body.appendChild(btn);
       var dl=document.createElement("div"); dl.id="dashboard"; dl.hidden=true;
       var TABS=[
-        ["dash","📊 Dashboard"],["rooms","🏛️ Rooms"],["mana","🔮 Mana Pool"],["log","📜 Live Activity"],
+        ["dash","📊 Dashboard"],["rooms","🏛️ Rooms"],["log","📜 Live Activity"],
         ["model","🎛️ Model Setup"],["invest","📈 Investment"],["ctrl","⚙️ Controls"],["grid","🗺️ Grid Reference"]
       ];
       var tabsHtml=TABS.map(function(t,i){ return '<button data-tab="'+t[0]+'"'+(i===0?' class="on"':'')+'>'+t[1]+'</button>'; }).join("");
@@ -3796,12 +3798,11 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         +'</div>'
         // 2 Rooms / Projects
         +'<div class="menu-panel" data-panel="rooms"><h3>🏛️ Rooms / Projects</h3><div class="mn-rooms" id="mn-rooms"></div></div>'
-        // 3 Mana Pool — live token board re-parented here
-        +'<div class="menu-panel" data-panel="mana"><h3>🔮 Mana Pool</h3><div id="mn-mana"></div></div>'
+        // (Mana Pool merged into Model Setup below — no standalone tab)
         // 4 Live Activity / Logs — graceful empty state (no streaming endpoint in the contract)
         +'<div class="menu-panel" data-panel="log"><h3>📜 Live Activity</h3><div class="mn-empty" id="mn-log">ยังไม่มีฟีดกิจกรรมแบบเรียลไทม์ (live activity feed) — จะปรากฏที่นี่เมื่อเซิร์ฟเวอร์ส่งสตรีมเหตุการณ์</div></div>'
         // 5 Model Setup — CEO/Iris/Vera + per-agent pickers moved in (wiring preserved)
-        +'<div class="menu-panel" data-panel="model"><div class="mn-panel-head"><h3>🎛️ Model Setup</h3><span id="mn-claude-anchor"></span></div><div id="mn-model-lead"></div><div id="mn-model-agents"></div></div>'
+        +'<div class="menu-panel" data-panel="model"><div class="mn-panel-head"><h3>🎛️ Model Setup</h3><span id="mn-claude-anchor"></span></div><div id="mn-model-lead"></div><div id="mn-model-agents"></div><div class="mn-model-mana"><h4 class="inv-h">🔮 AI Mana Pool</h4><div id="mn-mana"></div></div></div>'
         // 6 Controls / Settings
         +'<div class="menu-panel mn-controls" data-panel="ctrl"><h3>⚙️ Controls / Settings</h3>'
           +'<div class="mn-ctrl-row"><label>เสียง/เอฟเฟกต์ (Ambient)</label><button id="mn-ambient">ON</button></div>'
@@ -3826,7 +3827,6 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         if(tab==="dash" && !built.dash) loadDash();
         if(tab==="rooms" && !built.rooms) loadRooms();
         if(tab==="invest" && !built.invest) buildInvest();
-        if(tab==="mana" && !built.mana) buildMana();
         if(tab==="model" && !built.model) buildModel();
         if(tab==="grid" && !built.grid) buildGrid();
       }
@@ -3930,6 +3930,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         var sb=$g("setupBoard");                          // per-agent /set_model board (wired in initSetup)
         if(sb){ sb.classList.remove("collapsed"); agents.appendChild(sb); sb.style.position="static"; sb.style.transform="none"; sb.style.left="auto"; sb.style.right="auto"; sb.style.top="auto"; sb.style.bottom="auto"; sb.style.width="auto"; }
         else agents.innerHTML='<div class="mn-empty">เปิดผ่านเซิร์ฟเวอร์ Prontera เพื่อตั้งค่าโมเดล</div>';
+        try{ buildMana(); }catch(_){}   // Mana Pool now lives inside Model Setup
       }
       // ── 6 Controls: ambient toggle + zoom (wired to existing CAM/ambientOn) ──
       (function(){
