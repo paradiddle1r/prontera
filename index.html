@@ -2681,9 +2681,25 @@ async function runBrief(task, qItem) {
 
   // ── 6. Show each agent's real work output as it arrives ───────────
   const _ocTopic = /openclaw/i.test(task) && !!(window.openclawTarget && window.openclawTarget());
+  // SET (stock) topic — checking a price OR sending an order. Echo consults the SET NPC.
+  const _setPrice = /ราคา|หุ้น|price|quote|เท่าไหร่|กี่บาท|set index|settrade|\bstock\b/i.test(task);
+  const _setOrder = /ออเดอร์|order|ซื้อหุ้น|ขายหุ้น|เทรด|trade|\bbuy\b|\bsell\b|ส่งคำสั่ง/i.test(task);
+  const _setTopic = (_setPrice || _setOrder) && !!(window.setTarget && window.setTarget());
   for (const r of plan.routes) {
     const text = await workDs[r.agent].promise;
     if (!text) continue;
+    // SET consult: Echo walks to the SET NPC (izlude) before reporting a price / order.
+    if (_setTopic && r.agent === "echo") {
+      try {
+        const _st = window.setTarget();
+        if (_st) {
+          setStatus(r.agent, "walking");
+          await walkAcross(r.agent, _st.x + (Math.random()*3 - 1.5), _st.y + 7, 1900);
+          setStatus(r.agent, "talking");
+          await say(r.agent, _setOrder ? "ขอส่งคำสั่งผ่าน SET (sandbox) 📈" : "ขอเช็คราคากับ SET ก่อนนะ 📈", 1400);
+        }
+      } catch (_) {}
+    }
     // Part C (topic-based): if the brief is ABOUT openclaw, the assignee first WALKS
     // to the OpenClaw NPC (wherever it currently sits) to consult it, then reports the
     // answer (which the backend grounded in the real openclaw facts) in place.
@@ -3600,6 +3616,12 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         _set.innerHTML='<img src="sprites_out/v2/npc_oldsage.png" alt=""><div class="npc-label">📈 SET</div>';
         $g("stage").appendChild(_set);
         try{ window.GRIDED.ground(_set, "IZL-K10"); }catch(_){}
+        // live position of the SET NPC, so Echo can walk to it to check prices / send orders
+        window.setTarget=function(){
+          try{ var n=document.getElementById("npc-set");
+            if(n && window.GRID) return window.GRID.at(window.GRID.name(parseFloat(n.style.left)||0, parseFloat(n.style.top)||0)); }catch(_){}
+          try{ return (window.GRID&&window.GRID.at)?window.GRID.at("IZL-K10"):null; }catch(_){ return null; }
+        };
         var _setInfo=[
           ["เชื่อมต่อ","Settrade Open API"],
           ["โหมด","<code>SANDBOX</code> (เงินจำลอง)"],
