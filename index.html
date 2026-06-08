@@ -2617,9 +2617,15 @@ function _isClarify(t){
 }
 function _parseOptions(q){
   q = String(q||"");
-  // "1) ... 2) ..." or "1. ... 2. ..."
-  var nums = q.match(/[1-4][\)\.]\s*[^?\n]{1,40}/g);
-  if(nums && nums.length>=2) return nums.map(function(s){return s.replace(/^[1-4][\)\.]\s*/,"").trim();}).slice(0,4);
+  // "1) ... 2) ..." or "1. ... 2. ..." — split on the markers, drop the question prefix
+  var markers = q.match(/[1-4][\)\.]/g);
+  if(markers && markers.length>=2){
+    var segs = q.split(/[1-4][\)\.]/).slice(1)
+      .map(function(s){ return s.trim().replace(/[?？].*$/,"").replace(/[,;.]+$/,"").trim(); })
+      .filter(Boolean)
+      .map(function(s){ return s.length>28 ? s.slice(0,28).trim()+"…" : s; });
+    if(segs.length>=2) return segs.slice(0,4);
+  }
   // "A / B / C" (short tokens only)
   var head = q.split(/[?？]/)[0];
   if(/\s\/\s/.test(head)){
