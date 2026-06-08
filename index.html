@@ -1435,6 +1435,19 @@
 #setPanel .oc-note{margin-top:10px;color:#7a93a3;font-size:10px;border-top:1px solid #25323a;padding-top:7px;line-height:1.4}
 #setPanel .oc-x{position:absolute;top:7px;right:11px;cursor:pointer;color:#6aa6c8;font-size:20px;line-height:1;background:none;border:none}
 #setPanel .oc-x:hover{color:#7fd1ff}
+/* Agent → user clarifying prompt (options + free text) */
+#clarifyModal{position:fixed;inset:0;z-index:600;background:rgba(8,6,3,.62);display:flex;align-items:center;justify-content:center}
+#clarifyModal[hidden]{display:none}
+#clarifyModal .cl-box{width:min(440px,92vw);background:linear-gradient(180deg,#1f1812,#15100a);border:2px solid #8a6a3a;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.6);padding:16px 16px 14px;color:#f3e7c8;position:relative}
+#clarifyModal .cl-q{font:600 14px system-ui;line-height:1.55;margin:2px 0 13px;white-space:pre-wrap}
+#clarifyModal .cl-opts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+#clarifyModal .cl-opt{background:#2a2216;border:1px solid #8a6a3a;border-radius:8px;color:#ffe9a8;font:600 12px system-ui;padding:7px 12px;cursor:pointer}
+#clarifyModal .cl-opt:hover{background:#3a2e18;border-color:#f5d68a}
+#clarifyModal .cl-row{display:flex;gap:7px}
+#clarifyModal #cl-input{flex:1;min-width:0;background:#0d0702;border:1px solid #4a3416;border-radius:8px;color:#f3e7c8;font:13px system-ui;padding:8px 10px}
+#clarifyModal #cl-send{background:linear-gradient(180deg,#caa64a,#a07d2c);border:1px solid #ffe9a8;border-radius:8px;color:#1a1408;font:700 12px system-ui;padding:8px 15px;cursor:pointer;white-space:nowrap}
+#clarifyModal .cl-skip{position:absolute;top:10px;right:12px;background:none;border:none;color:#9a8a64;font:600 11px system-ui;cursor:pointer}
+#clarifyModal .cl-skip:hover{color:#ffd884}
 @keyframes deco_ed_orb{to{background-position:-1798px 0,center bottom}}
 .npc::before{content:"";position:absolute;left:50%;bottom:13px;transform:translateX(-50%);width:44px;height:11px;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.5) 0%,rgba(0,0,0,.3) 45%,transparent 72%);z-index:-1;pointer-events:none}
 .nameplate{white-space:nowrap;display:block;width:max-content;position:relative;left:50%;transform:translateX(-50%)}
@@ -2592,6 +2605,51 @@ function sayMs(text) {
   return Math.min(9000, Math.max(2800, (text || "").length * 55));
 }
 
+// ── Agent asks the user: detect a clarifying question + show an interactive
+//    prompt (clickable options OR free text) instead of ending the task. ──
+function _isClarify(t){
+  t = String(t||"").trim();
+  if(!t) return false;
+  if(/^(ขอข้อมูล|ขอรายละเอียด|ขอทราบ|กรุณาระบุ|ช่วยระบุ|รบกวนระบุ|ต้องการให้|อยากทราบว่า|ขอความชัดเจน)/.test(t)) return true;
+  if(/[?？]\s*$/.test(t)) return true;
+  if(/(ไหม|หรือไม่|แบบไหน|อันไหน|หรือเปล่า|ดีคะ|ดีครับ|รึเปล่า)\s*[?？]?\s*$/.test(t)) return true;
+  return false;
+}
+function _parseOptions(q){
+  q = String(q||"");
+  // "1) ... 2) ..." or "1. ... 2. ..."
+  var nums = q.match(/[1-4][\)\.]\s*[^?\n]{1,40}/g);
+  if(nums && nums.length>=2) return nums.map(function(s){return s.replace(/^[1-4][\)\.]\s*/,"").trim();}).slice(0,4);
+  // "A / B / C" (short tokens only)
+  var head = q.split(/[?？]/)[0];
+  if(/\s\/\s/.test(head)){
+    var parts = head.split(/\s*\/\s*/).map(function(s){return s.replace(/^.*?:\s*/,"").trim();}).filter(Boolean);
+    if(parts.length>=2 && parts.length<=4 && parts.every(function(p){return p.length>0 && p.length<=24;})) return parts;
+  }
+  return [];
+}
+function clarifyPrompt(question){
+  return new Promise(function(resolve){
+    var ov = document.getElementById("clarifyModal");
+    if(!ov){ ov = document.createElement("div"); ov.id="clarifyModal"; ov.hidden=true; document.body.appendChild(ov); }
+    var opts = _parseOptions(question);
+    var esc2 = function(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+    var optHtml = opts.map(function(o){ return '<button class="cl-opt" data-v="'+esc2(o)+'">'+esc2(o)+'</button>'; }).join("");
+    ov.innerHTML = '<div class="cl-box"><button class="cl-skip" title="ข้าม">ข้าม ✕</button>'
+      +'<div class="cl-q">🙋 '+esc2(question)+'</div>'
+      +(optHtml?'<div class="cl-opts">'+optHtml+'</div>':'')
+      +'<div class="cl-row"><input id="cl-input" placeholder="พิมพ์คำตอบ/รายละเอียดเพิ่มเติม…" autocomplete="off" /><button id="cl-send">ส่ง</button></div></div>';
+    ov.hidden = false;
+    var inp = ov.querySelector("#cl-input");
+    var finished = false;
+    function done(v){ if(finished) return; finished=true; ov.hidden=true; resolve(v); }
+    ov.querySelectorAll(".cl-opt").forEach(function(b){ b.onclick=function(){ done(b.dataset.v); }; });
+    ov.querySelector("#cl-send").onclick=function(){ var v=(inp.value||"").trim(); if(v) done(v); };
+    inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ var v=(inp.value||"").trim(); if(v) done(v); } });
+    ov.querySelector(".cl-skip").onclick=function(){ done(null); };
+    setTimeout(function(){ try{ inp.focus(); }catch(_){ } }, 60);
+  });
+}
 async function runBrief(task, qItem) {
   qItem = qItem || {};
   systemLog(`📜 New quest: "${task}" — agents are thinking…`);
@@ -2750,6 +2808,18 @@ async function runBrief(task, qItem) {
       } catch (_) {}
     }
     setStatus(r.agent, "talking"); await say(r.agent, text, sayMs(text));
+    // If the agent is ASKING the user (clarifying question) — don't finish the task.
+    // Pop an interactive prompt (options to click OR free text); the answer re-runs
+    // the brief with the added detail so the agent can actually complete it.
+    if (_isClarify(text)) {
+      const ans = await clarifyPrompt(text);
+      setStatus(r.agent, "idle");
+      if (ans) {
+        systemLog("💬 ตอบ " + ((AGENTS[r.agent]&&AGENTS[r.agent].name)||r.agent) + ": " + ans);
+        try { submitBrief(task + "\n[ผู้ใช้ตอบเพิ่มเติม]: " + ans); } catch (_) {}
+      }
+      continue;   // skip "เสร็จแล้ว ✓" / +XP — the task isn't done yet
+    }
     await say(r.agent, "เสร็จแล้วครับ Iris ✓", 1300);
     setStatus(r.agent, "idle"); spawnPopup(r.agent, '+1 STEP', 'xp');
   }
