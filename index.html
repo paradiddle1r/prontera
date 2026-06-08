@@ -833,6 +833,28 @@
   .claude-switch.cs-on .cs-state { color:#a6e6a6; }
   .menu-panel[data-panel="model"] .mn-panel-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .menu-panel[data-panel="model"] .mn-panel-head h3 { margin:0; }
+  /* Investment page */
+  .menu-panel[data-panel="invest"] .mn-panel-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .menu-panel[data-panel="invest"] .mn-panel-head h3 { margin:0; display:flex; align-items:center; gap:8px; }
+  .inv-env { font:700 9px ui-monospace,monospace; color:#7fd1ff; border:1px solid #3fa7d6; background:#06121a; border-radius:5px; padding:1px 6px; letter-spacing:.5px; }
+  #mn-invest-refresh { background:rgba(20,16,8,.6); border:1px solid #6a512c; color:#f5d68a; border-radius:6px; font-size:13px; padding:3px 8px; cursor:pointer; }
+  #mn-invest-refresh:hover { background:rgba(60,46,20,.95); border-color:#f5d68a; }
+  .inv-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:14px; }
+  .inv-card { background:#15110b; border:1px solid #3a3020; border-radius:9px; padding:10px 12px; }
+  .inv-card .ic-k { color:#9a8a64; font-size:11px; }
+  .inv-card .ic-v { color:#ffe9a8; font:700 18px ui-monospace,monospace; margin-top:3px; }
+  .inv-card .ic-v.sm { font-size:13px; }
+  .inv-h { color:#ffd884; font-size:13px; margin:14px 0 7px; }
+  .inv-tbl { width:100%; border-collapse:collapse; font-size:12px; }
+  .inv-tbl th { text-align:right; color:#9a8a64; font-weight:600; padding:5px 8px; border-bottom:1px solid #4a3416; white-space:nowrap; }
+  .inv-tbl th:first-child, .inv-tbl td:first-child { text-align:left; }
+  .inv-tbl td { text-align:right; padding:5px 8px; border-bottom:1px solid #2a2216; color:#dcc9a4; font-family:ui-monospace,monospace; white-space:nowrap; }
+  .inv-tbl td.sym { color:#ffe9a8; font-weight:700; font-family:system-ui; }
+  .inv-tbl td.sm { font-size:10px; color:#b7a378; }
+  .inv-tbl tfoot td { border-top:2px solid #4a3416; border-bottom:none; color:#ffe9a8; font-weight:700; }
+  .inv-tbl .inv-up { color:#7ee08a; }
+  .inv-tbl .inv-down { color:#ff8a8a; }
+  .inv-foot { margin-top:12px; color:#7e7256; font-size:10px; font-style:italic; border-top:1px solid #2a2216; padding-top:8px; }
 
   /* ===== Model setup board (bottom-right) — pick each agent's model ===== */
   .setup-board {
@@ -3762,7 +3784,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       var dl=document.createElement("div"); dl.id="dashboard"; dl.hidden=true;
       var TABS=[
         ["dash","📊 Dashboard"],["rooms","🏛️ Rooms"],["mana","🔮 Mana Pool"],["log","📜 Live Activity"],
-        ["model","🎛️ Model Setup"],["ctrl","⚙️ Controls"],["grid","🗺️ Grid Reference"]
+        ["model","🎛️ Model Setup"],["invest","📈 Investment"],["ctrl","⚙️ Controls"],["grid","🗺️ Grid Reference"]
       ];
       var tabsHtml=TABS.map(function(t,i){ return '<button data-tab="'+t[0]+'"'+(i===0?' class="on"':'')+'>'+t[1]+'</button>'; }).join("");
       dl.innerHTML='<div class="menu-box"><div class="menu-tabs">'+tabsHtml+'<button id="menu-x" title="ปิด">×</button></div>'
@@ -3787,6 +3809,8 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           +'<div class="mn-ctrl-row"><label>Map zoom</label><button id="mn-zoomin">🔍+ ห้อง</button><button id="mn-zoomout">🔍− ทั้งหมด</button></div>'
           +'<div class="mn-empty">พื้นที่สำรองสำหรับ flag ทั่วทั้งออฟฟิศในอนาคต (refresh interval, theme/volume, pause all agents)</div>'
         +'</div>'
+        // 6b Investment — Settrade sandbox account / portfolio / orders (owner-gated, read-only)
+        +'<div class="menu-panel" data-panel="invest"><div class="mn-panel-head"><h3>📈 Investment <span class="inv-env">SANDBOX</span></h3><button id="mn-invest-refresh" title="รีเฟรช">🔄</button></div><div id="mn-invest"><div class="mn-empty">กำลังโหลด…</div></div></div>'
         // 7 Grid Reference — visual mini-maps (hover = ดูพิกัด, คลิก = คัดลอกชื่อ cell)
         +'<div class="menu-panel" data-panel="grid"><h3>🗺️ Grid Reference <button id="mn-grid-reset" title="คืนค่าเริ่มต้น — ยกเลิกการลบ/ย้าย/วางวัตถุทั้งหมด">↺ รีเซ็ตผัง</button></h3>'
           +'<div class="mn-grid-read" id="mn-grid-read">เลื่อนเมาส์ไปบนช่อง เพื่อดูพิกัด · คลิก = คัดลอกชื่อ cell · Shift+คลิก = ไฮไลต์บนแผนที่จริง</div>'
@@ -3801,6 +3825,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         dl.querySelectorAll(".menu-panel").forEach(function(p){ p.classList.toggle("on", p.dataset.panel===tab); });
         if(tab==="dash" && !built.dash) loadDash();
         if(tab==="rooms" && !built.rooms) loadRooms();
+        if(tab==="invest" && !built.invest) buildInvest();
         if(tab==="mana" && !built.mana) buildMana();
         if(tab==="model" && !built.model) buildModel();
         if(tab==="grid" && !built.grid) buildGrid();
@@ -3849,6 +3874,45 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         box.querySelectorAll(".mn-room").forEach(function(c){ c.onclick=function(){ try{ gotoRoom(c.dataset.room); }catch(e){} dl.hidden=true; }; });
       }
       // ── 3 Mana Pool: re-parent the live token board into the tab ──
+      // ── 6b Investment: Settrade sandbox account/portfolio/orders (owner-gated) ──
+      function _invNum(v){ if(v==null||v==="") return "—"; var n=Number(v); return isNaN(n)?esc(String(v)):n.toLocaleString("en-US",{maximumFractionDigits:2}); }
+      function _invCls(v){ var n=Number(v); return n>0?"inv-up":(n<0?"inv-down":""); }
+      function renderInvest(box, d){
+        if(!d || d.error){ box.innerHTML='<div class="mn-empty">⚠️ '+esc((d&&(d.message||d.error))||"ดึงข้อมูลไม่ได้")+'<br><span style="opacity:.7">(ติดตั้ง settrade_v2 + รีสตาร์ท server ถ้าเพิ่งเพิ่มฟีเจอร์)</span></div>'; return; }
+        var acc=d.account||{}, pf=d.portfolio||{}, list=Array.isArray(pf.portfolioList)?pf.portfolioList:[], orders=Array.isArray(d.orders)?d.orders:[];
+        var h='<div class="inv-cards">'
+          +'<div class="inv-card"><div class="ic-k">เงินสด</div><div class="ic-v">'+_invNum(acc.cashBalance)+'</div></div>'
+          +'<div class="inv-card"><div class="ic-k">วงเงินซื้อคงเหลือ</div><div class="ic-v">'+_invNum(acc.lineAvailable)+'</div></div>'
+          +'<div class="inv-card"><div class="ic-k">วงเงินเครดิต</div><div class="ic-v">'+_invNum(acc.creditLimit)+'</div></div>'
+          +'<div class="inv-card"><div class="ic-k">บัญชี</div><div class="ic-v sm">'+esc(acc.accountType||d.account_no||"—")+'</div></div>'
+          +'</div>';
+        h+='<h4 class="inv-h">พอร์ตหุ้น ('+list.length+')</h4>';
+        if(list.length){
+          h+='<table class="inv-tbl"><thead><tr><th>หุ้น</th><th>จำนวน</th><th>เฉลี่ย</th><th>ตลาด</th><th>มูลค่า</th><th>กำไร/ขาดทุน</th><th>%</th></tr></thead><tbody>';
+          list.forEach(function(p){ h+='<tr><td class="sym">'+esc(p.symbol||"")+'</td><td>'+_invNum(p.currentVolume!=null?p.currentVolume:p.actualVolume)+'</td><td>'+_invNum(p.averagePrice)+'</td><td>'+_invNum(p.marketPrice)+'</td><td>'+_invNum(p.marketValue)+'</td><td class="'+_invCls(p.profit)+'">'+_invNum(p.profit)+'</td><td class="'+_invCls(p.percentProfit)+'">'+_invNum(p.percentProfit)+'%</td></tr>'; });
+          var tp=pf.totalPortfolio||{};
+          h+='</tbody><tfoot><tr><td>รวม</td><td></td><td></td><td></td><td>'+_invNum(tp.marketValue)+'</td><td class="'+_invCls(tp.profit)+'">'+_invNum(tp.profit)+'</td><td class="'+_invCls(tp.percentProfit)+'">'+_invNum(tp.percentProfit)+'%</td></tr></tfoot></table>';
+        } else h+='<div class="mn-empty">ยังไม่มีหุ้นในพอร์ต</div>';
+        h+='<h4 class="inv-h">ออเดอร์วันนี้ ('+orders.length+')</h4>';
+        if(orders.length){
+          h+='<table class="inv-tbl"><thead><tr><th>เลขที่</th><th>หุ้น</th><th>ฝั่ง</th><th>ราคา</th><th>จำนวน</th><th>จับคู่</th><th>คงเหลือ</th><th>สถานะ</th></tr></thead><tbody>';
+          orders.forEach(function(o){ h+='<tr><td class="sm">'+esc(o.orderNo||"")+'</td><td class="sym">'+esc(o.symbol||"")+'</td><td class="'+(/sell/i.test(o.side||"")?"inv-down":"inv-up")+'">'+esc(o.side||"")+'</td><td>'+_invNum(o.price)+'</td><td>'+_invNum(o.vol)+'</td><td>'+_invNum(o.matched)+'</td><td>'+_invNum(o.balance)+'</td><td class="sm">'+esc(o.showOrderStatus||o.status||"")+'</td></tr>'; });
+          h+='</tbody></table>';
+        } else h+='<div class="mn-empty">ยังไม่มีออเดอร์วันนี้</div>';
+        h+='<div class="inv-foot">ข้อมูลจริงจาก Settrade · SANDBOX (เงินจำลอง) · read-only — การออกออเดอร์ทำผ่านสคริปต์ settrade_robot.py</div>';
+        box.innerHTML=h;
+      }
+      function buildInvest(){
+        built.invest=true;
+        var box=$g("mn-invest"); if(!box) return;
+        var _ir=$g("mn-invest-refresh"); if(_ir) _ir.onclick=function(){ buildInvest(); };
+        box.innerHTML='<div class="mn-empty">กำลังโหลดพอร์ตจาก Settrade (sandbox)…</div>';
+        var key=""; try{ var u=new URLSearchParams(location.search).get("key"); if(u) localStorage.setItem("prontera_gkey",u); key=u||localStorage.getItem("prontera_gkey")||""; }catch(_){}
+        fetch(BACKEND + "/investment" + (key?("?key="+encodeURIComponent(key)):""))
+          .then(function(r){ return r.json().then(function(j){ j.__status=r.status; return j; }); })
+          .then(function(d){ if(d.__status===403){ box.innerHTML='<div class="mn-empty">🔒 '+esc(d.message||"เปิดจากเครื่องของคุณเอง หรือใส่ owner key")+'</div>'; return; } renderInvest(box,d); })
+          .catch(function(){ box.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้ — เปิดจาก Mac เอง หรือเปิดเว็บด้วย ?key=… และรีสตาร์ท server</div>'; });
+      }
       function buildMana(){
         built.mana=true;
         var host=$g("mn-mana"), qb=$g("quotaBoard");
