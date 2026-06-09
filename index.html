@@ -4454,5 +4454,39 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
 })();
 </script>
 
+
+<script>
+/* Add Fable 5 (claude-fable-5) to the model pickers + pretty-print its badge.
+   Self-contained, additive, runtime — injected onto the prod build (whose own
+   prettyModel/picker predate Fable 5). Iris already defaults to fable on the backend. */
+(function(){
+  try{
+    if (typeof window.prettyModel === "function") {
+      var _pm = window.prettyModel;
+      window.prettyModel = function(m){
+        try{ if (String(m==null?"":m).toLowerCase().indexOf("fable")>=0) return "FABLE 5"; }catch(_){}
+        return _pm.apply(this, arguments);
+      };
+    }
+    function fableSweep(){
+      try{
+        // 1) add a "Fable 5" option to every model dropdown that lists claude:opus
+        document.querySelectorAll('option[value="claude:opus"]').forEach(function(opt){
+          var sel = opt.parentNode; if (!sel || sel.querySelector('option[value="claude:fable"]')) return;
+          var o = document.createElement("option"); o.value = "claude:fable"; o.textContent = "Fable 5 · Claude";
+          sel.insertBefore(o, opt);
+        });
+        // 2) fix any model badge already rendered with the raw "FABLE"
+        document.querySelectorAll('.model-badge, .sc-badge, .nameplate .model-badge').forEach(function(el){
+          if (el.textContent && el.textContent.trim().toUpperCase() === "FABLE") el.textContent = "FABLE 5";
+        });
+      }catch(_){}
+    }
+    fableSweep();
+    setInterval(fableSweep, 2500);
+  }catch(_){}
+})();
+</script>
+
 </body>
 </html>
