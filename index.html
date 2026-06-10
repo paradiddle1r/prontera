@@ -4488,5 +4488,29 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
 })();
 </script>
 
+
+<script>
+/* CEO gate (frontend): guests get NO CEO menu / brief composer. Also forwards the
+   owner key on CEO-only calls so the server-gated endpoints accept the real CEO
+   (a local request needs no key). Additive, self-contained. */
+(function(){
+  try{
+    var key=""; try{ var u=new URLSearchParams(location.search).get("key"); if(u) localStorage.setItem("prontera_gkey",u); key=u||localStorage.getItem("prontera_gkey")||""; }catch(_){}
+    var CEORE=/\/(set_model|iris_model|no_claude|brief|investment)(\?|$)/;
+    function withKey(u){ try{ if(typeof u==="string" && key && CEORE.test(u) && u.indexOf("key=")<0) return u+(u.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(key); }catch(_){} return u; }
+    var _f=window.fetch; if(_f) window.fetch=function(u,o){ return _f.call(this, (typeof u==="string"?withKey(u):u), o); };
+    var _E=window.EventSource; if(_E){ var W=function(u,c){ return new _E(withKey(u), c); }; try{ W.prototype=_E.prototype; }catch(_){} window.EventSource=W; }
+    // hide CEO-only UI for guests; reveal only once the server confirms CEO (me.ceo)
+    function gate(){ try{
+      var me=window.__mpMe; var ceo=!!(me && me.ceo);
+      var mb=document.getElementById("menuBtn"); if(mb) mb.style.display=ceo?"":"none";
+      var ir=document.querySelector(".input-row"); if(ir) ir.style.display=ceo?"":"none";
+      if(!ceo){ var dl=document.getElementById("dashboard"); if(dl) dl.hidden=true; }
+    }catch(_){} }
+    gate(); setInterval(gate, 600);
+  }catch(_){}
+})();
+</script>
+
 </body>
 </html>
