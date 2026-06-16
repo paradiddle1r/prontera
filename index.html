@@ -1063,6 +1063,18 @@
     display: flex; gap: 6px;
     background: #0a0604;
   }
+  .input-row select#agentSel {
+    background: #1a0e06;
+    border: 2px solid var(--panel-edge);
+    color: var(--gold);
+    padding: 0 8px;
+    font-size: 12px;
+    outline: none;
+    font-family: inherit;
+    max-width: 150px;
+    cursor: pointer;
+  }
+  .input-row select#agentSel:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,217,107,0.3); }
   .input-row input {
     flex: 1;
     background: #1a0e06;
@@ -1276,6 +1288,18 @@
 .mn-room-t{color:#a6e22e;font-size:11px;margin-top:5px}
 .mn-room-h{font-size:9px;margin-top:5px;color:#7e7256}
 .mn-empty{color:#8a7e60;font-style:italic;padding:14px 4px;text-align:center}
+.ws-item{background:#15110b;border:1px solid #3a3020;border-radius:9px;padding:9px 11px;margin:0 0 8px}
+.ws-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:4px}
+.ws-proj{color:#ffd884;font:700 12px system-ui}
+.ws-badge{background:#0c1620;border:1px solid #25323a;border-radius:6px;padding:1px 7px;color:#7fd1ff;font:600 11px ui-monospace,monospace}
+.ws-status{color:#7ee08a;font-size:11px}
+.ws-sha{margin-left:auto;color:#9a8a64;font:600 11px ui-monospace,monospace}
+.ws-title{color:#f0e6d0;font-size:13px;line-height:1.4}
+.ws-sum{margin-top:6px}
+.ws-review{margin-top:6px;font-size:12px;line-height:1.4;border-left:3px solid #5b6cff;padding-left:8px;color:#c8c2d8}
+.ws-review.ws-ok{border-left-color:#7ee08a}
+.ws-review.ws-fix{border-left-color:#ff7676;color:#f0c8c8}
+.ws-review.ws-unclear{border-left-color:#9a8a64}
 #mn-model-agents #setupBoard{width:auto;border:none;box-shadow:none;background:none;position:static;overflow:visible}
 #mn-model-agents .setup-title{display:none}
 #mn-model-agents{margin-top:16px;padding-top:14px;border-top:1px solid #3a3020}
@@ -1755,6 +1779,19 @@
     </div>
     <div class="log" id="log"></div>
     <div class="input-row">
+      <select id="agentSel" title="คุยกับใคร">
+        <option value="iris" selected>Iris · Advisor (brief)</option>
+        <option value="cass">Cass · PM hotel-pms</option>
+        <option value="sage">Sage · Live Data</option>
+        <option value="tao">Tao · Customer Chat</option>
+        <option value="zara">Zara · PM HostGate</option>
+        <option value="reno">Reno · Bug-fix</option>
+        <option value="mira">Mira · Frontend</option>
+        <option value="echo">Echo · Investment</option>
+        <option value="nyx">Nyx · News</option>
+        <option value="vera">Vera · Auditor</option>
+        <option value="openclaw">OpenClaw · escalation/debug</option>
+      </select>
       <input id="prompt" placeholder="พิมพ์ quest ให้ Iris…" />
       <button id="send">⚔ BRIEF</button>
     </div>
@@ -1794,6 +1831,7 @@ const AGENTS = {
   tao:    { name: "Tao",    role: "Sniper · Customer Chat",       office: 2 },
   zara:   { name: "Zara",   role: "Genetic · PM",                 office: 2 },
   vera:   { name: "Vera",   role: "Soul Reaper · Auditor",        office: 1 },
+  openclaw: { name: "OpenClaw", role: "King Dramoh · Escalation/Debug", office: 1 },
 };
 
 // Model assignment per agent — static fallback (works on file://),
@@ -1808,6 +1846,7 @@ const MODEL_FALLBACK = {
   echo: "gemini-2.5-flash",
   nyx: "gemini-2.5-flash", kira: "gemini-2.5-flash",
   tao: "copilot",
+  openclaw: "sonnet",
 };
 
 // Home zones per office (percent coords)
@@ -3218,6 +3257,7 @@ function tryMoveCommand(t){
   if(!ids.length) return false;
   const cx=ROOM_CX[room];
   ids.forEach((id,i)=>{
+    if(!document.getElementById("agent-"+id) || !document.getElementById("bubble-"+id)) return;  // skip spriteless agents (e.g. openclaw)
     const x=cx + (i-(ids.length-1)/2)*4.2;
     setStatus(id,"walking");
     walkAcross(id, x, 58, 1600).finally(function(){ if(document.getElementById("agent-"+id)) setStatus(id,"idle"); });
@@ -3245,12 +3285,36 @@ async function trigger() {
   const t = promptEl.value.trim();
   if (!t) return;
   promptEl.value = "";
+  // Agent picker: a specific agent => direct 1-on-1 /agent/<id>/chat; only Iris => orchestrated brief.
+  var _selEl = $("agentSel");
+  var _sel = (_selEl && _selEl.value) || "iris";
+  if (_sel && _sel !== "iris") { chatWithAgent(_sel, t); return; }
   if (tryConfigCommand(t)) return;
   if (tryStationCommand(t)) return;
   if (tryArrangeCommand(t)) return;
   if (tryMoveCommand(t)) return;
   // 1) instant keyword movement  2) AI director (freeform)  3) AI business brief
   submitBrief(t);
+}
+
+// Direct 1-on-1 chat with a chosen agent from the input-row picker. Reuses the same
+// /agent/<id>/chat endpoint as the click-an-agent popup and surfaces the reply in the
+// GUILD CHAT log. Sprited agents speak via a bubble; spriteless ones (openclaw) fall
+// back to a plain log line — never call say() without a sprite/bubble.
+async function chatWithAgent(id, task) {
+  var a = AGENTS[id] || {}; var nm = a.name || id;
+  systemLog("🗨️ คุณ → " + nm + ": " + task);
+  try { if ($("agent-" + id)) setStatus(id, "thinking"); } catch (_) {}
+  try {
+    var rr = await fetch(BACKEND + "/agent/" + id + "/chat?task=" + encodeURIComponent(task));
+    var d = await rr.json();
+    var reply = (d && d.text) || "(ไม่มีคำตอบ)";
+    if ($("bubble-" + id)) { say(id, reply, 4200); }
+    else { systemLog(nm + ": " + reply); }
+  } catch (e) {
+    systemLog("⚠️ เชื่อมต่อเซิร์ฟเวอร์ Prontera ไม่ได้ (" + nm + ")");
+  }
+  try { if ($("agent-" + id)) setStatus(id, "idle"); } catch (_) {}
 }
 
 // =================== JARVIS CLICK-TO-WALK ===================
@@ -3905,7 +3969,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       var dl=document.createElement("div"); dl.id="dashboard"; dl.hidden=true;
       var TABS=[
         ["dash","📊 Dashboard"],["rooms","🏛️ Rooms"],["log","📜 Live Activity"],
-        ["model","🎛️ Model Setup"],["invest","📈 Investment"],["ctrl","⚙️ Controls"],["grid","🗺️ Grid Reference"]
+        ["model","🎛️ Model Setup"],["invest","📈 Investment"],["work-summary","📋 สรุปงานรายวัน"],["model-rank","🏆 Model Ranking"],["ctrl","⚙️ Controls"],["grid","🗺️ Grid Reference"]
       ];
       var tabsHtml=TABS.map(function(t,i){ return '<button data-tab="'+t[0]+'"'+(i===0?' class="on"':'')+'>'+t[1]+'</button>'; }).join("");
       dl.innerHTML='<div class="menu-box"><div class="menu-tabs">'+tabsHtml+'<button id="menu-x" title="ปิด">×</button></div>'
@@ -3930,7 +3994,11 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           +'<div class="mn-empty">พื้นที่สำรองสำหรับ flag ทั่วทั้งออฟฟิศในอนาคต (refresh interval, theme/volume, pause all agents)</div>'
         +'</div>'
         // 6b Investment — Settrade sandbox account / portfolio / orders (owner-gated, read-only)
-        +'<div class="menu-panel" data-panel="invest"><div class="mn-panel-head"><h3>📈 Investment <span class="inv-env">SANDBOX</span></h3><button id="mn-invest-refresh" title="รีเฟรช">🔄</button></div><div id="mn-news" class="inv-news"></div><div id="mn-invest"><div class="mn-empty">กำลังโหลด…</div></div></div>'
+        +'<div class="menu-panel" data-panel="invest"><div class="mn-panel-head"><h3>📈 Investment <span class="inv-env">SANDBOX</span></h3><button id="mn-invest-refresh" title="รีเฟรช">🔄</button></div><div id="mn-news" class="inv-news"></div><div id="mn-top10" class="inv-news"></div><div id="mn-invest"><div class="mn-empty">กำลังโหลด…</div></div></div>'
+        // 6c Work Summary — daily completed improvement work from both pipelines (/work_summary, public)
+        +'<div class="menu-panel" data-panel="work-summary"><div class="mn-panel-head"><h3>📋 สรุปงานสำเร็จรายวัน</h3><button id="mn-worksum-refresh" title="รีเฟรช">🔄</button></div><div id="mn-worksum"><div class="mn-empty">กำลังโหลด…</div></div></div>'
+        // 6d Model Ranking — Kira refreshes daily: which model is good at what + benchmarks + news
+        +'<div class="menu-panel" data-panel="model-rank"><div class="mn-panel-head"><h3>🏆 Model Ranking</h3><button id="mn-mrank-refresh" title="รีเฟรช">🔄</button></div><div id="mn-mrank" class="inv-news"><div class="mn-empty">กำลังโหลด…</div></div></div>'
         // 7 Grid Reference — visual mini-maps (hover = ดูพิกัด, คลิก = คัดลอกชื่อ cell)
         +'<div class="menu-panel" data-panel="grid"><h3>🗺️ Grid Reference <button id="mn-grid-reset" title="คืนค่าเริ่มต้น — ยกเลิกการลบ/ย้าย/วางวัตถุทั้งหมด">↺ รีเซ็ตผัง</button></h3>'
           +'<div class="mn-grid-read" id="mn-grid-read">เลื่อนเมาส์ไปบนช่อง เพื่อดูพิกัด · คลิก = คัดลอกชื่อ cell · Shift+คลิก = ไฮไลต์บนแผนที่จริง</div>'
@@ -3948,6 +4016,8 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         if(tab==="invest" && !built.invest) buildInvest();
         if(tab==="model" && !built.model) buildModel();
         if(tab==="grid" && !built.grid) buildGrid();
+        if(tab==="work-summary" && !built["work-summary"]) buildWorkSummary();
+        if(tab==="model-rank" && !built["model-rank"]) buildModelRank();
       }
       dl.querySelectorAll(".menu-tabs button[data-tab]").forEach(function(b){ b.onclick=function(){ show(b.dataset.tab); }; });
       // ── 1 Dashboard: /dashboard fetch (unchanged) ──
@@ -4032,6 +4102,44 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         h+='<div class="inv-foot">ข้อมูลจริงจาก Settrade · SANDBOX (เงินจำลอง) · read-only — การออกออเดอร์ทำผ่านสคริปต์ settrade_robot.py</div>';
         box.innerHTML=h;
       }
+      // ── 6c Work Summary: /work_summary (both pipelines, newest-first days) ──
+      function buildWorkSummary(){
+        built["work-summary"]=true;
+        var box=$g("mn-worksum"); if(!box) return;
+        var _wr=$g("mn-worksum-refresh"); if(_wr) _wr.onclick=function(){ built["work-summary"]=false; buildWorkSummary(); };
+        box.innerHTML='<div class="mn-empty">กำลังโหลดสรุปงาน…</div>';
+        fetch(BACKEND+"/work_summary")
+          .then(function(r){ return r.json(); })
+          .then(function(d){ renderWorkSummary(box, d); })
+          .catch(function(){ box.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้ — เปิดผ่านเซิร์ฟเวอร์ Prontera แล้วลองใหม่</div>'; });
+      }
+      function renderWorkSummary(box, d){
+        var days=(d&&Array.isArray(d.days))?d.days:[];
+        if(!days.length){ box.innerHTML='<div class="mn-empty">ยังไม่มีสรุปงานรายวัน — จะปรากฏที่นี่เมื่อทีมรันงานปรับปรุงประจำวันเสร็จ (Iris 08:00 · Vera 16:00)</div>'; return; }
+        var h='';
+        days.forEach(function(day){
+          var rows=(day&&Array.isArray(day.results))?day.results:[];
+          h+='<h4 class="inv-h">📅 '+esc(day&&(day.date||day.when)||"—")+' · '+rows.length+' งาน</h4>';
+          if(!rows.length){ h+='<div class="mn-empty">— ไม่มีงานสำเร็จในวันนี้ —</div>'; return; }
+          rows.forEach(function(t){
+            var sha=esc(String(t.commit||"")).slice(0,7);
+            var rev=t.review||{};
+            var vcls=(rev.verdict==="ok")?"ws-ok":((rev.verdict==="fix")?"ws-fix":"ws-unclear");
+            h+='<div class="ws-item">'
+              +'<div class="ws-top">'
+                +'<span class="ws-proj">'+esc(t.project||"—")+'</span>'
+                +'<span class="ws-badge">'+esc(t.agent||"?")+(t.model?(' · '+esc(t.model)):'')+'</span>'
+                +(t.status?('<span class="ws-status">'+esc(t.status)+'</span>'):'')
+                +(sha?('<span class="ws-sha">#'+sha+'</span>'):'')
+              +'</div>'
+              +'<div class="ws-title">'+esc(t.title||t.task_id||"(ไม่มีหัวข้อ)")+'</div>'
+              +(t.summary?('<div class="nv-b ws-sum">'+esc(t.summary)+'</div>'):'')
+              +(rev.feedback?('<div class="ws-review '+vcls+'">🛡️ Vera ['+esc(rev.verdict||"")+']: '+esc(rev.feedback)+'</div>'):'')
+            +'</div>';
+          });
+        });
+        box.innerHTML=h;
+      }
       function buildInvest(){
         built.invest=true;
         var box=$g("mn-invest"); if(!box) return;
@@ -4043,6 +4151,11 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
             if(n && n.text){ nv.innerHTML='<div class="nv-h">📰 ข่าว/ตลาด (Nyx · '+esc(n.when||"")+')</div><div class="nv-b">'+esc(n.text)+'</div>'; }
             else nv.innerHTML='';
           }).catch(function(){ nv.innerHTML=''; }); }
+          var tv=$g("mn-top10");
+          if(tv){ fetch(BACKEND+"/echo_top10").then(function(r){return r.ok?r.json():null;}).then(function(t){
+            if(t && t.text){ tv.innerHTML='<div class="nv-h">🔟 Top 10 SET (Echo · '+esc(t.when||"")+')</div><div class="nv-b">'+esc(t.text)+'</div>'; }
+            else tv.innerHTML='';
+          }).catch(function(){ tv.innerHTML=''; }); }
         }catch(_){}
         box.innerHTML='<div class="mn-empty">กำลังโหลดพอร์ตจาก Settrade (sandbox)…</div>';
         var key=""; try{ var u=new URLSearchParams(location.search).get("key"); if(u) localStorage.setItem("prontera_gkey",u); key=u||localStorage.getItem("prontera_gkey")||""; }catch(_){}
@@ -4050,6 +4163,20 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           .then(function(r){ return r.json().then(function(j){ j.__status=r.status; return j; }); })
           .then(function(d){ if(d.__status===403){ box.innerHTML='<div class="mn-empty">🔒 '+esc(d.message||"เปิดจากเครื่องของคุณเอง หรือใส่ owner key")+'</div>'; return; } renderInvest(box,d); })
           .catch(function(){ box.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้ — เปิดจาก Mac เอง หรือเปิดเว็บด้วย ?key=… และรีสตาร์ท server</div>'; });
+      }
+      // ── 6d Model Ranking: /model_ranking (narrative blob, newlines preserved) ──
+      function buildModelRank(){
+        built["model-rank"]=true;
+        var box=$g("mn-mrank"); if(!box) return;
+        var _rr=$g("mn-mrank-refresh"); if(_rr) _rr.onclick=function(){ built["model-rank"]=false; buildModelRank(); };
+        box.innerHTML='<div class="mn-empty">กำลังโหลดอันดับโมเดล AI (Kira)…</div>';
+        fetch(BACKEND+"/model_ranking").then(function(r){ return r.ok?r.json():null; }).then(function(d){
+          if(d && d.text){
+            box.innerHTML='<div class="nv-h">🏆 อันดับโมเดล AI (Kira · '+esc(d.when||"")+')</div><div class="nv-b">'+esc(d.text)+'</div>';
+          } else {
+            box.innerHTML='<div class="mn-empty">ยังไม่มีรายงานอันดับโมเดล — Kira จะอัปเดตทุกวันทำการ 09:00 (Asia/Bangkok)</div>';
+          }
+        }).catch(function(){ box.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้ — เปิดจาก Mac เอง แล้วรีสตาร์ท server</div>'; });
       }
       function buildMana(){
         built.mana=true;
