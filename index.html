@@ -1709,7 +1709,7 @@
       </div>
       <!-- Janitor-01's live AI quota board — token limits per backend -->
       <div class="quota-board" id="quotaBoard">
-        <div class="quota-title">📊 AI MANA POOL <button id="manaRefresh" title="รีเฟรชสถานะตอนนี้">🔄</button></div>
+        <div class="quota-title">📊 AI MANA POOL <button id="manaRefresh" title="รีเฟรชสถานะตอนนี้" aria-label="รีเฟรชสถานะ">🔄</button></div>
         <div class="quota-rows" id="quotaRows"></div>
         <div class="quota-foot">— Janitor-01 reporting</div>
         <div class="ctrl-panel">
@@ -3783,7 +3783,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       if(b && wrap && b.parentNode!==wrap) wrap.appendChild(b);
     });
     var bar=document.createElement("div"); bar.className="cam-btns";
-    bar.innerHTML='<button id="zoomout" title="ดูทั้งหมด (zoom out)">🔍−</button><button id="zoomin" title="ซูมเข้าห้อง (zoom in)">🔍+</button>';
+    bar.innerHTML='<button id="zoomout" title="ดูทั้งหมด (zoom out)" aria-label="ดูทั้งหมด">🔍−</button><button id="zoomin" title="ซูมเข้าห้อง (zoom in)" aria-label="ซูมเข้าห้อง">🔍+</button>';
     wrap.appendChild(bar);
     $g("zoomout").onclick=function(){ CAM.mode="overview"; CAM.apply(); };
     $g("zoomin").onclick=function(){ CAM.followCEO(); };
@@ -3824,7 +3824,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         ];
         var _rows=_ocInfo.map(function(r){return '<tr><td class="k">'+r[0]+'</td><td class="v">'+r[1]+'</td></tr>';}).join("");
         var _ocp=document.createElement("div"); _ocp.id="ocPanel"; _ocp.hidden=true;
-        _ocp.innerHTML='<button class="oc-x" title="ปิด">×</button>'
+        _ocp.innerHTML='<button class="oc-x" title="ปิด" aria-label="ปิด">×</button>'
           +'<h3>🐉 OpenClaw</h3><div class="oc-sub">All your chats, one OpenClaw</div>'
           +'<table>'+_rows+'</table>'
           +'<div class="oc-note">ℹ️ ภาพรวม ณ ตอน build (snapshot) ไม่ใช่สถานะเรียลไทม์ — เก็บไว้ที่ NPC ตัวนี้</div>';
@@ -3859,7 +3859,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         ];
         var _setRows=_setInfo.map(function(r){return '<tr><td class="k">'+r[0]+'</td><td class="v">'+r[1]+'</td></tr>';}).join("");
         var _setp=document.createElement("div"); _setp.id="setPanel"; _setp.hidden=true;
-        _setp.innerHTML='<button class="oc-x" title="ปิด">×</button>'
+        _setp.innerHTML='<button class="oc-x" title="ปิด" aria-label="ปิด">×</button>'
           +'<h3>📈 SET</h3><div class="oc-sub">ราคาหุ้นไทยสำหรับ Echo · Settrade sandbox</div>'
           +'<table>'+_setRows+'</table>'
           +'<div class="oc-note">ℹ️ NPC นี้คือจุดเชื่อมข้อมูลราคา ไม่เก็บ/ไม่โชว์ความลับ (app id, secret, PIN, เลขบัญชี) — อยู่ฝั่ง Mac เท่านั้น</div>';
@@ -3891,8 +3891,8 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       var pop=document.createElement("div"); pop.id="agentChat"; pop.hidden=true;
       pop.innerHTML=
         '<div class="ac-head"><b id="ac-name"></b><span id="ac-role"></span>'
-        +'<span class="ac-tabs"><button id="ac-tab-chat" class="on">💬</button><button id="ac-tab-rep">📋</button></span>'
-        +'<button id="ac-x" title="ปิด">×</button></div>'
+        +'<span class="ac-tabs"><button id="ac-tab-chat" class="on" aria-label="แชท">💬</button><button id="ac-tab-rep" aria-label="รายงาน">📋</button></span>'
+        +'<button id="ac-x" title="ปิด" aria-label="ปิด">×</button></div>'
         +'<div id="ac-chatview"><div id="ac-thread"></div>'
         +'<div class="ac-in"><input id="ac-msg" placeholder="พิมพ์ข้อความถึงเอเจนท์…" autocomplete="off"><button id="ac-send">ส่ง</button></div></div>'
         +'<div id="ac-repview" hidden></div>';
