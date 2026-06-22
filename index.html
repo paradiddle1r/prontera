@@ -1797,9 +1797,9 @@
       <h2>💬 GUILD CHAT</h2>
       <div class="sub">Hotel PMS HQ × HostGate HQ · 18 members</div>
     </div>
-    <div class="log" id="log"></div>
+    <div class="log" id="log" role="log" aria-live="polite" aria-label="บันทึกแชททีม"></div>
     <div class="input-row">
-      <select id="agentSel" title="คุยกับใคร">
+      <select id="agentSel" title="คุยกับใคร" aria-label="เลือกผู้รับข้อความ">
         <option value="iris" selected>Iris · Advisor (brief)</option>
         <option value="cass">Cass · PM hotel-pms</option>
         <option value="sage">Sage · Live Data</option>
@@ -1812,7 +1812,7 @@
         <option value="vera">Vera · Auditor</option>
         <option value="openclaw">OpenClaw · escalation/debug</option>
       </select>
-      <input id="prompt" placeholder="พิมพ์ quest ให้ Iris…" />
+      <input id="prompt" placeholder="พิมพ์ quest ให้ Iris…" aria-label="พิมพ์ข้อความถึงทีม" />
       <button id="send">⚔ BRIEF</button>
     </div>
   </aside>
