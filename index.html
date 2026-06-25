@@ -4572,7 +4572,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       ov.innerHTML='<div class="mp-card"><h3>เข้าสู่ Pronterra 🏰</h3><div class="mp-sub">สร้างตัวละครของคุณ (ผู้มาเยือน) — CEO ต้องเข้าด้วย key</div>'
         +'<label>ชื่อ</label><input id="mp-name" maxlength="20" placeholder="ชื่อของคุณ">'
         +'<label>อาชีพ</label><input id="mp-role" maxlength="24" placeholder="เช่น Trader, Chef" list="mp-roles"><datalist id="mp-roles">'+ROLES.map(function(r){return '<option value="'+r+'">';}).join("")+'</datalist>'
-        +'<label>เลือกตัวละคร</label><div class="mp-sprites" id="mp-sprites">'+SPRITES.map(function(s,i){return '<div class="mp-sp'+(i===0?" sel":"")+'" data-s="'+s+'"><img src="sprites_out/'+s+'.png"></div>';}).join("")+'</div>'
+        +'<label>เลือกตัวละคร</label><div class="mp-sprites" id="mp-sprites">'+SPRITES.map(function(s,i){return '<div class="mp-sp'+(i===0?" sel":"")+'" data-s="'+s+'"><img src="sprites_out/'+s+'.png" alt="'+s+'"></div>';}).join("")+'</div>'
         +'<button id="mp-go">เข้าออฟฟิศ ▸</button></div>';
       document.body.appendChild(ov);
       var pick=SPRITES[0];
