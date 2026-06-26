@@ -4001,7 +4001,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         ["model","🎛️ Model Setup"],["invest","📈 Investment"],["work-summary","📋 สรุปงานรายวัน"],["model-rank","🏆 Model Ranking"],["ctrl","⚙️ Controls"],["grid","🗺️ Grid Reference"]
       ];
       var tabsHtml=TABS.map(function(t,i){ return '<button data-tab="'+t[0]+'"'+(i===0?' class="on"':'')+'>'+t[1]+'</button>'; }).join("");
-      dl.innerHTML='<div class="menu-box"><div class="menu-tabs">'+tabsHtml+'<button id="menu-x" title="ปิด">×</button></div>'
+      dl.innerHTML='<div class="menu-box"><div class="menu-tabs">'+tabsHtml+'<button id="menu-x" title="ปิด" aria-label="ปิดเมนู">×</button></div>'
         +'<div class="menu-panels">'
         // 1 Dashboard — same agents+tickets columns + markup as the old popup
         +'<div class="menu-panel dash-panel on" data-panel="dash">'
@@ -4023,11 +4023,11 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           +'<div class="mn-empty">พื้นที่สำรองสำหรับ flag ทั่วทั้งออฟฟิศในอนาคต (refresh interval, theme/volume, pause all agents)</div>'
         +'</div>'
         // 6b Investment — Settrade sandbox account / portfolio / orders (owner-gated, read-only)
-        +'<div class="menu-panel" data-panel="invest"><div class="mn-panel-head"><h3>📈 Investment <span class="inv-env">SANDBOX</span></h3><button id="mn-invest-refresh" title="รีเฟรช">🔄</button></div><div id="mn-news" class="inv-news"></div><div id="mn-top10" class="inv-news"></div><div id="mn-invest"><div class="mn-empty">กำลังโหลด…</div></div></div>'
+        +'<div class="menu-panel" data-panel="invest"><div class="mn-panel-head"><h3>📈 Investment <span class="inv-env">SANDBOX</span></h3><button id="mn-invest-refresh" title="รีเฟรช" aria-label="รีเฟรชข้อมูลการลงทุน">🔄</button></div><div id="mn-news" class="inv-news"></div><div id="mn-top10" class="inv-news"></div><div id="mn-invest"><div class="mn-empty">กำลังโหลด…</div></div></div>'
         // 6c Work Summary — daily completed improvement work from both pipelines (/work_summary, public)
-        +'<div class="menu-panel" data-panel="work-summary"><div class="mn-panel-head"><h3>📋 สรุปงานสำเร็จรายวัน</h3><button id="mn-worksum-refresh" title="รีเฟรช">🔄</button></div><div id="mn-worksum"><div class="mn-empty">กำลังโหลด…</div></div></div>'
+        +'<div class="menu-panel" data-panel="work-summary"><div class="mn-panel-head"><h3>📋 สรุปงานสำเร็จรายวัน</h3><button id="mn-worksum-refresh" title="รีเฟรช" aria-label="รีเฟรชสรุปงาน">🔄</button></div><div id="mn-worksum"><div class="mn-empty">กำลังโหลด…</div></div></div>'
         // 6d Model Ranking — Kira refreshes daily: which model is good at what + benchmarks + news
-        +'<div class="menu-panel" data-panel="model-rank"><div class="mn-panel-head"><h3>🏆 Model Ranking</h3><button id="mn-mrank-refresh" title="รีเฟรช">🔄</button></div><div id="mn-mrank" class="inv-news"><div class="mn-empty">กำลังโหลด…</div></div></div>'
+        +'<div class="menu-panel" data-panel="model-rank"><div class="mn-panel-head"><h3>🏆 Model Ranking</h3><button id="mn-mrank-refresh" title="รีเฟรช" aria-label="รีเฟรชอันดับโมเดล">🔄</button></div><div id="mn-mrank" class="inv-news"><div class="mn-empty">กำลังโหลด…</div></div></div>'
         // 7 Grid Reference — visual mini-maps (hover = ดูพิกัด, คลิก = คัดลอกชื่อ cell)
         +'<div class="menu-panel" data-panel="grid"><h3>🗺️ Grid Reference <button id="mn-grid-reset" title="คืนค่าเริ่มต้น — ยกเลิกการลบ/ย้าย/วางวัตถุทั้งหมด">↺ รีเซ็ตผัง</button></h3>'
           +'<div class="mn-grid-read" id="mn-grid-read">เลื่อนเมาส์ไปบนช่อง เพื่อดูพิกัด · คลิก = คัดลอกชื่อ cell · Shift+คลิก = ไฮไลต์บนแผนที่จริง</div>'
