@@ -3918,7 +3918,8 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       function renderMsg(who,txt,cls){ var d=document.createElement("div"); d.className="ac-msg "+cls;
         d.innerHTML='<span class="ac-who">'+esc(who)+'</span>'+esc(txt); thread.appendChild(d);
         thread.scrollTop=thread.scrollHeight; return d; }
-      function addMsg(who,txt,cls){ var d=renderMsg(who,txt,cls);
+      function addMsg(who,txt,cls){ var e=thread.querySelector('.ac-empty'); if(e) e.remove();
+        var d=renderMsg(who,txt,cls);
         if(curId){ var a=loadLog(curId); a.push({who:who,txt:txt,cls:cls}); saveLog(curId,a); } return d; }
       function showTab(rep){ chatView.hidden=rep; repView.hidden=!rep;
         tabRep.classList.toggle("on",rep); tabChat.classList.toggle("on",!rep); if(rep) loadReport(); }
@@ -3945,9 +3946,23 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       }
       function openChat(id){ curId=id; var a=(typeof AGENTS!=="undefined"&&AGENTS[id])||{};
         nameEl.textContent=a.name||id; roleEl.textContent=a.role||"";
-        thread.innerHTML=""; loadLog(id).forEach(function(m){ renderMsg(m.who,m.txt,m.cls); });
+        thread.innerHTML="";
+        var history=loadLog(id);
+        if(history.length===0){
+          var emp=document.createElement('div'); emp.className='ac-empty';
+          emp.textContent='ยังไม่มีประวัติการสนทนา — พิมพ์ข้อความด้านล่างเพื่อเริ่ม';
+          thread.appendChild(emp);
+        } else { history.forEach(function(m){ renderMsg(m.who,m.txt,m.cls); }); }
         showTab(false); pop.hidden=false; setTimeout(function(){inp.focus();},30); }
-      tabChat.onclick=function(){ showTab(false); };
+      tabChat.onclick=function(){ showTab(false);
+        thread.innerHTML="";
+        var history=curId?loadLog(curId):[];
+        if(history.length===0){
+          var emp=document.createElement('div'); emp.className='ac-empty';
+          emp.textContent='ยังไม่มีประวัติการสนทนา — พิมพ์ข้อความด้านล่างเพื่อเริ่ม';
+          thread.appendChild(emp);
+        } else { history.forEach(function(m){ renderMsg(m.who,m.txt,m.cls); }); }
+      };
       tabRep.onclick=function(){ showTab(true); };
       pop.querySelector("#ac-x").onclick=function(){ pop.hidden=true; curId=null; };
       async function send(){
