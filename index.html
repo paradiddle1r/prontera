@@ -3983,7 +3983,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         +'<div class="menu-panel" data-panel="rooms"><h3>🏛️ Rooms / Projects</h3><div class="mn-rooms" id="mn-rooms"></div></div>'
         // (Mana Pool merged into Model Setup below — no standalone tab)
         // 4 Live Activity / Logs — graceful empty state (no streaming endpoint in the contract)
-        +'<div class="menu-panel" data-panel="log"><h3>📜 Live Activity</h3><div class="mn-empty" id="mn-log">ยังไม่มีฟีดกิจกรรมแบบเรียลไทม์ (live activity feed) — จะปรากฏที่นี่เมื่อเซิร์ฟเวอร์ส่งสตรีมเหตุการณ์</div></div>'
+        +'<div class="menu-panel" data-panel="log"><div class="mn-panel-head"><h3>📜 Live Activity — ทีมกำลังทำอะไรอยู่</h3><button id="mn-act-refresh" title="รีเฟรช">🔄</button></div><div id="mn-act"><div class="mn-empty">กำลังโหลด…</div></div></div>'
         // 5 Model Setup — CEO/Iris/Vera + per-agent pickers moved in (wiring preserved)
         +'<div class="menu-panel" data-panel="model"><div class="mn-panel-head"><h3>🎛️ Model Setup</h3><span id="mn-claude-anchor"></span></div><div id="mn-model-lead"></div><div id="mn-model-agents"></div><div class="mn-model-mana"><h4 class="inv-h">🔮 AI Mana Pool</h4><div id="mn-mana"></div></div></div>'
         // 6 Controls / Settings
@@ -3991,7 +3991,16 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           +'<div class="mn-ctrl-row"><label>เสียง/เอฟเฟกต์ (Ambient)</label><button id="mn-ambient">ON</button></div>'
           +'<div class="mn-ctrl-row"><label>Claude (global pause/run)</label><span id="mn-claude-slot"></span></div>'
           +'<div class="mn-ctrl-row"><label>Map zoom</label><button id="mn-zoomin">🔍+ ห้อง</button><button id="mn-zoomout">🔍− ทั้งหมด</button></div>'
-          +'<div class="mn-empty">พื้นที่สำรองสำหรับ flag ทั่วทั้งออฟฟิศในอนาคต (refresh interval, theme/volume, pause all agents)</div>'
+          +'<div class="mn-cfg"><h4 class="inv-h">⏰ เวลาทำงานอัตโนมัติ <span class="mn-cfg-sub">(เวลาไทย · จันทร์–ศุกร์ · เปลี่ยนแล้วมีผลทันที ไม่ต้องรีสตาร์ท)</span></h4><div id="mn-sched-rows"><div class="mn-empty">กำลังโหลด…</div></div></div>'
+          +'<div class="mn-cfg"><h4 class="inv-h">📝 ระบุงานล่วงหน้า <span class="mn-cfg-sub">(เพิ่มงานเข้า queue — agent จะทำตามที่สั่งในรอบถัดไป, ข้ามตัววางแผน)</span></h4>'
+            +'<div class="mn-q-form">'
+              +'<div class="mn-q-line"><select id="mn-q-proj"><option value="hotel-pms">hotel-pms</option><option value="hostgate">hostgate</option><option value="discord-bot">discord-bot</option><option value="prontera">prontera</option></select>'
+              +'<input id="mn-q-title" type="text" maxlength="140" placeholder="หัวข้องาน (เช่น แก้บั๊ก… / เพิ่มฟีเจอร์…)" /></div>'
+              +'<textarea id="mn-q-prompt" rows="2" maxlength="2000" placeholder="รายละเอียด/คำสั่งให้ agent — ระบุไฟล์/พฤติกรรมที่ต้องการให้ชัด"></textarea>'
+              +'<div class="mn-q-line"><button id="mn-q-add">➕ เพิ่มเข้า queue</button><span id="mn-q-msg" class="mn-cfg-sub"></span></div>'
+            +'</div>'
+            +'<div id="mn-q-list"><div class="mn-empty">กำลังโหลด…</div></div>'
+          +'</div>'
         +'</div>'
         // 6b Investment — Settrade sandbox account / portfolio / orders (owner-gated, read-only)
         +'<div class="menu-panel" data-panel="invest"><div class="mn-panel-head"><h3>📈 Investment <span class="inv-env">SANDBOX</span></h3><button id="mn-invest-refresh" title="รีเฟรช">🔄</button></div><div id="mn-news" class="inv-news"></div><div id="mn-top10" class="inv-news"></div><div id="mn-invest"><div class="mn-empty">กำลังโหลด…</div></div></div>'
@@ -4018,6 +4027,8 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         if(tab==="grid" && !built.grid) buildGrid();
         if(tab==="work-summary" && !built["work-summary"]) buildWorkSummary();
         if(tab==="model-rank" && !built["model-rank"]) buildModelRank();
+        if(tab==="ctrl") buildControls();      // re-fetch schedule + queue each open
+        if(tab==="log") buildActivity();       // (re)start live-activity polling each open
       }
       dl.querySelectorAll(".menu-tabs button[data-tab]").forEach(function(b){ b.onclick=function(){ show(b.dataset.tab); }; });
       // ── 1 Dashboard: /dashboard fetch (unchanged) ──
@@ -4177,6 +4188,95 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
             box.innerHTML='<div class="mn-empty">ยังไม่มีรายงานอันดับโมเดล — Kira จะอัปเดตทุกวันทำการ 09:00 (Asia/Bangkok)</div>';
           }
         }).catch(function(){ box.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้ — เปิดจาก Mac เอง แล้วรีสตาร์ท server</div>'; });
+      }
+      // ── Controls > schedule times + task queue (menu>config) ──
+      function _cfgCss(){
+        if(document.getElementById("mn-cfg-css")) return;
+        var s=document.createElement("style"); s.id="mn-cfg-css";
+        s.textContent=".mn-cfg{margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)}"
+          +".mn-cfg-sub{font-size:11px;opacity:.6;font-weight:400}"
+          +".mn-sched-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0}"
+          +".mn-sched-row label{font-size:13px}"
+          +".mn-sched-row input[type=time]{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 6px;font-size:13px}"
+          +".mn-q-form{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}"
+          +".mn-q-line{display:flex;gap:6px;align-items:center;flex-wrap:wrap}"
+          +".mn-q-form select,.mn-q-form input,.mn-q-form textarea{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit}"
+          +".mn-q-form input#mn-q-title{flex:1;min-width:160px}.mn-q-form textarea{width:100%;resize:vertical}"
+          +".mn-q-form button,#mn-act-refresh{cursor:pointer;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:6px 10px;font-size:13px}"
+          +".mn-q-item,.mn-act-item{border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:8px 10px;margin:6px 0;background:rgba(255,255,255,.04)}"
+          +".mn-q-it-top,.mn-act-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px}"
+          +".mn-q-del{margin-left:auto;cursor:pointer;background:rgba(220,80,80,.25);color:#fff;border:1px solid rgba(220,80,80,.5);border-radius:6px;padding:1px 7px}"
+          +".mn-act-owner{font-weight:600;text-transform:capitalize}.mn-act-phase{font-size:12px;opacity:.85}"
+          +".mn-act-item{border-left:3px solid #5dcaa5}.mn-act-stale{border-left-color:#e0a13a;opacity:.7}";
+        document.head.appendChild(s);
+      }
+      function buildControls(){
+        built.ctrl=true; _cfgCss();
+        var sr=$g("mn-sched-rows");
+        if(sr){
+          fetch(BACKEND+"/config").then(function(r){return r.ok?r.json():null;}).then(function(cfg){
+            if(!cfg){ sr.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้ — เปิดผ่านเซิร์ฟเวอร์ Prontera</div>'; return; }
+            var jobs=[["iris","🛠️ Iris — พัฒนา hotel-pms/hostgate/discord-bot","iris_time"],
+                      ["kira","🏆 Kira — อัปเดต Model Ranking","kira_time"],
+                      ["vera","🎨 Vera — พัฒนา prontera","vera_time"],
+                      ["echo","📈 Echo — Top-10 หุ้น SET","echo_time"]];
+            sr.innerHTML=jobs.map(function(j){ return '<div class="mn-sched-row"><label>'+j[1]+'</label><input type="time" data-job="'+j[0]+'" value="'+esc(cfg[j[2]]||"")+'" /></div>'; }).join("");
+            sr.querySelectorAll('input[type=time]').forEach(function(inp){
+              inp.onchange=function(){
+                fetch(BACKEND+"/set_schedule?job="+encodeURIComponent(inp.dataset.job)+"&time="+encodeURIComponent(inp.value))
+                  .then(function(r){return r.json();}).then(function(d){ systemLog(d&&d.ok?("⏰ ตั้งเวลา "+inp.dataset.job+" → "+inp.value):"⚠️ ตั้งเวลาไม่สำเร็จ (CEO เท่านั้น)"); })
+                  .catch(function(){ systemLog("⚠️ ตั้งเวลาไม่สำเร็จ — เปิดผ่านเซิร์ฟเวอร์ Prontera"); });
+              };
+            });
+          }).catch(function(){ sr.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้</div>'; });
+        }
+        var addBtn=$g("mn-q-add");
+        if(addBtn) addBtn.onclick=function(){
+          var proj=$g("mn-q-proj").value, title=($g("mn-q-title").value||"").trim(), prompt=($g("mn-q-prompt").value||"").trim(), msg=$g("mn-q-msg");
+          if(!title){ if(msg) msg.textContent="✕ ใส่หัวข้องานก่อน"; return; }
+          if(msg) msg.textContent="กำลังเพิ่ม…";
+          fetch(BACKEND+"/queue_add?project="+encodeURIComponent(proj)+"&title="+encodeURIComponent(title)+"&prompt="+encodeURIComponent(prompt))
+            .then(function(r){return r.json();}).then(function(d){
+              if(d&&d.ok){ if(msg) msg.textContent="✓ เพิ่มแล้ว — จะทำในรอบถัดไป"; $g("mn-q-title").value=""; $g("mn-q-prompt").value=""; loadQueue(); }
+              else { if(msg) msg.textContent="✕ "+((d&&(d.error||d.message))||"ไม่สำเร็จ (CEO เท่านั้น)"); }
+            }).catch(function(){ if(msg) msg.textContent="✕ เชื่อมต่อ backend ไม่ได้"; });
+        };
+        loadQueue();
+      }
+      function loadQueue(){
+        var box=$g("mn-q-list"); if(!box) return;
+        fetch(BACKEND+"/queue_list").then(function(r){return r.ok?r.json():[];}).then(function(q){
+          if(!Array.isArray(q)||!q.length){ box.innerHTML='<div class="mn-empty">— ยังไม่มีงานใน queue —</div>'; return; }
+          box.innerHTML=q.map(function(x){
+            return '<div class="mn-q-item"><div class="mn-q-it-top"><span class="ws-proj">'+esc(x.project)+'</span><span class="ws-badge">'+esc(x.agent||"")+'</span><button class="mn-q-del" data-id="'+esc(x.id)+'" title="ลบ">✕</button></div>'
+              +'<div class="ws-title">'+esc(x.title||"")+'</div>'+(x.prompt?('<div class="nv-b ws-sum">'+esc(x.prompt)+'</div>'):'')+'</div>';
+          }).join("");
+          box.querySelectorAll(".mn-q-del").forEach(function(b){ b.onclick=function(){ fetch(BACKEND+"/queue_remove?id="+encodeURIComponent(b.dataset.id)).then(function(){ loadQueue(); }).catch(function(){}); }; });
+        }).catch(function(){ box.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้</div>'; });
+      }
+      // ── Live Activity: poll /activity (what the team is doing right now) ──
+      var _actTimer=null;
+      function buildActivity(){
+        built.log=true; _cfgCss();
+        var rb=$g("mn-act-refresh"); if(rb) rb.onclick=function(){ loadActivity(); };
+        loadActivity();
+        if(_actTimer) clearInterval(_actTimer);
+        _actTimer=setInterval(function(){ var dl=document.getElementById("dashboard"); var p=dl&&dl.querySelector('.menu-panel[data-panel=log]'); if(dl&&!dl.hidden&&p&&p.classList.contains("on")) loadActivity(); else if(dl&&dl.hidden){ clearInterval(_actTimer); _actTimer=null; } }, 5000);
+      }
+      function loadActivity(){
+        var box=$g("mn-act"); if(!box) return;
+        fetch(BACKEND+"/activity").then(function(r){return r.ok?r.json():{};}).then(function(d){
+          var keys=(d&&typeof d==="object")?Object.keys(d):[];
+          if(!keys.length){ box.innerHTML='<div class="mn-empty">😴 ตอนนี้ไม่มี agent ทำงานอยู่ — pipeline เริ่มตามเวลาที่ตั้งใน Controls (Iris/Vera/Kira/Echo) หรือสั่งรันเอง</div>'; return; }
+          var PH={planning:["🧭","กำลังวางแผนงาน"],working:["⚙️","กำลังลงมือเขียนโค้ด"],reviewing:["🛡️","Vera กำลังรีวิว"],"waiting for CI":["⏳","รอผล CI · วนแก้จนเขียว"]};
+          box.innerHTML=keys.map(function(k){
+            var a=d[k]||{}, ph=PH[a.phase]||["•",a.phase||""], stale=false;
+            try{ stale=(Date.now()-Date.parse(a.updated_at))>180000; }catch(_){}
+            return '<div class="mn-act-item'+(stale?" mn-act-stale":"")+'"><div class="mn-act-top"><span class="mn-act-owner">'+esc(k)+'</span><span class="mn-act-phase">'+ph[0]+' '+esc(ph[1])+'</span>'+(a.project?('<span class="ws-proj">'+esc(a.project)+'</span>'):'')+(a.agent&&a.agent!==k?('<span class="ws-badge">'+esc(a.agent)+'</span>'):'')+'</div>'
+              +(a.detail?('<div class="ws-title">'+esc(a.detail)+'</div>'):'')
+              +'<div class="mn-cfg-sub">เริ่ม '+esc(String(a.started_at||"").replace("T"," "))+(stale?' · (อาจค้าง/รีสตาร์ท)':'')+'</div></div>';
+          }).join("");
+        }).catch(function(){ box.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้</div>'; });
       }
       function buildMana(){
         built.mana=true;
@@ -4623,7 +4723,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
 (function(){
   try{
     var key=""; try{ var u=new URLSearchParams(location.search).get("key"); if(u) localStorage.setItem("prontera_gkey",u); key=u||localStorage.getItem("prontera_gkey")||""; }catch(_){}
-    var CEORE=/\/(set_model|iris_model|no_claude|brief|investment)(\?|$)/;
+    var CEORE=/\/(set_model|iris_model|no_claude|brief|investment|set_schedule|queue_add|queue_remove|iris_run|vera_run|ci_harvest)(\?|$)/;
     function withKey(u){ try{ if(typeof u==="string" && key && CEORE.test(u) && u.indexOf("key=")<0) return u+(u.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(key); }catch(_){} return u; }
     var _f=window.fetch; if(_f) window.fetch=function(u,o){ return _f.call(this, (typeof u==="string"?withKey(u):u), o); };
     var _E=window.EventSource; if(_E){ var W=function(u,c){ return new _E(withKey(u), c); }; try{ W.prototype=_E.prototype; }catch(_){} window.EventSource=W; }
