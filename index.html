@@ -4195,9 +4195,13 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         var s=document.createElement("style"); s.id="mn-cfg-css";
         s.textContent=".mn-cfg{margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)}"
           +".mn-cfg-sub{font-size:11px;opacity:.6;font-weight:400}"
-          +".mn-sched-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0}"
-          +".mn-sched-row label{font-size:13px}"
+          +".mn-sched-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;flex-wrap:wrap}"
+          +".mn-sched-row label{font-size:13px;flex:1;min-width:150px}"
+          +".mn-sched-ctl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}"
+          +".mn-sched-or{font-size:11px;opacity:.6}"
           +".mn-sched-row input[type=time]{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 6px;font-size:13px}"
+          +".mn-sched-row input[type=time]:disabled{opacity:.4}"
+          +".mn-every{width:52px;background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 6px;font-size:13px}"
           +".mn-q-form{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px}"
           +".mn-q-line{display:flex;gap:6px;align-items:center;flex-wrap:wrap}"
           +".mn-q-form select,.mn-q-form input,.mn-q-form textarea{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit}"
@@ -4216,16 +4220,35 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         if(sr){
           fetch(BACKEND+"/config").then(function(r){return r.ok?r.json():null;}).then(function(cfg){
             if(!cfg){ sr.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้ — เปิดผ่านเซิร์ฟเวอร์ Prontera</div>'; return; }
-            var jobs=[["iris","🛠️ Iris — พัฒนา hotel-pms/hostgate/discord-bot","iris_time"],
-                      ["kira","🏆 Kira — อัปเดต Model Ranking","kira_time"],
-                      ["vera","🎨 Vera — พัฒนา prontera","vera_time"],
-                      ["echo","📈 Echo — Top-10 หุ้น SET","echo_time"]];
-            sr.innerHTML=jobs.map(function(j){ return '<div class="mn-sched-row"><label>'+j[1]+'</label><input type="time" data-job="'+j[0]+'" value="'+esc(cfg[j[2]]||"")+'" /></div>'; }).join("");
+            var jobs=[["iris","🛠️ Iris — พัฒนา hotel-pms/hostgate/discord-bot","iris_time","iris_every_h"],
+                      ["kira","🏆 Kira — อัปเดต Model Ranking","kira_time","kira_every_h"],
+                      ["vera","🎨 Vera — พัฒนา prontera","vera_time","vera_every_h"],
+                      ["echo","📈 Echo — Top-10 หุ้น SET","echo_time","echo_every_h"]];
+            sr.innerHTML='<div class="mn-cfg-sub" style="margin-bottom:6px">ตั้งเวลาประจำวัน (จ–ศ) <b>หรือ</b> ใส่ “ทุกๆ N ชม.” &gt; 0 เพื่อรันทุก N ชั่วโมง (ทุกวัน · แทนเวลาประจำวัน) · 0 = ใช้เวลาประจำวัน</div>'
+              +jobs.map(function(j){
+                var ev=parseFloat(cfg[j[3]]||0)||0;
+                return '<div class="mn-sched-row"><label>'+j[1]+'</label><span class="mn-sched-ctl">'
+                  +'<input type="time" data-job="'+j[0]+'"'+(ev>0?' disabled':'')+' value="'+esc(cfg[j[2]]||"")+'" />'
+                  +'<span class="mn-sched-or">ทุกๆ</span>'
+                  +'<input type="number" class="mn-every" min="0" max="168" step="1" data-job="'+j[0]+'" value="'+ev+'" /> ชม.'
+                  +'</span></div>';
+              }).join("");
             sr.querySelectorAll('input[type=time]').forEach(function(inp){
               inp.onchange=function(){
                 fetch(BACKEND+"/set_schedule?job="+encodeURIComponent(inp.dataset.job)+"&time="+encodeURIComponent(inp.value))
                   .then(function(r){return r.json();}).then(function(d){ systemLog(d&&d.ok?("⏰ ตั้งเวลา "+inp.dataset.job+" → "+inp.value):"⚠️ ตั้งเวลาไม่สำเร็จ (CEO เท่านั้น)"); })
                   .catch(function(){ systemLog("⚠️ ตั้งเวลาไม่สำเร็จ — เปิดผ่านเซิร์ฟเวอร์ Prontera"); });
+              };
+            });
+            sr.querySelectorAll('input.mn-every').forEach(function(inp){
+              inp.onchange=function(){
+                var v=Math.max(0,Math.min(168,parseInt(inp.value||"0",10)||0)); inp.value=v;
+                fetch(BACKEND+"/set_schedule?job="+encodeURIComponent(inp.dataset.job)+"&every="+v)
+                  .then(function(r){return r.json();}).then(function(d){
+                    if(d&&d.ok){ systemLog(v>0?("🔁 "+inp.dataset.job+" รันทุก "+v+" ชม."):("⏰ "+inp.dataset.job+" กลับไปใช้เวลาประจำวัน"));
+                      var ti=sr.querySelector('input[type=time][data-job="'+inp.dataset.job+'"]'); if(ti) ti.disabled=(v>0); }
+                    else systemLog("⚠️ ตั้ง interval ไม่สำเร็จ (CEO เท่านั้น)");
+                  }).catch(function(){ systemLog("⚠️ ตั้ง interval ไม่สำเร็จ — เปิดผ่านเซิร์ฟเวอร์ Prontera"); });
               };
             });
           }).catch(function(){ sr.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้</div>'; });
