@@ -4414,6 +4414,16 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       document.addEventListener("keydown",function(e){ if(e.key==="Escape") dl.hidden=true; });
     })();
     window.addEventListener("keydown", function(e){ if((e.key==="g"||e.key==="G") && !/input|select|textarea/i.test(e.target.tagName||"")) { var s=$g("stage"); if(s) s.classList.toggle("grid-on"); } });
+    window.addEventListener('keydown', function(e) {
+      if (e.key === '?' && !/input|select|textarea/i.test(e.target.tagName||'')) {
+        var p = document.getElementById('kb-help');
+        if (p) p.hidden = !p.hidden;
+      }
+      if (e.key === 'Escape') {
+        var p = document.getElementById('kb-help');
+        if (p) p.hidden = true;
+      }
+    });
     if(window.ResizeObserver){ new ResizeObserver(function(){ CAM.apply(); }).observe(wrap); }
     window.addEventListener("resize", function(){ CAM.apply(); });
     CAM.apply(); setTimeout(function(){CAM.apply();},400); setTimeout(function(){CAM.apply();},1200);
@@ -4682,6 +4692,19 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
   }catch(_){}
 })();
 </script>
+
+<div id="kb-help" hidden style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9000;background:#1a1408;border:2px solid #8a6a3a;border-radius:12px;padding:18px 22px;min-width:260px;box-shadow:0 12px 38px rgba(0,0,0,.7);font:13px system-ui;color:#f3e7c8">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+    <span style="color:#ffd884;font-weight:700;font-size:13px">⌨ KEYBOARD SHORTCUTS</span>
+    <button onclick="document.getElementById('kb-help').hidden=true" style="background:none;border:none;color:#caa86a;font-size:19px;cursor:pointer;line-height:1;padding:0 0 0 12px">×</button>
+  </div>
+  <table style="border-collapse:collapse;width:100%;margin-top:10px">
+    <tr style="border-top:1px solid #3a3020"><td style="color:#ffd884;font-family:ui-monospace,monospace;font-size:12px;white-space:nowrap;padding:5px 14px 5px 4px">?</td><td style="padding:5px 4px">เปิด/ปิดรายการ shortcut นี้</td></tr>
+    <tr style="border-top:1px solid #3a3020"><td style="color:#ffd884;font-family:ui-monospace,monospace;font-size:12px;white-space:nowrap;padding:5px 14px 5px 4px">Enter</td><td style="padding:5px 4px">ส่ง brief ไปยัง Iris</td></tr>
+    <tr style="border-top:1px solid #3a3020"><td style="color:#ffd884;font-family:ui-monospace,monospace;font-size:12px;white-space:nowrap;padding:5px 14px 5px 4px">G</td><td style="padding:5px 4px">แสดง/ซ่อน grid บน map</td></tr>
+    <tr style="border-top:1px solid #3a3020"><td style="color:#ffd884;font-family:ui-monospace,monospace;font-size:12px;white-space:nowrap;padding:5px 14px 5px 4px">Esc</td><td style="padding:5px 4px">ปิด agent chat / ปิด overlay นี้</td></tr>
+  </table>
+</div>
 
 </body>
 </html>
