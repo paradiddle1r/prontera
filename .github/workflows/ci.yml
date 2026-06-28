@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install htmlhint
+        run: npm install -g htmlhint
+
+      - name: Validate prontera-v2.html
+        run: htmlhint prontera-v2.html --config .htmlhintrc 2>/dev/null || htmlhint prontera-v2.html
+
+      - name: Check file size (guard against accidental truncation)
+        run: |
+          SIZE=$(wc -c < prontera-v2.html)
+          echo "prontera-v2.html size: $SIZE bytes"
+          if [ "$SIZE" -lt 10000 ]; then
+            echo "ERROR: prontera-v2.html is suspiciously small ($SIZE bytes) — possible truncation"
+            exit 1
+          fi
