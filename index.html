@@ -4211,7 +4211,12 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
           +".mn-q-it-top,.mn-act-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px}"
           +".mn-q-del{margin-left:auto;cursor:pointer;background:rgba(220,80,80,.25);color:#fff;border:1px solid rgba(220,80,80,.5);border-radius:6px;padding:1px 7px}"
           +".mn-act-owner{font-weight:600;text-transform:capitalize}.mn-act-phase{font-size:12px;opacity:.85}"
-          +".mn-act-item{border-left:3px solid #5dcaa5}.mn-act-stale{border-left-color:#e0a13a;opacity:.7}";
+          +".mn-act-item{border-left:3px solid #5dcaa5}.mn-act-stale{border-left-color:#e0a13a;opacity:.7}"
+          +".mn-cfg-grp{font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:.04em;margin:10px 0 2px}"
+          +".mn-proj-en{vertical-align:middle;margin-right:4px}"
+          +".mn-proj-run{cursor:pointer;background:rgba(93,202,165,.2);color:#fff;border:1px solid rgba(93,202,165,.5);border-radius:6px;padding:2px 9px;font-size:13px}"
+          +".mn-proj-run:disabled{opacity:.4;cursor:default}"
+          +".mn-proj-time:disabled,.mn-proj-every:disabled,.mn-job-time:disabled{opacity:.4}";
         document.head.appendChild(s);
       }
       function buildControls(){
@@ -4220,36 +4225,55 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         if(sr){
           fetch(BACKEND+"/config").then(function(r){return r.ok?r.json():null;}).then(function(cfg){
             if(!cfg){ sr.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้ — เปิดผ่านเซิร์ฟเวอร์ Prontera</div>'; return; }
-            var jobs=[["iris","🛠️ Iris — พัฒนา hotel-pms/hostgate/discord-bot","iris_time","iris_every_h"],
-                      ["kira","🏆 Kira — อัปเดต Model Ranking","kira_time","kira_every_h"],
-                      ["vera","🎨 Vera — พัฒนา prontera","vera_time","vera_every_h"],
-                      ["echo","📈 Echo — Top-10 หุ้น SET","echo_time","echo_every_h"]];
-            sr.innerHTML='<div class="mn-cfg-sub" style="margin-bottom:6px">ตั้งเวลาประจำวัน (จ–ศ) <b>หรือ</b> ใส่ “ทุกๆ N ชม.” &gt; 0 เพื่อรันทุก N ชั่วโมง (ทุกวัน · แทนเวลาประจำวัน) · 0 = ใช้เวลาประจำวัน</div>'
-              +jobs.map(function(j){
-                var ev=parseFloat(cfg[j[3]]||0)||0;
-                return '<div class="mn-sched-row"><label>'+j[1]+'</label><span class="mn-sched-ctl">'
-                  +'<input type="time" data-job="'+j[0]+'"'+(ev>0?' disabled':'')+' value="'+esc(cfg[j[2]]||"")+'" />'
-                  +'<span class="mn-sched-or">ทุกๆ</span>'
-                  +'<input type="number" class="mn-every" min="0" max="168" step="1" data-job="'+j[0]+'" value="'+ev+'" /> ชม.'
-                  +'</span></div>';
-              }).join("");
-            sr.querySelectorAll('input[type=time]').forEach(function(inp){
-              inp.onchange=function(){
-                fetch(BACKEND+"/set_schedule?job="+encodeURIComponent(inp.dataset.job)+"&time="+encodeURIComponent(inp.value))
-                  .then(function(r){return r.json();}).then(function(d){ systemLog(d&&d.ok?("⏰ ตั้งเวลา "+inp.dataset.job+" → "+inp.value):"⚠️ ตั้งเวลาไม่สำเร็จ (CEO เท่านั้น)"); })
-                  .catch(function(){ systemLog("⚠️ ตั้งเวลาไม่สำเร็จ — เปิดผ่านเซิร์ฟเวอร์ Prontera"); });
+            var projs=[["hotel-pms","🏨 hotel-pms","hotelpms"],["hostgate","🌐 hostgate","hostgate"],
+                       ["discord-bot","🤖 discord-bot","discordbot"],["prontera","🏛️ prontera","prontera"]];
+            var jobs2=[["kira","🏆 Kira — Model Ranking","kira_time","kira_every_h"],
+                       ["echo","📈 Echo — Top-10 SET","echo_time","echo_every_h"]];
+            var h='<div class="mn-cfg-sub" style="margin-bottom:6px">ติ๊ก = เปิด cron ของโปรเจคนั้น · ตั้งเวลาประจำวัน (จ–ศ) <b>หรือ</b> “ทุกๆ N ชม.” (&gt;0 = รันทุก N ชม. ทุกวัน) · ▶ = รันเดี๋ยวนี้</div>'
+              +'<div class="mn-cfg-grp">โปรเจค (พัฒนาโค้ด)</div>';
+            projs.forEach(function(p){
+              var en=!(cfg[p[2]+"_enabled"]===false), ev=parseFloat(cfg[p[2]+"_every_h"]||0)||0, tv=cfg[p[2]+"_time"]||"";
+              h+='<div class="mn-sched-row"><label><input type="checkbox" class="mn-proj-en" data-proj="'+p[0]+'"'+(en?" checked":"")+' /> '+p[1]+'</label><span class="mn-sched-ctl">'
+                +'<input type="time" class="mn-proj-time" data-proj="'+p[0]+'"'+((!en||ev>0)?" disabled":"")+' value="'+esc(tv)+'" />'
+                +'<span class="mn-sched-or">ทุกๆ</span>'
+                +'<input type="number" class="mn-proj-every" min="0" max="168" step="1" data-proj="'+p[0]+'"'+(!en?" disabled":"")+' value="'+ev+'" /> ชม.'
+                +'<button class="mn-proj-run" data-proj="'+p[0]+'" title="รันเดี๋ยวนี้">▶</button>'
+                +'</span></div>';
+            });
+            h+='<div class="mn-cfg-grp">งานอื่น (รายงาน)</div>';
+            jobs2.forEach(function(j){
+              var ev=parseFloat(cfg[j[3]]||0)||0;
+              h+='<div class="mn-sched-row"><label>'+j[1]+'</label><span class="mn-sched-ctl">'
+                +'<input type="time" class="mn-job-time" data-job="'+j[0]+'"'+(ev>0?" disabled":"")+' value="'+esc(cfg[j[2]]||"")+'" />'
+                +'<span class="mn-sched-or">ทุกๆ</span>'
+                +'<input type="number" class="mn-job-every" min="0" max="168" step="1" data-job="'+j[0]+'" value="'+ev+'" /> ชม.'
+                +'</span></div>';
+            });
+            sr.innerHTML=h;
+            function _sl(d,ok,bad){ systemLog(d&&d.ok?ok:(bad||"⚠️ ไม่สำเร็จ (CEO เท่านั้น)")); }
+            sr.querySelectorAll('input.mn-proj-en').forEach(function(cb){
+              cb.onchange=function(){ var pj=cb.dataset.proj, on=cb.checked;
+                fetch(BACKEND+"/set_project_cron?project="+encodeURIComponent(pj)+"&enabled="+(on?1:0)).then(function(r){return r.json();}).then(function(d){ _sl(d,(on?"✅ เปิด":"🚫 ปิด")+" cron "+pj); }).catch(function(){ systemLog("⚠️ ไม่สำเร็จ"); });
+                var t=sr.querySelector('input.mn-proj-time[data-proj="'+pj+'"]'), e=sr.querySelector('input.mn-proj-every[data-proj="'+pj+'"]');
+                if(e) e.disabled=!on; if(t) t.disabled=!on||((parseFloat((e&&e.value)||0)||0)>0);
               };
             });
-            sr.querySelectorAll('input.mn-every').forEach(function(inp){
-              inp.onchange=function(){
-                var v=Math.max(0,Math.min(168,parseInt(inp.value||"0",10)||0)); inp.value=v;
-                fetch(BACKEND+"/set_schedule?job="+encodeURIComponent(inp.dataset.job)+"&every="+v)
-                  .then(function(r){return r.json();}).then(function(d){
-                    if(d&&d.ok){ systemLog(v>0?("🔁 "+inp.dataset.job+" รันทุก "+v+" ชม."):("⏰ "+inp.dataset.job+" กลับไปใช้เวลาประจำวัน"));
-                      var ti=sr.querySelector('input[type=time][data-job="'+inp.dataset.job+'"]'); if(ti) ti.disabled=(v>0); }
-                    else systemLog("⚠️ ตั้ง interval ไม่สำเร็จ (CEO เท่านั้น)");
-                  }).catch(function(){ systemLog("⚠️ ตั้ง interval ไม่สำเร็จ — เปิดผ่านเซิร์ฟเวอร์ Prontera"); });
-              };
+            sr.querySelectorAll('input.mn-proj-time').forEach(function(inp){
+              inp.onchange=function(){ fetch(BACKEND+"/set_project_cron?project="+encodeURIComponent(inp.dataset.proj)+"&time="+encodeURIComponent(inp.value)).then(function(r){return r.json();}).then(function(d){ _sl(d,"⏰ "+inp.dataset.proj+" → "+inp.value); }).catch(function(){ systemLog("⚠️ ไม่สำเร็จ"); }); };
+            });
+            sr.querySelectorAll('input.mn-proj-every').forEach(function(inp){
+              inp.onchange=function(){ var v=Math.max(0,Math.min(168,parseInt(inp.value||"0",10)||0)); inp.value=v;
+                fetch(BACKEND+"/set_project_cron?project="+encodeURIComponent(inp.dataset.proj)+"&every="+v).then(function(r){return r.json();}).then(function(d){ if(d&&d.ok){ systemLog(v>0?("🔁 "+inp.dataset.proj+" ทุก "+v+" ชม."):("⏰ "+inp.dataset.proj+" ใช้เวลาประจำวัน")); var t=sr.querySelector('input.mn-proj-time[data-proj="'+inp.dataset.proj+'"]'); if(t) t.disabled=(v>0); } else systemLog("⚠️ ไม่สำเร็จ (CEO เท่านั้น)"); }).catch(function(){ systemLog("⚠️ ไม่สำเร็จ"); }); };
+            });
+            sr.querySelectorAll('button.mn-proj-run').forEach(function(b){
+              b.onclick=function(){ b.disabled=true; fetch(BACKEND+"/run_project?project="+encodeURIComponent(b.dataset.proj)).then(function(r){return r.json();}).then(function(d){ systemLog(d&&d.status==="started"?("▶ เริ่มรัน "+b.dataset.proj+" — ดูแท็บ Live Activity"):"⚠️ รันไม่สำเร็จ (CEO เท่านั้น)"); setTimeout(function(){b.disabled=false;},3000); }).catch(function(){ systemLog("⚠️ รันไม่สำเร็จ"); b.disabled=false; }); };
+            });
+            sr.querySelectorAll('input.mn-job-time').forEach(function(inp){
+              inp.onchange=function(){ fetch(BACKEND+"/set_schedule?job="+encodeURIComponent(inp.dataset.job)+"&time="+encodeURIComponent(inp.value)).then(function(r){return r.json();}).then(function(d){ _sl(d,"⏰ "+inp.dataset.job+" → "+inp.value); }).catch(function(){ systemLog("⚠️ ไม่สำเร็จ"); }); };
+            });
+            sr.querySelectorAll('input.mn-job-every').forEach(function(inp){
+              inp.onchange=function(){ var v=Math.max(0,Math.min(168,parseInt(inp.value||"0",10)||0)); inp.value=v;
+                fetch(BACKEND+"/set_schedule?job="+encodeURIComponent(inp.dataset.job)+"&every="+v).then(function(r){return r.json();}).then(function(d){ if(d&&d.ok){ systemLog(v>0?("🔁 "+inp.dataset.job+" ทุก "+v+" ชม."):("⏰ "+inp.dataset.job+" ใช้เวลาประจำวัน")); var t=sr.querySelector('input.mn-job-time[data-job="'+inp.dataset.job+'"]'); if(t) t.disabled=(v>0); } else systemLog("⚠️ ไม่สำเร็จ"); }).catch(function(){ systemLog("⚠️ ไม่สำเร็จ"); }); };
             });
           }).catch(function(){ sr.innerHTML='<div class="mn-empty">⚠️ เชื่อมต่อ backend ไม่ได้</div>'; });
         }
@@ -4290,7 +4314,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
         var box=$g("mn-act"); if(!box) return;
         fetch(BACKEND+"/activity").then(function(r){return r.ok?r.json():{};}).then(function(d){
           var keys=(d&&typeof d==="object")?Object.keys(d):[];
-          if(!keys.length){ box.innerHTML='<div class="mn-empty">😴 ตอนนี้ไม่มี agent ทำงานอยู่ — pipeline เริ่มตามเวลาที่ตั้งใน Controls (Iris/Vera/Kira/Echo) หรือสั่งรันเอง</div>'; return; }
+          if(!keys.length){ box.innerHTML='<div class="mn-empty">😴 ตอนนี้ไม่มี agent ทำงานอยู่ — แต่ละโปรเจครันตามเวลา/ความถี่ที่ตั้งในแท็บ ⚙️ Controls หรือกด ▶ รันเดี๋ยวนี้</div>'; return; }
           var PH={planning:["🧭","กำลังวางแผนงาน"],working:["⚙️","กำลังลงมือเขียนโค้ด"],reviewing:["🛡️","Vera กำลังรีวิว"],"waiting for CI":["⏳","รอผล CI · วนแก้จนเขียว"]};
           box.innerHTML=keys.map(function(k){
             var a=d[k]||{}, ph=PH[a.phase]||["•",a.phase||""], stale=false;
@@ -4746,7 +4770,7 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
 (function(){
   try{
     var key=""; try{ var u=new URLSearchParams(location.search).get("key"); if(u) localStorage.setItem("prontera_gkey",u); key=u||localStorage.getItem("prontera_gkey")||""; }catch(_){}
-    var CEORE=/\/(set_model|iris_model|no_claude|brief|investment|set_schedule|queue_add|queue_remove|iris_run|vera_run|ci_harvest)(\?|$)/;
+    var CEORE=/\/(set_model|iris_model|no_claude|brief|investment|set_schedule|set_project_cron|run_project|queue_add|queue_remove|iris_run|vera_run|ci_harvest)(\?|$)/;
     function withKey(u){ try{ if(typeof u==="string" && key && CEORE.test(u) && u.indexOf("key=")<0) return u+(u.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(key); }catch(_){} return u; }
     var _f=window.fetch; if(_f) window.fetch=function(u,o){ return _f.call(this, (typeof u==="string"?withKey(u):u), o); };
     var _E=window.EventSource; if(_E){ var W=function(u,c){ return new _E(withKey(u), c); }; try{ W.prototype=_E.prototype; }catch(_){} window.EventSource=W; }
