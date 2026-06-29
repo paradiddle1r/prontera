@@ -1242,9 +1242,12 @@
 .ac-msg{padding:6px 9px;border-radius:9px;max-width:86%;line-height:1.35;white-space:pre-wrap;word-break:break-word}
 .ac-msg .ac-who{display:block;font-size:9px;opacity:.55;margin-bottom:1px}
 .ac-msg.me{align-self:flex-end;background:#39568a;color:#eaf2ff}
-.ac-msg.bot{align-self:flex-start;background:#2a241a;border:1px solid #4a3c22}
+.ac-msg.bot{align-self:flex-start;background:#2a241a;border:1px solid #4a3c22;position:relative;}
 .ac-msg.wait{opacity:.7;font-style:italic}
 .ac-msg.err{align-self:flex-start;background:#5a2222;border:1px solid #7a2c2c}
+.ac-copy{position:absolute;top:5px;right:6px;background:rgba(0,0,0,.45);border:1px solid #5a4628;border-radius:5px;color:#caa86a;font-size:10px;padding:1px 5px;cursor:pointer;opacity:0;transition:opacity .15s;line-height:1.6;}
+.ac-msg.bot:hover .ac-copy{opacity:1;}
+.ac-copy.done{color:#7ed87e;border-color:#5a8a5a;}
 #agentChat .ac-in{display:flex;gap:6px;padding:9px;border-top:1px solid #6a512c;background:rgba(0,0,0,.25)}
 #agentChat #ac-msg{flex:1;min-width:0;background:#0e0c08;border:1px solid #6a512c;border-radius:7px;color:#f3e7c8;padding:7px 9px;font:13px system-ui;outline:none}
 #agentChat #ac-msg:focus{border-color:#caa64a}
@@ -3918,8 +3921,17 @@ setTimeout(() => (function(){var _n=Object.keys(AGENTS).length;try{var _sb=docum
       function loadLog(id){ try{ return JSON.parse(localStorage.getItem(logKey(id))||"[]"); }catch(e){ return []; } }
       function saveLog(id,a){ try{ localStorage.setItem(logKey(id), JSON.stringify(a.slice(-60))); }catch(e){} }
       function renderMsg(who,txt,cls){ var d=document.createElement("div"); d.className="ac-msg "+cls;
-        d.innerHTML='<span class="ac-who">'+esc(who)+'</span>'+esc(txt); thread.appendChild(d);
-        thread.scrollTop=thread.scrollHeight; return d; }
+        d.innerHTML='<span class="ac-who">'+esc(who)+'</span>'+esc(txt);
+        if(cls.indexOf("bot")>=0 && cls.indexOf("wait")<0){
+          var cb=document.createElement("button"); cb.className="ac-copy"; cb.textContent="📋";
+          cb.title="คัดลอกข้อความ";
+          cb.onclick=function(e){
+            e.stopPropagation();
+            try{ navigator.clipboard.writeText(txt).then(function(){ cb.textContent="✓"; cb.classList.add("done"); setTimeout(function(){ cb.textContent="📋"; cb.classList.remove("done"); },1400); }); }catch(_){}
+          };
+          d.appendChild(cb);
+        }
+        thread.appendChild(d); thread.scrollTop=thread.scrollHeight; return d; }
       function addMsg(who,txt,cls){ var e=thread.querySelector('.ac-empty'); if(e) e.remove();
         var d=renderMsg(who,txt,cls);
         if(curId){ var a=loadLog(curId); a.push({who:who,txt:txt,cls:cls}); saveLog(curId,a); } return d; }
