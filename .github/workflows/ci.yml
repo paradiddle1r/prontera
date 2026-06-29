@@ -31,3 +31,17 @@ jobs:
             echo "ERROR: prontera-v2.html is suspiciously small ($SIZE bytes) — possible truncation"
             exit 1
           fi
+
+      - name: Validate prontera-v3.html (new dashboard, informational)
+        run: '[ -f prontera-v3.html ] && (htmlhint prontera-v3.html || true) || echo "v3 not present yet"'
+
+      - name: Guard prontera-v3.html size (block truncation)
+        run: |
+          if [ -f prontera-v3.html ]; then
+            SIZE=$(wc -c < prontera-v3.html)
+            echo "prontera-v3.html size: $SIZE bytes"
+            if [ "$SIZE" -lt 8000 ]; then
+              echo "ERROR: prontera-v3.html suspiciously small ($SIZE bytes) — possible truncation"
+              exit 1
+            fi
+          fi
