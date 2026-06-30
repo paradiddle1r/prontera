@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Prontera HQ — Command Center</title>
+<style>
+:root{
+  --text:#1d1d1f; --muted:#5f6168; --faint:#8a8d94;
+  --accent:#0a84ff; --accent-ink:#fff; --indigo:#5e5ce6;
+  --ok:#30a46c; --warn:#e08600; --bad:#e5484d; --okdot:#34c759;
+  --radius:18px; --gap:16px;
+  --glass:rgba(255,255,255,.52); --glass-2:rgba(255,255,255,.66); --glass-3:rgba(255,255,255,.78);
+  --hair:rgba(255,255,255,.6); --line:rgba(60,60,67,.14);
+  --shadow:0 10px 34px rgba(20,28,46,.12),0 2px 8px rgba(20,28,46,.07);
+  --blur:saturate(180%) blur(24px);
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;color:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{display:grid;grid-template-columns:248px 1fr;grid-template-rows:100dvh;
+  background:
+    radial-gradient(42% 40% at 6% 8%,rgba(10,132,255,.16),transparent 72%),
+    radial-gradient(40% 38% at 96% 4%,rgba(94,92,230,.15),transparent 72%),
+    radial-gradient(46% 42% at 82% 96%,rgba(255,122,182,.13),transparent 72%),
+    radial-gradient(44% 40% at 14% 92%,rgba(48,200,180,.13),transparent 72%),
+    radial-gradient(38% 36% at 56% 44%,rgba(255,196,120,.10),transparent 72%),
+    radial-gradient(50% 50% at 40% 20%,rgba(120,170,255,.10),transparent 75%),
+    linear-gradient(160deg,#f4f6fb,#e9ecf5);
+  background-attachment:fixed}
+a{color:var(--accent);text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.mono{font-family:var(--mono)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.glass{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);box-shadow:var(--shadow)}
+
+/* ── sidebar ── */
+.side{background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-right:1px solid var(--hair);display:flex;flex-direction:column;min-height:0}
+.brand{display:flex;align-items:center;gap:11px;padding:20px 18px 14px;font-weight:600;font-size:16px;letter-spacing:.2px}
+.brand .dot{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;box-shadow:0 4px 12px rgba(10,132,255,.4)}
+.brand small{display:block;font-weight:400;font-size:11px;color:var(--faint);letter-spacing:.6px}
+.nav{display:flex;flex-direction:column;gap:3px;padding:8px 12px;overflow-y:auto;flex:1;min-height:0}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;color:var(--muted);padding:11px 13px;border-radius:13px;font-size:14.5px;font-weight:500;text-align:left;transition:background .18s,color .18s}
+.nav button svg{width:19px;height:19px;flex:0 0 19px}
+.nav button:hover{background:rgba(255,255,255,.55);color:var(--text)}
+.nav button.on{background:rgba(10,132,255,.14);color:var(--accent)}
+.side-foot{padding:13px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--faint)}
+
+/* ── main ── */
+.main{overflow-y:auto;min-height:0}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:15px 24px;background:rgba(255,255,255,.5);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-bottom:1px solid var(--hair)}
+.topbar h1{margin:0;font-size:19px;font-weight:600;letter-spacing:-.2px}
+.topbar .sub{color:var(--muted);font-size:13px}
+.topbar .spacer{flex:1}
+.tk{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);padding:7px 13px;border-radius:999px;box-shadow:var(--shadow)}
+.tk b{color:var(--text);font-weight:600}
+.tk .ring{width:9px;height:9px;border-radius:50%;background:var(--okdot)}
+.tbtn{display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);color:var(--text);box-shadow:var(--shadow);transition:color .15s}
+.tbtn:hover{color:var(--accent)}
+.tbtn svg{width:18px;height:18px}
+.wrap{padding:24px;max-width:1180px}
+.hd{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:28px 0 13px}
+.hd:first-child{margin-top:6px}
+
+.grid{display:grid;gap:var(--gap)}
+.g-kpi{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.g-cards{grid-template-columns:repeat(auto-fill,minmax(256px,1fr))}
+.card,.kpi,.ag,.act,.qi,.ws{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);box-shadow:var(--shadow)}
+.card{border-radius:var(--radius);padding:18px}
+.kpi{border-radius:var(--radius);padding:16px 18px}
+.kpi .l{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.kpi .v{font-size:29px;font-weight:700;margin-top:6px;letter-spacing:-1px}
+.kpi .v small{font-size:13px;font-weight:500;color:var(--muted)}
+.kpi svg{width:15px;height:15px;color:var(--accent)}
+
+.ag{border-radius:var(--radius);padding:16px}
+.ag-top{display:flex;align-items:center;gap:12px}
+.ag-av{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff;flex:0 0 40px;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.ag-nm{font-weight:600;font-size:14.5px}
+.ag-rl{font-size:12.5px;color:var(--muted)}
+.ag-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font-size:11.5px;font-weight:500;padding:3px 10px;border-radius:999px;background:rgba(120,120,128,.12);color:var(--muted);border:1px solid var(--line)}
+.chip.live{background:rgba(48,164,108,.16);color:var(--ok);border-color:rgba(48,164,108,.3)}
+.chip.mdl{background:rgba(10,132,255,.13);color:var(--accent);border-color:rgba(10,132,255,.26)}
+.chip.mono{font-family:var(--mono);font-size:11px}
+
+.tkrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.tkrow:last-child{border-bottom:0}
+.tkrow .nm{width:98px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
+.tkrow .st{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+.bar{flex:1;height:8px;background:rgba(120,120,128,.16);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#0a84ff,#5e5ce6)}
+.tkrow .pc{width:74px;text-align:right;font-size:12px;color:var(--muted)}
+
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.row:last-child{border-bottom:0}
+.row .lbl{flex:1;min-width:150px;font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:10px}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+input,select,textarea{background:var(--glass-3);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px 11px;font:inherit;font-size:14px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+input[type=time]{padding:8px 10px}
+.skill-inp{width:100%;box-sizing:border-box;background:var(--glass-2);border:1px solid var(--hair);border-radius:8px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:6px;}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(10,132,255,.2)}
+input:disabled{opacity:.4}
+.num{width:64px}
+.sw{position:relative;width:46px;height:28px;flex:0 0 46px}
+.sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.sw .tr{position:absolute;inset:0;background:rgba(120,120,128,.22);border-radius:999px;transition:.22s}
+.sw .tr::after{content:"";position:absolute;left:2px;top:2px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.28);transition:.22s}
+.sw input:checked + .tr{background:var(--okdot)}
+.sw input:checked + .tr::after{transform:translateX(18px)}
+.btn{display:inline-flex;align-items:center;gap:7px;background:var(--glass-3);color:var(--text);border:1px solid var(--hair);border-radius:12px;padding:9px 15px;font-size:13.5px;font-weight:500;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform .12s,background .15s;box-shadow:0 2px 8px rgba(20,28,46,.08)}
+.btn:hover{background:#fff}
+.btn:active{transform:scale(.97)}
+.btn svg{width:15px;height:15px}
+.btn.run{background:rgba(10,132,255,.14);border-color:rgba(10,132,255,.32);color:var(--accent)}
+.btn.pri{background:var(--accent);color:#fff;border-color:transparent;font-weight:600;box-shadow:0 4px 14px rgba(10,132,255,.36)}
+.btn:disabled{opacity:.45;cursor:default}
+.muted{color:var(--muted)}.faint{color:var(--faint)}.fs12{font-size:12px}.fs13{font-size:13px}
+.sub{font-size:12px;color:var(--faint);font-weight:400}
+.empty{color:var(--faint);font-size:13.5px;padding:22px;text-align:center;border:1px dashed var(--line);border-radius:var(--radius);background:rgba(255,255,255,.35)}
+.flex{display:flex;align-items:center;gap:10px}.wrapflex{flex-wrap:wrap}
+
+.act{border-radius:14px;padding:13px 15px;margin-bottom:11px;border-left:3px solid var(--accent)}
+.act.stale{border-left-color:var(--warn);opacity:.78}
+.act .ph{font-size:13px;font-weight:600;color:var(--accent)}
+.act .who{font-weight:600;text-transform:capitalize}
+
+.qi{border-radius:14px;padding:13px 15px;margin-bottom:11px}
+.qi .t{font-weight:500;margin:5px 0}
+.ws{border-radius:14px;padding:14px 16px;margin-bottom:11px}
+.verdict{font-size:11.5px;padding:3px 10px;border-radius:999px;font-weight:600}
+.v-ok{background:rgba(48,164,108,.16);color:var(--ok)}
+.v-fix{background:rgba(229,72,77,.15);color:var(--bad)}
+.v-unclear{background:rgba(224,134,0,.16);color:var(--warn)}
+
+.chatwrap{display:flex;flex-direction:column;height:calc(100dvh - 60px)}
+.msgs{flex:1;overflow-y:auto;padding:22px 24px;display:flex;flex-direction:column;gap:13px}
+.msg{max-width:760px;padding:12px 16px;border-radius:20px;font-size:14.5px;line-height:1.55;white-space:pre-wrap;box-shadow:0 2px 10px rgba(20,28,46,.08)}
+.msg.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:6px}
+.msg.bot{align-self:flex-start;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);border-bottom-left-radius:6px}
+.msg .nm{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600}
+.chatbar{display:flex;gap:10px;padding:15px 24px;border-top:1px solid var(--hair);background:rgba(255,255,255,.5);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);align-items:flex-end}
+.chatbar select{flex:0 0 auto}.chatbar input{flex:1}
+
+.office{position:relative;height:calc(100dvh - 60px);width:100%}
+.office iframe{width:100%;height:100%;border:0;background:#0a0e14;display:block}
+.offull{position:absolute;top:12px;right:16px;z-index:5;font-size:12.5px;font-weight:500;color:var(--text);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);box-shadow:var(--shadow);padding:7px 13px;border-radius:999px}
+@media (max-width:860px){ .office{height:calc(100dvh - 122px)} }
+
+.page{display:none}.page.on{display:block}
+
+.mtop{display:none}
+@media (max-width:860px){
+  body{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
+  .side{display:none}
+  .mtop{display:flex;align-items:center;gap:10px;padding:13px 16px;background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-bottom:1px solid var(--hair);position:sticky;top:0;z-index:30}
+  .mtop .dot{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:grid;place-items:center;color:#fff;font-weight:700}
+  .mtop b{font-size:15px}
+  .topbar{padding:13px 16px}.topbar h1{font-size:17px}
+  .wrap{padding:16px}
+  .mnav{display:flex;position:sticky;bottom:0;z-index:30;background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-top:1px solid var(--hair);padding:6px 4px 8px;justify-content:space-around}
+  .mnav button{flex:1;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;font-size:10px;font-weight:500;border-radius:11px;min-height:50px}
+  .mnav button svg{width:22px;height:22px}
+  .mnav button.on{color:var(--accent)}
+  input,select,textarea{font-size:16px}
+  .btn,.btn.run{min-height:44px}
+  .row .lbl{min-width:0;flex:1 1 100%}
+  .msg{max-width:88%}
+}
+@media (min-width:861px){ .mnav{display:none} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+:root[data-theme="dark"]{--text:#f2f3f5;--muted:#a4a7b0;--faint:#7e828c;--line:rgba(255,255,255,.12);
+  --glass:rgba(28,30,38,.5);--glass-2:rgba(28,30,38,.62);--glass-3:rgba(44,46,56,.66);
+  --hair:rgba(255,255,255,.14);--shadow:0 10px 34px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);--accent:#0a84ff}
+[data-theme="dark"] body{background:
+  radial-gradient(42% 40% at 6% 8%,rgba(10,132,255,.24),transparent 72%),
+  radial-gradient(40% 38% at 96% 4%,rgba(94,92,230,.22),transparent 72%),
+  radial-gradient(46% 42% at 82% 96%,rgba(255,122,182,.16),transparent 72%),
+  radial-gradient(44% 40% at 14% 92%,rgba(48,200,180,.16),transparent 72%),
+  radial-gradient(38% 36% at 56% 44%,rgba(255,196,120,.10),transparent 72%),
+  linear-gradient(160deg,#0d0f15,#111521)}
+[data-theme="dark"] .topbar,[data-theme="dark"] .chatbar{background:rgba(20,22,30,.5)}
+[data-theme="dark"] .btn:hover{background:rgba(70,74,86,.8)}
+[data-theme="dark"] .nav button:hover{background:rgba(255,255,255,.08)}
+</style>
+</head>
+<body>
+<aside class="side">
+  <div class="brand"><span class="dot">P</span><div>Prontera HQ<small>COMMAND CENTER</small></div></div>
+  <nav class="nav" id="nav"></nav>
+  <div class="side-foot" id="foot">เชื่อมต่อ…</div>
+</aside>
+
+<div class="mtop"><span class="dot">P</span><b>Prontera HQ</b><span class="spacer" style="flex:1"></span><span id="mtk" class="sub mono"></span></div>
+
+<main class="main">
+  <div class="topbar"><h1 id="ttl">ภาพรวม</h1><span class="sub" id="tsub"></span><span class="spacer"></span>
+    <span class="tk"><span class="ring" id="tkring"></span><span id="tktxt">tokens</span></span>
+    <button class="tbtn" id="themeBtn" aria-label="สลับธีม light / dark / auto"></button>
+  </div>
+  <div id="view"></div>
+</main>
+
+<nav class="mnav" id="mnav"></nav>
+
+<script>
+const KEY=(function(){try{const u=new URLSearchParams(location.search).get("key");if(u)localStorage.setItem("prontera_gkey",u);return u||localStorage.getItem("prontera_gkey")||"";}catch(_){return"";}})();
+const LOCAL=["localhost","127.0.0.1",""];
+const BACKEND=(location.protocol==="file:"||LOCAL.includes(location.hostname))?"":"https://pornchais-mac-mini.tail62b220.ts.net:8443";
+const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|no_claude|brief|agent|iris_run|vera_run)(\?|$)/;
+function url(p){ if(KEY&&CEORE.test(p)&&p.indexOf("key=")<0) p+=(p.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(KEY); return BACKEND+p; }
+async function getJSON(p){ try{const r=await fetch(url(p));return r.ok?await r.json():null;}catch(_){return null;} }
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function avColor(s){const h=[...String(s)].reduce((a,c)=>a+c.charCodeAt(0),0)%360;return"linear-gradient(135deg,hsl("+h+",70%,58%),hsl("+((h+40)%360)+",70%,52%))";}
+const fmtK=n=>n>=1e6?(n/1e6).toFixed(n>=1e7?0:1)+"M":n>=1e3?Math.round(n/1e3)+"k":""+Math.round(n);
+
+const ICON={
+  overview:'<path d="M3 13h8V3H3zM13 21h8V3h-8zM3 21h8v-6H3z"/>',
+  projects:'<path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7"/>',
+  activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  models:'<path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>',
+  work:'<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  invest:'<path d="M3 3v18h18M7 14l4-4 4 4 5-6"/>',
+  office:'<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3M9 9v.01M9 13v.01M9 17v.01"/>',
+  skills:'<path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM2 22c0-5.5 4.5-10 10-10s10 4.5 10 10M5 9l2 2 4-4"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  play:'<path d="M5 3l14 9-14 9z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M18 6L6 18M6 6l12 12"/>',
+  refresh:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/>',
+  bolt:'<path d="M13 2L3 14h9l-1 8 10-12h-9z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>'
+};
+function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'+(c?' style="color:'+c+'"':'')+' aria-hidden="true">'+(ICON[n]||"")+'</svg>';}
+
+const NAV=[
+  ["overview","ภาพรวม","overview"],["projects","โปรเจค & Cron","projects"],["activity","Live Activity","activity"],
+  ["chat","แชท","chat"],["models","โมเดล & Token","models"],["work","สรุปงาน","work"],["invest","การลงทุน","invest"],
+  ["skills","Skills","skills"],
+  ["office","Office view","office"]
+];
+const MNAV=["overview","projects","activity","chat","office"];
+let CUR="overview";
+function buildNav(){
+  document.getElementById("nav").innerHTML=NAV.map(n=>'<button data-v="'+n[0]+'">'+ic(n[2])+'<span>'+n[1]+'</span></button>').join("");
+  document.getElementById("mnav").innerHTML=MNAV.map(v=>{const n=NAV.find(x=>x[0]===v);return '<button data-v="'+v+'">'+ic(n[2])+'<span>'+n[1].split(" ")[0]+'</span></button>';}).join("");
+  document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>go(b.dataset.v));
+}
+function go(v){
+  CUR=v;
+  document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  const n=NAV.find(x=>x[0]===v)||NAV[0];
+  document.getElementById("ttl").textContent=n[1];
+  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,chat:renderChat,models:renderModels,work:renderWork,invest:renderInvest,skills:renderSkills,office:renderOffice};
+  (R[v]||renderOverview)();
+}
+const V=()=>document.getElementById("view");
+
+async function refreshTokens(){
+  const d=await getJSON("/limits"); const foot=document.getElementById("foot");
+  if(!d){ document.getElementById("tktxt").textContent="offline"; document.getElementById("tkring").style.background="var(--bad)"; foot.textContent="⚠ เชื่อมต่อ backend ไม่ได้"; return; }
+  const c=d.claude||{}; const pc=c.limit?Math.round(100*c.remaining/c.limit):0;
+  document.getElementById("tktxt").innerHTML="Claude <b>"+pc+"%</b>";
+  document.getElementById("mtk").textContent="Claude "+pc+"%";
+  document.getElementById("tkring").style.background=pc>20?"var(--okdot)":pc>0?"var(--warn)":"var(--bad)";
+  const live=Object.values(d).filter(b=>!b.exhausted).length;
+  foot.innerHTML="● "+live+"/"+Object.keys(d).length+" backends ออนไลน์";
+  return d;
+}
+
+async function renderOverview(){
+  V().innerHTML='<div class="wrap"><div class="grid g-kpi" id="kpi"></div><div class="hd">ทีม (agents)</div><div class="grid g-cards" id="rost"><div class="empty">กำลังโหลด…</div></div><div class="hd">Token / Mana</div><div class="card" id="tok"></div></div>';
+  const [dash,act,lim]=await Promise.all([getJSON("/dashboard"),getJSON("/activity"),getJSON("/limits")]);
+  const agents=(dash&&dash.agents)||[]; const working=act&&typeof act==="object"?act:{};
+  const nWork=Object.keys(working).length;
+  const kpi=[["agents ทั้งหมด",agents.length,"overview"],["กำลังทำงาน",nWork,"activity"],["งานสะสม (tickets)",(dash&&dash.ticketCount)||0,"work"],["backends ออนไลน์",lim?Object.values(lim).filter(b=>!b.exhausted).length:"–","models"]];
+  document.getElementById("kpi").innerHTML=kpi.map(k=>'<div class="kpi"><div class="l">'+ic(k[2])+esc(k[0])+'</div><div class="v">'+k[1]+'</div></div>').join("");
+  const busy={}; Object.values(working).forEach(a=>{if(a.agent)busy[a.agent]=a.phase;});
+  document.getElementById("rost").innerHTML=agents.map(a=>{
+    const ph=busy[a.id];
+    return '<div class="ag"><div class="ag-top"><div class="ag-av" style="background:'+avColor(a.id)+'">'+esc((a.name||a.id)[0].toUpperCase())+'</div><div><div class="ag-nm">'+esc(a.name||a.id)+'</div><div class="ag-rl">'+esc(a.role||"")+'</div></div></div><div class="ag-meta"><span class="chip mdl">'+esc(a.backend||"claude")+(a.model?" · "+esc(a.model):"")+'</span>'+(ph?'<span class="chip live">● '+esc(ph)+'</span>':'')+'<span class="chip">'+(a.tickets||0)+' งาน</span></div></div>';
+  }).join("")||'<div class="empty">ไม่มีข้อมูล agent</div>';
+  renderTokBars(document.getElementById("tok"),lim);
+}
+function renderTokBars(box,lim){
+  if(!box)return; if(!lim){box.innerHTML='<div class="empty">เชื่อมต่อ backend ไม่ได้</div>';return;}
+  box.innerHTML=Object.entries(lim).map(([b,v])=>{
+    const pc=v.limit?Math.round(100*v.remaining/v.limit):0;
+    const col=v.exhausted?"var(--bad)":pc>20?"var(--okdot)":"var(--warn)";
+    return '<div class="tkrow"><div class="nm"><span class="st" style="background:'+col+'"></span>'+esc(b)+'</div><div class="bar"><i style="width:'+pc+'%"></i></div><div class="pc">'+pc+'% · '+fmtK(v.remaining||0)+'</div></div>';
+  }).join("");
+}
+
+const PROJ=[["hotel-pms","hotelpms"],["hostgate","hostgate"],["discord-bot","discordbot"],["prontera","prontera"]];
+async function renderProjects(){
+  V().innerHTML='<div class="wrap"><div class="hd">Cron แต่ละโปรเจค <span class="sub">— เปิด/ปิด · เวลาประจำวัน หรือ ทุกๆ N ชม. · ▶ รันเดี๋ยวนี้</span></div><div id="crons"><div class="empty">กำลังโหลด…</div></div><div class="hd">ระบุงานล่วงหน้า (queue)</div><div class="card"><div class="ctl" style="gap:8px;margin-bottom:10px"><select id="qp">'+PROJ.map(p=>'<option>'+p[0]+'</option>').join("")+'</select><input id="qt" placeholder="หัวข้องาน" style="flex:1;min-width:140px"/></div><textarea id="qd" rows="2" placeholder="รายละเอียด/คำสั่งให้ agent" style="width:100%"></textarea><div class="ctl" style="margin-top:8px"><button class="btn pri" id="qadd">'+ic("plus")+'เพิ่มเข้า queue</button><span class="sub" id="qmsg"></span></div><div id="qlist" style="margin-top:12px"></div></div></div>';
+  const cfg=await getJSON("/config")||{};
+  document.getElementById("crons").innerHTML=PROJ.map(([p,b])=>{
+    const en=cfg[b+"_enabled"]!==false, ev=parseFloat(cfg[b+"_every_h"]||0)||0, tv=cfg[b+"_time"]||"";
+    return '<div class="card" style="margin-bottom:11px"><div class="row" style="border:0;padding:0">'
+      +'<div class="lbl"><label class="sw"><input type="checkbox" data-en="'+p+'"'+(en?" checked":"")+'/><span class="tr"></span></label>'+esc(p)+'</div>'
+      +'<div class="ctl"><input type="time" data-tm="'+p+'"'+((!en||ev>0)?" disabled":"")+' value="'+esc(tv)+'"/>'
+      +'<span class="sub">ทุกๆ</span><input class="num" type="number" min="0" max="168" data-ev="'+p+'"'+(!en?" disabled":"")+' value="'+ev+'"/><span class="sub">ชม.</span>'
+      +'<button class="btn run" data-run="'+p+'" aria-label="รัน '+esc(p)+'">'+ic("play")+'</button></div></div></div>';
+  }).join("");
+  document.querySelectorAll("[data-en]").forEach(cb=>cb.onchange=async()=>{const p=cb.dataset.en,on=cb.checked;await getJSON("/set_project_cron?project="+encodeURIComponent(p)+"&enabled="+(on?1:0));const t=document.querySelector('[data-tm="'+p+'"]'),e=document.querySelector('[data-ev="'+p+'"]');if(e)e.disabled=!on;if(t)t.disabled=!on||((parseFloat(e&&e.value||0)||0)>0);});
+  document.querySelectorAll("[data-tm]").forEach(i=>i.onchange=()=>getJSON("/set_project_cron?project="+encodeURIComponent(i.dataset.tm)+"&time="+encodeURIComponent(i.value)));
+  document.querySelectorAll("[data-ev]").forEach(i=>i.onchange=async()=>{const v=Math.max(0,Math.min(168,parseInt(i.value||"0",10)||0));i.value=v;await getJSON("/set_project_cron?project="+encodeURIComponent(i.dataset.ev)+"&every="+v);const t=document.querySelector('[data-tm="'+i.dataset.ev+'"]');if(t)t.disabled=(v>0);});
+  document.querySelectorAll("[data-run]").forEach(b=>b.onclick=async()=>{b.disabled=true;const r=await getJSON("/run_project?project="+encodeURIComponent(b.dataset.run));toast(r&&r.status==="started"?"▶ เริ่มรัน "+b.dataset.run:"รันไม่สำเร็จ (CEO เท่านั้น)");setTimeout(()=>b.disabled=false,2500);});
+  document.getElementById("qadd").onclick=async()=>{const p=document.getElementById("qp").value,t=document.getElementById("qt").value.trim(),d=document.getElementById("qd").value.trim(),m=document.getElementById("qmsg");if(!t){m.textContent="ใส่หัวข้อก่อน";return;}m.textContent="กำลังเพิ่ม…";const r=await getJSON("/queue_add?project="+encodeURIComponent(p)+"&title="+encodeURIComponent(t)+"&prompt="+encodeURIComponent(d));if(r&&r.ok){m.textContent="✓ เพิ่มแล้ว";document.getElementById("qt").value="";document.getElementById("qd").value="";loadQ();}else m.textContent="✕ "+((r&&(r.error||r.message))||"ไม่สำเร็จ");};
+  loadQ();
+}
+async function loadQ(){const box=document.getElementById("qlist");if(!box)return;const q=await getJSON("/queue_list")||[];box.innerHTML=Array.isArray(q)&&q.length?q.map(x=>'<div class="qi"><div class="flex wrapflex"><span class="chip mdl">'+esc(x.project)+'</span><span class="chip">'+esc(x.agent||"")+'</span><button class="btn" style="margin-left:auto;padding:6px 10px" data-del="'+esc(x.id)+'" aria-label="ลบ">'+ic("x")+'</button></div><div class="t">'+esc(x.title||"")+'</div>'+(x.prompt?'<div class="muted fs13">'+esc(x.prompt)+'</div>':'')+'</div>').join(""):'<div class="empty">ยังไม่มีงานใน queue</div>';box.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{await getJSON("/queue_remove?id="+encodeURIComponent(b.dataset.del));loadQ();});}
+
+let actTimer=null;
+async function renderActivity(){
+  V().innerHTML='<div class="wrap"><div class="hd">ทีมกำลังทำอะไรอยู่ <span class="sub">— อัปเดตทุก 5 วิ</span></div><div id="actbox"><div class="empty">กำลังโหลด…</div></div></div>';
+  loadAct(); if(actTimer)clearInterval(actTimer); actTimer=setInterval(()=>{if(CUR==="activity")loadAct();else{clearInterval(actTimer);actTimer=null;}},5000);
+}
+async function loadAct(){
+  const box=document.getElementById("actbox");if(!box)return;const d=await getJSON("/activity")||{};const ks=Object.keys(d);
+  const PH={planning:"กำลังวางแผน",working:"กำลังเขียนโค้ด",reviewing:"Vera รีวิว","waiting for CI":"รอ CI · วนแก้จนเขียว"};
+  box.innerHTML=ks.length?ks.map(k=>{const a=d[k]||{};let stale=false;try{stale=(Date.now()-Date.parse(a.updated_at))>180000;}catch(_){}
+    return '<div class="act'+(stale?" stale":"")+'"><div class="flex wrapflex"><span class="who">'+esc(k)+'</span><span class="ph">'+esc(PH[a.phase]||a.phase||"")+'</span>'+(a.project?'<span class="chip mdl">'+esc(a.project)+'</span>':'')+(a.agent&&a.agent!==k?'<span class="chip">'+esc(a.agent)+'</span>':'')+'</div>'+(a.detail?'<div class="t" style="margin:6px 0 2px">'+esc(a.detail)+'</div>':'')+'<div class="sub">เริ่ม '+esc(String(a.started_at||"").replace("T"," "))+(stale?' · อาจค้าง':'')+'</div></div>';
+  }).join(""):'<div class="empty">😴 ตอนนี้ไม่มี agent ทำงานอยู่ — รันตามเวลาที่ตั้งใน “โปรเจค & Cron” หรือกด ▶</div>';
+}
+
+const AG=[["iris","Iris (advisor)"],["vera","Vera (auditor)"],["sage","Sage (hotel-pms data)"],["mira","Mira (UI)"],["bolt","Bolt (backend)"],["echo","Echo (investment)"],["nyx","Nyx (news)"],["openclaw","openclaw"]];
+async function renderChat(){
+  V().innerHTML='<div class="chatwrap"><div class="msgs" id="msgs"><div class="empty" style="margin:auto">เลือก agent แล้วพิมพ์ข้อความ — Iris จะช่วยกระจายงานให้ห้องที่เกี่ยวข้อง</div></div><div class="chatbar"><select id="who">'+AG.map(a=>'<option value="'+a[0]+'">'+esc(a[1])+'</option>').join("")+'</select><input id="say" placeholder="พิมพ์ข้อความ…" /><button class="btn pri" id="send">ส่ง</button></div></div>';
+  const send=async()=>{const inp=document.getElementById("say"),t=inp.value.trim();if(!t)return;const who=document.getElementById("who").value;addMsg("me",null,t);inp.value="";const b=document.getElementById("send");b.disabled=true;addMsg("bot",who,"…");
+    const path=who==="iris"?("/brief?task="+encodeURIComponent(t)):("/agent/"+encodeURIComponent(who)+"/chat?task="+encodeURIComponent(t));
+    const r=await getJSON(path);const txt=r?(r.text||r.summary||r.reply||JSON.stringify(r)):"(เชื่อมต่อไม่ได้)";
+    const m=document.getElementById("msgs");m.removeChild(m.lastChild);addMsg("bot",who,txt);b.disabled=false;};
+  document.getElementById("send").onclick=send;
+  document.getElementById("say").addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+}
+function addMsg(cls,who,txt){const m=document.getElementById("msgs");if(m.querySelector(".empty"))m.innerHTML="";const d=document.createElement("div");d.className="msg "+cls;d.innerHTML=(who?'<div class="nm">'+esc(who)+'</div>':'')+esc(txt);m.appendChild(d);m.scrollTop=m.scrollHeight;}
+
+async function renderModels(){
+  V().innerHTML='<div class="wrap"><div class="hd">Token / Mana ต่อ backend</div><div class="card" id="tok2"></div><div class="hd">โมเดลต่อ agent <span class="sub">— backend ที่ผูกไว้จริง</span></div><div class="grid g-cards" id="ml"><div class="empty">กำลังโหลด…</div></div></div>';
+  const [lim,dash]=await Promise.all([getJSON("/limits"),getJSON("/dashboard")]);
+  renderTokBars(document.getElementById("tok2"),lim);
+  const ag=(dash&&dash.agents)||[];
+  document.getElementById("ml").innerHTML=ag.map(a=>'<div class="ag"><div class="ag-top"><div class="ag-av" style="background:'+avColor(a.id)+'">'+esc((a.name||a.id)[0].toUpperCase())+'</div><div><div class="ag-nm">'+esc(a.name||a.id)+'</div><div class="ag-rl">'+esc(a.role||"")+'</div></div></div><div class="ag-meta"><span class="chip mdl">'+esc(a.backend||"claude")+'</span><span class="chip">'+esc(a.model||"–")+'</span></div></div>').join("")||'<div class="empty">ไม่มีข้อมูล</div>';
+}
+
+async function renderWork(){
+  V().innerHTML='<div class="wrap"><div class="hd">สรุปงานสำเร็จรายวัน</div><div id="wk"><div class="empty">กำลังโหลด…</div></div></div>';
+  const d=await getJSON("/work_summary");const days=(d&&d.days)||[];const box=document.getElementById("wk");
+  if(!days.length){box.innerHTML='<div class="empty">ยังไม่มีสรุปงาน — จะปรากฏเมื่อทีมรันงานเสร็จ</div>';return;}
+  box.innerHTML=days.map(day=>'<div class="hd" style="margin:18px 0 8px">'+esc(day.date||"")+' · '+(day.results||[]).length+' งาน</div>'+(day.results||[]).map(r=>{const v=r.review||{};const vc=v.verdict==="ok"?"v-ok":v.verdict==="fix"?"v-fix":"v-unclear";return '<div class="ws"><div class="flex wrapflex"><span class="chip mdl">'+esc(r.project||"")+'</span><span class="chip">'+esc(r.agent||"")+'</span>'+(r.commit?'<span class="chip mono">'+esc(String(r.commit).slice(0,7))+'</span>':'')+(v.verdict?'<span class="verdict '+vc+'">'+esc(v.verdict)+(v.source==="ci"?" · CI":"")+'</span>':'')+'</div><div class="t">'+esc(r.title||"")+'</div>'+(v.feedback?'<div class="muted fs13">'+esc(v.feedback)+'</div>':'')+'</div>';}).join("")).join("");
+}
+
+async function renderInvest(){
+  V().innerHTML='<div class="wrap"><div class="hd">ข่าว/ตลาด (Nyx)</div><div class="card" id="nv"><div class="empty">กำลังโหลด…</div></div><div class="hd">Top 10 SET (Echo)</div><div class="card" id="t10"><div class="empty">กำลังโหลด…</div></div></div>';
+  const n=await getJSON("/news");
+  document.getElementById("nv").innerHTML=n&&n.text?'<div class="fs13" style="white-space:pre-wrap;line-height:1.6">'+esc(n.text)+'</div>':'<div class="empty">ยังไม่มีข่าว</div>';
+  const ec=await getJSON("/echo_top10");
+  document.getElementById("t10").innerHTML=ec&&ec.text?'<div class="fs13" style="white-space:pre-wrap;line-height:1.6">'+esc(ec.text)+'</div>':'<div class="empty">ยังไม่มีรายการ Top 10</div>';
+}
+
+function persistSkill(agent,title,body){
+  try{
+    const store=JSON.parse(localStorage.getItem("prontera_skills")||"{}");
+    if(!store[agent])store[agent]=[];
+    store[agent].push({id:Date.now(),title:title,body:body,source:"auto"});
+    localStorage.setItem("prontera_skills",JSON.stringify(store));
+    renderSkills();
+  }catch(_){}
+}
+
+async function renderSkills(){
+  const AGENTS=["mira","bolt","vex","lumen","iris","echo","vera"];
+  let store={};
+  try{store=JSON.parse(localStorage.getItem("prontera_skills")||"{}");}catch(_){}
+
+  // skillsHtml() uses only data-* attributes — no untrusted data in JS string contexts.
+  // ag values are hardcoded constants; sk.id is coerced to Number before insertion.
+  function skillsHtml(){
+    return AGENTS.map(ag=>{
+      const list=(store[ag]||[]);
+      const cnt=list.length;
+      return '<div style="margin-bottom:10px">'
+        +'<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" data-toggle-ag="'+ag+'">'
+          +'<div class="lbl" style="font-weight:600;font-size:14.5px;text-transform:capitalize">'+esc(ag)+'<span class="chip" style="margin-left:8px">'+cnt+'</span></div>'
+          +'<span class="faint fs12">▾</span>'
+        +'</div>'
+        +'<div data-sk-agent="'+ag+'">'
+          +list.map(sk=>{const sid=Number(sk.id)||0;return(
+            '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line)">'
+            +'<div style="flex:1;min-width:0"><span style="font-weight:500;font-size:13.5px">'+esc(sk.title)+'</span>'
+            +(sk.body?'<div class="faint fs12" style="margin-top:3px">'+esc(String(sk.body).slice(0,80))+(sk.body.length>80?'…':'')+'</div>':'')
+            +'</div>'
+            +'<button class="btn" style="padding:5px 9px;font-size:12px" data-sk-edit data-ag="'+ag+'" data-id="'+sid+'">แก้ไข</button>'
+            +'<button class="btn" style="padding:5px 9px;font-size:12px;color:var(--bad)" data-sk-del data-ag="'+ag+'" data-id="'+sid+'">'+ic("x")+'</button>'
+            +'</div>');}).join("")
+          +'<div id="sk-form-'+ag+'" style="display:none"><div class="card" style="padding:10px;margin-top:8px">'
+            +'<input class="skill-inp" id="sk-t-'+ag+'" placeholder="ชื่อ skill" />'
+            +'<input class="skill-inp" id="sk-b-'+ag+'" placeholder="รายละเอียด / body" />'
+            +'<div style="display:flex;gap:8px;margin-top:4px">'
+              +'<button class="btn pri" style="font-size:13px" data-sk-save data-ag="'+ag+'">บันทึก</button>'
+              +'<button class="btn" style="font-size:13px" data-sk-cancel data-ag="'+ag+'">ยกเลิก</button>'
+            +'</div></div></div>'
+          +'<button class="btn" style="margin-top:8px;font-size:13px" data-sk-add data-ag="'+ag+'">'+ic("plus")+'เพิ่ม skill</button>'
+        +'</div>'
+      +'</div>';
+    }).join("");
+  }
+
+  V().innerHTML='<div class="wrap">'
+    +'<div class="hd">Skills ต่อ Agent <span class="sub">— Hermes living-procedural-memory</span></div>'
+    +'<div class="card" id="sk-list">'+skillsHtml()+'</div>'
+    +'<div class="hd" style="margin-top:24px">Skills Learned from Work <span class="sub">— จาก backend /skills_learned</span></div>'
+    +'<div class="card" id="sk-learned"><div class="empty">กำลังโหลด…</div></div>'
+    +'</div>';
+
+  // Single delegated listener — no inline onclick, no untrusted data in JS string context.
+  document.getElementById("sk-list").addEventListener("click",function(e){
+    const del=e.target.closest("[data-sk-del]");
+    const edit=e.target.closest("[data-sk-edit]");
+    const add=e.target.closest("[data-sk-add]");
+    const save=e.target.closest("[data-sk-save]");
+    const cancel=e.target.closest("[data-sk-cancel]");
+    const toggle=e.target.closest("[data-toggle-ag]");
+    if(del){
+      const ag=del.dataset.ag,id=Number(del.dataset.id);
+      try{const s=JSON.parse(localStorage.getItem("prontera_skills")||"{}");s[ag]=(s[ag]||[]).filter(x=>Number(x.id)!==id);localStorage.setItem("prontera_skills",JSON.stringify(s));store=s;}catch(_){}
+      document.getElementById("sk-list").innerHTML=skillsHtml();
+    }else if(edit){
+      const ag=edit.dataset.ag,id=Number(edit.dataset.id);
+      try{const s=JSON.parse(localStorage.getItem("prontera_skills")||"{}");const sk=(s[ag]||[]).find(x=>Number(x.id)===id);if(!sk)return;
+        const f=document.getElementById("sk-form-"+ag);
+        document.getElementById("sk-t-"+ag).value=sk.title||"";
+        document.getElementById("sk-b-"+ag).value=sk.body||"";
+        f.dataset.edit=String(id);f.style.display="";
+      }catch(_){}
+    }else if(add){
+      const ag=add.dataset.ag,f=document.getElementById("sk-form-"+ag);
+      document.getElementById("sk-t-"+ag).value="";document.getElementById("sk-b-"+ag).value="";
+      if(f){f.dataset.edit="";f.style.display="";}
+    }else if(save){
+      const ag=save.dataset.ag,f=document.getElementById("sk-form-"+ag);
+      const editId=f&&f.dataset.edit?Number(f.dataset.edit):null;
+      const t=(document.getElementById("sk-t-"+ag)||{}).value||"";
+      const b=(document.getElementById("sk-b-"+ag)||{}).value||"";
+      if(!t.trim())return;
+      try{
+        const s=JSON.parse(localStorage.getItem("prontera_skills")||"{}");
+        if(!s[ag])s[ag]=[];
+        if(editId){s[ag]=s[ag].map(x=>Number(x.id)===editId?{...x,title:t,body:b}:x);}
+        else{s[ag].push({id:Date.now(),title:t,body:b,source:"manual"});}
+        localStorage.setItem("prontera_skills",JSON.stringify(s));store=s;
+      }catch(_){}
+      document.getElementById("sk-list").innerHTML=skillsHtml();
+    }else if(cancel){
+      const f=document.getElementById("sk-form-"+cancel.dataset.ag);
+      if(f)f.style.display="none";
+    }else if(toggle){
+      document.querySelector("[data-sk-agent='"+toggle.dataset.toggleAg+"']")?.classList.toggle("collapsed");
+    }
+  });
+
+  // fetch /skills_learned — use DOM API so backend data never enters a JS string context.
+  const box=document.getElementById("sk-learned");
+  try{
+    const r=await fetch(url("/skills_learned"));
+    if(!r.ok)throw new Error("not ok");
+    const d=await r.json();
+    const list=(d&&d.skills)||[];
+    if(!list.length){box.innerHTML='<div class="empty">ยังไม่มี skills จากงาน</div>';return;}
+    box.innerHTML="";
+    list.forEach(function(sk){
+      const card=document.createElement("div");card.className="ws";card.style.marginBottom="10px";
+      const meta=document.createElement("div");meta.className="flex wrapflex";meta.style.marginBottom="6px";
+      const agChip=document.createElement("span");agChip.className="chip mdl";agChip.textContent=sk.agent||"";meta.appendChild(agChip);
+      if(sk.learnedAt){const ts=document.createElement("span");ts.className="faint fs12";ts.textContent=sk.learnedAt;meta.appendChild(ts);}
+      const titleEl=document.createElement("div");titleEl.style.cssText="font-weight:500;font-size:13.5px";titleEl.textContent=sk.title||"";
+      card.appendChild(meta);card.appendChild(titleEl);
+      if(sk.body){const bodyEl=document.createElement("div");bodyEl.className="muted fs13";bodyEl.style.marginTop="4px";bodyEl.textContent=sk.body;card.appendChild(bodyEl);}
+      const btn=document.createElement("button");btn.className="btn";btn.style.cssText="margin-top:8px;font-size:12.5px";btn.textContent="Persist →";
+      btn.addEventListener("click",function(){persistSkill(sk.agent,sk.title,sk.body);});
+      card.appendChild(btn);box.appendChild(card);
+    });
+  }catch(_){
+    box.innerHTML='<div class="empty">Backend endpoint /skills_learned not yet implemented — skills will appear here once added.</div>';
+  }
+}
+
+function renderOffice(){
+  V().innerHTML='<div class="office"><iframe id="ofr" src="prontera-v2.html" title="Prontera office (game world)"></iframe><a class="offull" href="prontera-v2.html" target="_blank" rel="noopener">เปิดเต็มหน้า ↗</a></div>';
+  const f=document.getElementById("ofr");
+  const kick=()=>{try{f.contentWindow.dispatchEvent(new Event("resize"));}catch(_){}};
+  f.onload=()=>{ kick(); setTimeout(kick,500); setTimeout(kick,1500); };
+}
+
+let toEl=null;
+function toast(t){ if(!toEl){toEl=document.createElement("div");toEl.style.cssText="position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);color:var(--text);padding:10px 18px;border-radius:999px;font-size:13.5px;z-index:99;box-shadow:var(--shadow);transition:opacity .3s";document.body.appendChild(toEl);} toEl.textContent=t; toEl.style.opacity="1"; clearTimeout(toEl._t); toEl._t=setTimeout(()=>toEl.style.opacity="0",2600); }
+
+const _mq=matchMedia("(prefers-color-scheme:dark)");
+function applyTheme(){
+  const t=localStorage.getItem("prontera_theme")||"auto";
+  const dark = t==="dark" || (t==="auto" && _mq.matches);
+  document.documentElement.setAttribute("data-theme", dark?"dark":"light");
+  const btn=document.getElementById("themeBtn");
+  if(btn){ btn.innerHTML=ic(t==="auto"?"auto":dark?"moon":"sun"); btn.title="ธีม: "+t+" (คลิกเพื่อสลับ)"; }
+}
+function cycleTheme(){ const cur=localStorage.getItem("prontera_theme")||"auto"; const nx={auto:"light",light:"dark",dark:"auto"}[cur]; localStorage.setItem("prontera_theme",nx); applyTheme(); toast("ธีม: "+nx); }
+_mq.addEventListener("change",()=>{ if((localStorage.getItem("prontera_theme")||"auto")==="auto") applyTheme(); });
+
+applyTheme();
+buildNav();
+document.getElementById("themeBtn").onclick=cycleTheme;
+go("overview"); refreshTokens(); setInterval(refreshTokens,30000);
+</script>
+</body>
+</html>
