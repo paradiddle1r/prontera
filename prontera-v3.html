@@ -208,7 +208,7 @@ input:disabled{opacity:.4}
 const KEY=(function(){try{const u=new URLSearchParams(location.search).get("key");if(u)localStorage.setItem("prontera_gkey",u);return u||localStorage.getItem("prontera_gkey")||"";}catch(_){return"";}})();
 const LOCAL=["localhost","127.0.0.1",""];
 const BACKEND=(location.protocol==="file:"||LOCAL.includes(location.hostname))?"":"https://pornchais-mac-mini.tail62b220.ts.net:8443";
-const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|no_claude|brief|agent|iris_run|vera_run)(\?|$)/;
+const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|roadmap_set|roadmap_clear|no_claude|brief|agent|iris_run|vera_run)(\?|$)/;
 function url(p){ if(KEY&&CEORE.test(p)&&p.indexOf("key=")<0) p+=(p.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(KEY); return BACKEND+p; }
 async function getJSON(p){ try{const r=await fetch(url(p));return r.ok?await r.json():null;}catch(_){return null;} }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -297,8 +297,40 @@ function renderTokBars(box,lim){
 }
 
 const PROJ=[["hotel-pms","hotelpms"],["hostgate","hostgate"],["discord-bot","discordbot"],["prontera","prontera"]];
+async function loadRoadmap(project){
+  var box=document.getElementById("rmbox"); if(!box) return;
+  var d=await getJSON("/roadmap?project="+encodeURIComponent(project));
+  if(!d||!d.title||!(d.milestones&&d.milestones.length)){ box.innerHTML='<div class="empty">ยังไม่มีโปรเจคใหญ่สำหรับ '+esc(project)+' — ตั้งด้านล่างเพื่อให้ทีมทำต่อกันทุกรอบ</div>'; return; }
+  var ms=d.milestones, done=ms.filter(function(m){return m.done;}).length, pct=Math.round(100*done/ms.length), nf=false;
+  box.innerHTML='<div class="card"><div class="flex wrapflex" style="margin-bottom:6px"><b style="font-size:15px">'+esc(d.title)+'</b><span class="chip mdl">'+done+'/'+ms.length+'</span>'
+    +(done<ms.length?'<button class="btn" style="margin-left:auto;padding:5px 10px" id="rmclr">ล้าง</button>':'<span class="verdict v-ok" style="margin-left:auto">เสร็จครบ ✓</span>')+'</div>'
+    +(d.goal?'<div class="muted fs13" style="margin-bottom:10px">'+esc(d.goal)+'</div>':'')
+    +'<div class="bar" style="height:8px;margin-bottom:12px"><i style="width:'+pct+'%"></i></div>'
+    +ms.map(function(m){var isN=!m.done&&!nf; if(isN)nf=true;
+      return '<div class="flex" style="padding:6px 0;border-bottom:1px solid var(--line)"><span style="width:22px;flex:0 0 22px;text-align:center">'+(m.done?'<span style="color:var(--ok)">✓</span>':(isN?'<span style="color:var(--accent)">▸</span>':'○'))+'</span><span'+(m.done?' class="muted" style="text-decoration:line-through"':(isN?' style="font-weight:600"':' class="muted"'))+'>'+esc(m.title)+'</span>'+(isN?'<span class="chip live" style="margin-left:auto">ทำต่อไป</span>':'')+'</div>';
+    }).join("")+'</div>';
+  var clr=document.getElementById("rmclr"); if(clr) clr.onclick=async function(){ await getJSON("/roadmap_clear?project="+encodeURIComponent(project)); loadRoadmap(project); };
+}
 async function renderProjects(){
-  V().innerHTML='<div class="wrap"><div class="hd">Cron แต่ละโปรเจค <span class="sub">— เปิด/ปิด · เวลาประจำวัน หรือ ทุกๆ N ชม. · ▶ รันเดี๋ยวนี้</span></div><div id="crons"><div class="empty">กำลังโหลด…</div></div><div class="hd">ระบุงานล่วงหน้า (queue)</div><div class="card"><div class="ctl" style="gap:8px;margin-bottom:10px"><select id="qp">'+PROJ.map(p=>'<option>'+p[0]+'</option>').join("")+'</select><input id="qt" placeholder="หัวข้องาน" style="flex:1;min-width:140px"/></div><textarea id="qd" rows="2" placeholder="รายละเอียด/คำสั่งให้ agent" style="width:100%"></textarea><div class="ctl" style="margin-top:8px"><button class="btn pri" id="qadd">'+ic("plus")+'เพิ่มเข้า queue</button><span class="sub" id="qmsg"></span></div><div id="qlist" style="margin-top:12px"></div></div></div>';
+  V().innerHTML='<div class="wrap">'
+    +'<div class="hd">🎯 โปรเจคใหญ่ (Roadmap) <span class="sub">— กำหนดเป้าใหญ่ → ทีมทำ milestone ถัดไปต่อกันทุกรอบจนเป็นฟีเจอร์ใหญ่ (เห็นผลสะสม)</span></div>'
+    +'<div id="rmbox"><div class="empty">กำลังโหลด…</div></div>'
+    +'<div class="card" style="margin-top:10px"><div class="sub" style="margin-bottom:8px">กำหนด/แทนที่โปรเจคใหญ่</div>'
+      +'<div class="ctl" style="gap:8px;margin-bottom:8px"><select id="rp">'+PROJ.map(p=>'<option'+(p[0]==="prontera"?" selected":"")+'>'+p[0]+'</option>').join("")+'</select><input id="rt" placeholder="ชื่อโปรเจคใหญ่ เช่น Command palette + search" style="flex:1;min-width:160px"/></div>'
+      +'<input id="rg" placeholder="เป้าหมาย/วิสัยทัศน์ (goal)" style="width:100%;margin-bottom:8px"/>'
+      +'<textarea id="rms" rows="3" placeholder="milestones เรียงลำดับ คั่นด้วย | หรือขึ้นบรรทัดใหม่ (แต่ละอันควรจบใน 1 รอบ)\nเช่น: Palette overlay + hotkey | Fuzzy command filter | เชื่อม history search | Keyboard nav" style="width:100%"></textarea>'
+      +'<div class="ctl" style="margin-top:8px"><button class="btn pri" id="rsave">'+ic("plus")+'ตั้งเป็นโปรเจคใหญ่</button><span class="sub" id="rmsg"></span></div></div>'
+    +'<div class="hd">Cron แต่ละโปรเจค <span class="sub">— เปิด/ปิด · เวลาประจำวัน หรือ ทุกๆ N ชม. · ▶ รันเดี๋ยวนี้</span></div><div id="crons"><div class="empty">กำลังโหลด…</div></div><div class="hd">ระบุงานล่วงหน้า (queue)</div><div class="card"><div class="ctl" style="gap:8px;margin-bottom:10px"><select id="qp">'+PROJ.map(p=>'<option>'+p[0]+'</option>').join("")+'</select><input id="qt" placeholder="หัวข้องาน" style="flex:1;min-width:140px"/></div><textarea id="qd" rows="2" placeholder="รายละเอียด/คำสั่งให้ agent" style="width:100%"></textarea><div class="ctl" style="margin-top:8px"><button class="btn pri" id="qadd">'+ic("plus")+'เพิ่มเข้า queue</button><span class="sub" id="qmsg"></span></div><div id="qlist" style="margin-top:12px"></div></div></div>';
+  loadRoadmap(document.getElementById("rp").value);
+  document.getElementById("rp").onchange=function(){ loadRoadmap(this.value); };
+  document.getElementById("rsave").onclick=async function(){
+    var p=document.getElementById("rp").value, t=document.getElementById("rt").value.trim(), g=document.getElementById("rg").value.trim(), ms=document.getElementById("rms").value.trim(), m=document.getElementById("rmsg");
+    if(!t||!ms){ m.textContent="ใส่ชื่อ + milestones ก่อน"; return; }
+    m.textContent="กำลังตั้ง…";
+    var r=await getJSON("/roadmap_set?project="+encodeURIComponent(p)+"&title="+encodeURIComponent(t)+"&goal="+encodeURIComponent(g)+"&milestones="+encodeURIComponent(ms));
+    if(r&&r.ok){ m.textContent="✓ ตั้งแล้ว "+r.milestones+" milestones"; document.getElementById("rt").value="";document.getElementById("rg").value="";document.getElementById("rms").value=""; loadRoadmap(p); }
+    else m.textContent="✕ "+((r&&(r.error||r.message))||"ไม่สำเร็จ (CEO เท่านั้น)");
+  };
   const cfg=await getJSON("/config")||{};
   document.getElementById("crons").innerHTML=PROJ.map(([p,b])=>{
     const en=cfg[b+"_enabled"]!==false, ev=parseFloat(cfg[b+"_every_h"]||0)||0, tv=cfg[b+"_time"]||"";
