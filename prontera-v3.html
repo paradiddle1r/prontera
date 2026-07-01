@@ -99,7 +99,6 @@ button{font-family:inherit;cursor:pointer}
 .ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 input,select,textarea{background:var(--glass-3);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:9px 11px;font:inherit;font-size:14px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 input[type=time]{padding:8px 10px}
-.skill-inp{width:100%;box-sizing:border-box;background:var(--glass-2);border:1px solid var(--hair);border-radius:8px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:6px;}
 input:focus,select:focus,textarea:focus,button:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(10,132,255,.2)}
 input:disabled{opacity:.4}
 .num{width:64px}
@@ -159,8 +158,9 @@ input:disabled{opacity:.4}
   .mtop b{font-size:15px}
   .topbar{padding:13px 16px}.topbar h1{font-size:17px}
   .wrap{padding:16px}
-  .mnav{display:flex;position:sticky;bottom:0;z-index:30;background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-top:1px solid var(--hair);padding:6px 4px 8px;justify-content:space-around}
-  .mnav button{flex:1;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;font-size:10px;font-weight:500;border-radius:11px;min-height:50px}
+  .mnav{display:flex;position:sticky;bottom:0;z-index:30;background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-top:1px solid var(--hair);padding:6px 6px 8px;gap:2px;overflow-x:auto;scrollbar-width:none}
+  .mnav::-webkit-scrollbar{display:none}
+  .mnav button{flex:0 0 auto;min-width:64px;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 6px;font-size:10px;font-weight:500;border-radius:11px;min-height:50px;white-space:nowrap}
   .mnav button svg{width:22px;height:22px}
   .mnav button.on{color:var(--accent)}
   input,select,textarea{font-size:16px}
@@ -224,7 +224,6 @@ const ICON={
   work:'<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
   invest:'<path d="M3 3v18h18M7 14l4-4 4 4 5-6"/>',
   office:'<path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3M9 9v.01M9 13v.01M9 17v.01"/>',
-  skills:'<path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM2 22c0-5.5 4.5-10 10-10s10 4.5 10 10M5 9l2 2 4-4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   play:'<path d="M5 3l14 9-14 9z"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
@@ -233,17 +232,19 @@ const ICON={
   bolt:'<path d="M13 2L3 14h9l-1 8 10-12h-9z"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
-  auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>'
+  auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1V16h6v-.4c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3z"/>'
 };
 function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'+(c?' style="color:'+c+'"':'')+' aria-hidden="true">'+(ICON[n]||"")+'</svg>';}
 
 const NAV=[
   ["overview","ภาพรวม","overview"],["projects","โปรเจค & Cron","projects"],["activity","Live Activity","activity"],
-  ["chat","แชท","chat"],["models","โมเดล & Token","models"],["work","สรุปงาน","work"],["invest","การลงทุน","invest"],
-  ["skills","Skills","skills"],
+  ["chat","แชท","chat"],["search","ค้นหา","search"],["skills","สกิล (เรียนรู้)","bulb"],
+  ["models","โมเดล & Token","models"],["work","สรุปงาน","work"],["invest","การลงทุน","invest"],
   ["office","Office view","office"]
 ];
-const MNAV=["overview","projects","activity","chat","office"];
+const MNAV=NAV.map(function(n){return n[0];});   // mobile bottom-nav: all tabs, horizontally scrollable
 let CUR="overview";
 function buildNav(){
   document.getElementById("nav").innerHTML=NAV.map(n=>'<button data-v="'+n[0]+'">'+ic(n[2])+'<span>'+n[1]+'</span></button>').join("");
@@ -255,7 +256,7 @@ function go(v){
   document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   const n=NAV.find(x=>x[0]===v)||NAV[0];
   document.getElementById("ttl").textContent=n[1];
-  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,chat:renderChat,models:renderModels,work:renderWork,invest:renderInvest,skills:renderSkills,office:renderOffice};
+  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,chat:renderChat,search:renderSearch,skills:renderSkills,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
   (R[v]||renderOverview)();
 }
 const V=()=>document.getElementById("view");
@@ -364,133 +365,35 @@ async function renderInvest(){
   document.getElementById("t10").innerHTML=ec&&ec.text?'<div class="fs13" style="white-space:pre-wrap;line-height:1.6">'+esc(ec.text)+'</div>':'<div class="empty">ยังไม่มีรายการ Top 10</div>';
 }
 
-function persistSkill(agent,title,body){
-  try{
-    const store=JSON.parse(localStorage.getItem("prontera_skills")||"{}");
-    if(!store[agent])store[agent]=[];
-    store[agent].push({id:Date.now(),title:title,body:body,source:"auto"});
-    localStorage.setItem("prontera_skills",JSON.stringify(store));
-    renderSkills();
-  }catch(_){}
-}
-
-async function renderSkills(){
-  const AGENTS=["mira","bolt","vex","lumen","iris","echo","vera"];
-  let store={};
-  try{store=JSON.parse(localStorage.getItem("prontera_skills")||"{}");}catch(_){}
-
-  // skillsHtml() uses only data-* attributes — no untrusted data in JS string contexts.
-  // ag values are hardcoded constants; sk.id is coerced to Number before insertion.
-  function skillsHtml(){
-    return AGENTS.map(ag=>{
-      const list=(store[ag]||[]);
-      const cnt=list.length;
-      return '<div style="margin-bottom:10px">'
-        +'<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" data-toggle-ag="'+ag+'">'
-          +'<div class="lbl" style="font-weight:600;font-size:14.5px;text-transform:capitalize">'+esc(ag)+'<span class="chip" style="margin-left:8px">'+cnt+'</span></div>'
-          +'<span class="faint fs12">▾</span>'
-        +'</div>'
-        +'<div data-sk-agent="'+ag+'">'
-          +list.map(sk=>{const sid=Number(sk.id)||0;return(
-            '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line)">'
-            +'<div style="flex:1;min-width:0"><span style="font-weight:500;font-size:13.5px">'+esc(sk.title)+'</span>'
-            +(sk.body?'<div class="faint fs12" style="margin-top:3px">'+esc(String(sk.body).slice(0,80))+(sk.body.length>80?'…':'')+'</div>':'')
-            +'</div>'
-            +'<button class="btn" style="padding:5px 9px;font-size:12px" data-sk-edit data-ag="'+ag+'" data-id="'+sid+'">แก้ไข</button>'
-            +'<button class="btn" style="padding:5px 9px;font-size:12px;color:var(--bad)" data-sk-del data-ag="'+ag+'" data-id="'+sid+'">'+ic("x")+'</button>'
-            +'</div>');}).join("")
-          +'<div id="sk-form-'+ag+'" style="display:none"><div class="card" style="padding:10px;margin-top:8px">'
-            +'<input class="skill-inp" id="sk-t-'+ag+'" placeholder="ชื่อ skill" />'
-            +'<input class="skill-inp" id="sk-b-'+ag+'" placeholder="รายละเอียด / body" />'
-            +'<div style="display:flex;gap:8px;margin-top:4px">'
-              +'<button class="btn pri" style="font-size:13px" data-sk-save data-ag="'+ag+'">บันทึก</button>'
-              +'<button class="btn" style="font-size:13px" data-sk-cancel data-ag="'+ag+'">ยกเลิก</button>'
-            +'</div></div></div>'
-          +'<button class="btn" style="margin-top:8px;font-size:13px" data-sk-add data-ag="'+ag+'">'+ic("plus")+'เพิ่ม skill</button>'
-        +'</div>'
-      +'</div>';
+async function renderSearch(){
+  V().innerHTML='<div class="wrap"><div class="hd">ค้นหาประวัติงาน & การตัดสินใจ <span class="sub">— ทั่วทุก agent (tickets + ผลงาน pipeline)</span></div>'
+    +'<div class="ctl" style="gap:8px;margin-bottom:14px"><input id="hq" placeholder="คำค้น เช่น cart, a11y, leaderboard, waitlist…" style="flex:1;min-width:200px"/><button class="btn pri" id="hgo">'+ic("search")+'ค้นหา</button></div>'
+    +'<div id="hres"><div class="empty">พิมพ์คำค้นเพื่อเรียกความจำของทีม (recall)</div></div></div>';
+  const run=async()=>{
+    const q=(document.getElementById("hq").value||"").trim(), box=document.getElementById("hres");
+    if(!q){ box.innerHTML='<div class="empty">พิมพ์คำค้น…</div>'; return; }
+    box.innerHTML='<div class="empty">กำลังค้น…</div>';
+    const d=await getJSON("/history_search?q="+encodeURIComponent(q)+"&limit=30")||[];
+    if(!Array.isArray(d)||!d.length){ box.innerHTML='<div class="empty">ไม่พบผลลัพธ์สำหรับ “'+esc(q)+'”</div>'; return; }
+    box.innerHTML='<div class="sub" style="margin-bottom:8px">'+d.length+' ผลลัพธ์</div>'+d.map(function(r){
+      return '<div class="ws"><div class="flex wrapflex"><span class="chip mdl">'+esc(r.agentName||r.agent)+'</span><span class="chip">'+esc(r.kind||"")+'</span>'+(r.when?'<span class="sub">'+esc(r.when)+'</span>':'')+'</div><div class="t">'+esc(r.title||"")+'</div>'+(r.snippet?'<div class="muted fs13">'+esc(r.snippet)+'</div>':'')+'</div>';
     }).join("");
-  }
-
-  V().innerHTML='<div class="wrap">'
-    +'<div class="hd">Skills ต่อ Agent <span class="sub">— Hermes living-procedural-memory</span></div>'
-    +'<div class="card" id="sk-list">'+skillsHtml()+'</div>'
-    +'<div class="hd" style="margin-top:24px">Skills Learned from Work <span class="sub">— จาก backend /skills_learned</span></div>'
-    +'<div class="card" id="sk-learned"><div class="empty">กำลังโหลด…</div></div>'
-    +'</div>';
-
-  // Single delegated listener — no inline onclick, no untrusted data in JS string context.
-  document.getElementById("sk-list").addEventListener("click",function(e){
-    const del=e.target.closest("[data-sk-del]");
-    const edit=e.target.closest("[data-sk-edit]");
-    const add=e.target.closest("[data-sk-add]");
-    const save=e.target.closest("[data-sk-save]");
-    const cancel=e.target.closest("[data-sk-cancel]");
-    const toggle=e.target.closest("[data-toggle-ag]");
-    if(del){
-      const ag=del.dataset.ag,id=Number(del.dataset.id);
-      try{const s=JSON.parse(localStorage.getItem("prontera_skills")||"{}");s[ag]=(s[ag]||[]).filter(x=>Number(x.id)!==id);localStorage.setItem("prontera_skills",JSON.stringify(s));store=s;}catch(_){}
-      document.getElementById("sk-list").innerHTML=skillsHtml();
-    }else if(edit){
-      const ag=edit.dataset.ag,id=Number(edit.dataset.id);
-      try{const s=JSON.parse(localStorage.getItem("prontera_skills")||"{}");const sk=(s[ag]||[]).find(x=>Number(x.id)===id);if(!sk)return;
-        const f=document.getElementById("sk-form-"+ag);
-        document.getElementById("sk-t-"+ag).value=sk.title||"";
-        document.getElementById("sk-b-"+ag).value=sk.body||"";
-        f.dataset.edit=String(id);f.style.display="";
-      }catch(_){}
-    }else if(add){
-      const ag=add.dataset.ag,f=document.getElementById("sk-form-"+ag);
-      document.getElementById("sk-t-"+ag).value="";document.getElementById("sk-b-"+ag).value="";
-      if(f){f.dataset.edit="";f.style.display="";}
-    }else if(save){
-      const ag=save.dataset.ag,f=document.getElementById("sk-form-"+ag);
-      const editId=f&&f.dataset.edit?Number(f.dataset.edit):null;
-      const t=(document.getElementById("sk-t-"+ag)||{}).value||"";
-      const b=(document.getElementById("sk-b-"+ag)||{}).value||"";
-      if(!t.trim())return;
-      try{
-        const s=JSON.parse(localStorage.getItem("prontera_skills")||"{}");
-        if(!s[ag])s[ag]=[];
-        if(editId){s[ag]=s[ag].map(x=>Number(x.id)===editId?{...x,title:t,body:b}:x);}
-        else{s[ag].push({id:Date.now(),title:t,body:b,source:"manual"});}
-        localStorage.setItem("prontera_skills",JSON.stringify(s));store=s;
-      }catch(_){}
-      document.getElementById("sk-list").innerHTML=skillsHtml();
-    }else if(cancel){
-      const f=document.getElementById("sk-form-"+cancel.dataset.ag);
-      if(f)f.style.display="none";
-    }else if(toggle){
-      document.querySelector("[data-sk-agent='"+toggle.dataset.toggleAg+"']")?.classList.toggle("collapsed");
-    }
-  });
-
-  // fetch /skills_learned — use DOM API so backend data never enters a JS string context.
-  const box=document.getElementById("sk-learned");
-  try{
-    const r=await fetch(url("/skills_learned"));
-    if(!r.ok)throw new Error("not ok");
-    const d=await r.json();
-    const list=(d&&d.skills)||[];
-    if(!list.length){box.innerHTML='<div class="empty">ยังไม่มี skills จากงาน</div>';return;}
-    box.innerHTML="";
-    list.forEach(function(sk){
-      const card=document.createElement("div");card.className="ws";card.style.marginBottom="10px";
-      const meta=document.createElement("div");meta.className="flex wrapflex";meta.style.marginBottom="6px";
-      const agChip=document.createElement("span");agChip.className="chip mdl";agChip.textContent=sk.agent||"";meta.appendChild(agChip);
-      if(sk.learnedAt){const ts=document.createElement("span");ts.className="faint fs12";ts.textContent=sk.learnedAt;meta.appendChild(ts);}
-      const titleEl=document.createElement("div");titleEl.style.cssText="font-weight:500;font-size:13.5px";titleEl.textContent=sk.title||"";
-      card.appendChild(meta);card.appendChild(titleEl);
-      if(sk.body){const bodyEl=document.createElement("div");bodyEl.className="muted fs13";bodyEl.style.marginTop="4px";bodyEl.textContent=sk.body;card.appendChild(bodyEl);}
-      const btn=document.createElement("button");btn.className="btn";btn.style.cssText="margin-top:8px;font-size:12.5px";btn.textContent="Persist →";
-      btn.addEventListener("click",function(){persistSkill(sk.agent,sk.title,sk.body);});
-      card.appendChild(btn);box.appendChild(card);
-    });
-  }catch(_){
-    box.innerHTML='<div class="empty">Backend endpoint /skills_learned not yet implemented — skills will appear here once added.</div>';
-  }
+  };
+  document.getElementById("hgo").onclick=run;
+  document.getElementById("hq").addEventListener("keydown",function(e){ if(e.key==="Enter") run(); });
+  document.getElementById("hq").focus();
 }
-
+async function renderSkills(){
+  V().innerHTML='<div class="wrap"><div class="hd">สกิลของทีม <span class="sub">— procedure ที่บันทึก/เรียนรู้เอง (Hermes-style) · ⚡ = เรียนจากงานจริงที่ CI ผ่าน</span></div><div id="skbox"><div class="empty">กำลังโหลด…</div></div></div>';
+  const box=document.getElementById("skbox");
+  const d=await getJSON("/skills"); const ents=(d&&typeof d==="object")?Object.entries(d):[];
+  if(!ents.length){ box.innerHTML='<div class="empty">ยังไม่มีสกิล</div>'; return; }
+  box.innerHTML=ents.map(function(e){var aid=e[0],sk=e[1]||[];
+    return '<div class="card" style="margin-bottom:12px"><div class="flex" style="margin-bottom:8px"><div class="ag-av" style="width:30px;height:30px;border-radius:9px;font-size:13px;background:'+avColor(aid)+'">'+esc(aid[0].toUpperCase())+'</div><b style="text-transform:capitalize">'+esc(aid)+'</b><span class="chip">'+sk.length+'</span></div>'
+      +sk.map(function(s){return '<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b>'+esc(s.name||"")+'</b>'+(s.by==="learned"?'<span class="verdict v-ok">⚡ learned</span>':'<span class="chip">'+esc(s.by||"")+'</span>')+(s.when?'<span class="sub">'+esc(s.when)+'</span>':'')+'</div><div class="muted fs13" style="margin-top:4px">'+esc(s.body||"")+'</div></div>';}).join("")
+    +'</div>';
+  }).join("");
+}
 function renderOffice(){
   V().innerHTML='<div class="office"><iframe id="ofr" src="prontera-v2.html" title="Prontera office (game world)"></iframe><a class="offull" href="prontera-v2.html" target="_blank" rel="noopener">เปิดเต็มหน้า ↗</a></div>';
   const f=document.getElementById("ofr");
