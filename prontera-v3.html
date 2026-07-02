@@ -127,6 +127,19 @@ input:disabled{opacity:.4}
 .act .ph{font-size:13px;font-weight:600;color:var(--accent)}
 .act .who{font-weight:600;text-transform:capitalize}
 
+/* ── pipelines (parallel-work lanes) ── */
+.plane{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:var(--gap);align-items:start}
+.lane{border-radius:var(--radius);padding:15px}
+.lane-hd{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.lane-ag{border-radius:12px;padding:10px 12px;margin-bottom:10px;background:rgba(120,120,128,.08);border:1px solid var(--line)}
+.lane-ag:last-child{margin-bottom:0}
+.lane-ag.stale{border-color:rgba(224,134,0,.4);opacity:.8}
+.lane-ag .who{font-weight:600;text-transform:capitalize;font-size:13px}
+.steps{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.step{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:999px;background:rgba(120,120,128,.14);color:var(--faint);white-space:nowrap}
+.step.now{background:rgba(10,132,255,.18);color:var(--accent)}
+.step.done{background:rgba(48,164,108,.14);color:var(--ok)}
+
 .qi{border-radius:14px;padding:13px 15px;margin-bottom:11px}
 .qi .t{font-weight:500;margin:5px 0}
 .qi-icb{padding:6px;width:28px;height:28px;flex:0 0 28px;border-radius:9px;justify-content:center}
@@ -279,6 +292,7 @@ const ICON={
   overview:'<path d="M3 13h8V3H3zM13 21h8V3h-8zM3 21h8v-6H3z"/>',
   projects:'<path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7"/>',
   activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  pipelines:'<rect x="3" y="4" width="5" height="16" rx="1.5" fill="none"/><rect x="10" y="9" width="5" height="11" rx="1.5" fill="none"/><rect x="17" y="13" width="5" height="7" rx="1.5" fill="none"/>',
   chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   models:'<path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>',
   work:'<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
@@ -301,6 +315,7 @@ function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 
 const NAV=[
   ["overview","ภาพรวม","overview"],["projects","โปรเจค & Cron","projects"],["activity","Live Activity","activity"],
+  ["pipelines","งานคู่ขนาน","pipelines"],
   ["chat","แชท","chat"],["search","ค้นหา","search"],["skills","สกิล (เรียนรู้)","bulb"],
   ["profile","โปรไฟล์เจ้าของ","work"],
   ["models","โมเดล & Token","models"],["work","สรุปงาน","work"],["invest","การลงทุน","invest"],
@@ -318,7 +333,7 @@ function go(v){
   document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   const n=NAV.find(x=>x[0]===v)||NAV[0];
   document.getElementById("ttl").textContent=n[1];
-  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,chat:renderChat,search:renderSearch,skills:renderSkills,profile:renderProfile,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
+  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,skills:renderSkills,profile:renderProfile,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
   (R[v]||renderOverview)();
 }
 const V=()=>document.getElementById("view");
@@ -423,6 +438,49 @@ async function loadAct(){
   box.innerHTML=ks.length?ks.map(k=>{const a=d[k]||{};let stale=false;try{stale=(Date.now()-Date.parse(a.updated_at))>180000;}catch(_){}
     return '<div class="act'+(stale?" stale":"")+'"><div class="flex wrapflex"><span class="who">'+esc(k)+'</span><span class="ph">'+esc(PH[a.phase]||a.phase||"")+'</span>'+(a.project?'<span class="chip mdl">'+esc(a.project)+'</span>':'')+(a.agent&&a.agent!==k?'<span class="chip">'+esc(a.agent)+'</span>':'')+'</div>'+(a.detail?'<div class="t" style="margin:6px 0 2px">'+esc(a.detail)+'</div>':'')+'<div class="sub">เริ่ม '+esc(String(a.started_at||"").replace("T"," "))+(stale?' · อาจค้าง':'')+'</div></div>';
   }).join(""):'<div class="empty">😴 ตอนนี้ไม่มี agent ทำงานอยู่ — รันตามเวลาที่ตั้งใน “โปรเจค & Cron” หรือกด ▶</div>';
+}
+
+// ── Live parallel-work (pipelines) — same /activity payload as Live Activity, grouped BY PROJECT into
+// swimlanes so concurrent runs across rooms are visible at a glance, each agent shown with a phase stepper.
+let plTimer=null;
+const PL_STAGES=[["planning","วางแผน"],["working","เขียนโค้ด"],["reviewing","รีวิว"],["waiting for CI","รอ CI"]];
+async function renderPipelines(){
+  V().innerHTML='<div class="wrap">'
+    +'<!-- /pipeline_status endpoint needed — ideal shape: [{project, stages:[{key,label,agents:[{agent,detail,started_at}]}], updated_at}] -->'
+    +'<div class="hd">งานคู่ขนานตามโปรเจค <span class="sub">— จัดกลุ่ม /activity ตามโปรเจค แต่ละคอลัมน์ = 1 โปรเจค ที่กำลังมี agent ทำงานอยู่ · อัปเดตทุก 5 วิ</span></div><div id="plbox" class="plane"><div class="empty">กำลังโหลด…</div></div></div>';
+  loadPipelines(); if(plTimer)clearInterval(plTimer); plTimer=setInterval(()=>{if(CUR==="pipelines")loadPipelines();else{clearInterval(plTimer);plTimer=null;}},5000);
+}
+async function loadPipelines(){
+  const box=document.getElementById("plbox"); if(!box)return;
+  // /pipeline_status endpoint not implemented yet — ideal future shape:
+  // [{project, stages:[{key,label,agents:[{agent,detail,started_at}]}], updated_at}]
+  // Until that exists, lanes below are derived client-side by grouping the same /activity payload
+  // (keyed by agent: {project,phase,detail,started_at,updated_at}) BY a.project.
+  const d=await getJSON("/activity")||{};
+  const ks=Object.keys(d);
+  const byProj={};
+  ks.forEach(k=>{
+    const a=d[k]||{}; const p=a.project||"(ไม่ระบุโปรเจค)";
+    (byProj[p]=byProj[p]||[]).push(Object.assign({who:k},a));
+  });
+  const projects=Object.keys(byProj).sort();
+  if(!projects.length){ box.innerHTML='<div class="empty">😴 ตอนนี้ไม่มีโปรเจคที่กำลังรันคู่ขนาน — จะขึ้นเป็นคอลัมน์ทันทีที่มี agent ทำงาน</div>'; return; }
+  box.innerHTML=projects.map(p=>{
+    const agents=byProj[p];
+    const rows=agents.map(a=>{
+      let stale=false; try{stale=(Date.now()-Date.parse(a.updated_at))>180000;}catch(_){}
+      const curIdx=PL_STAGES.findIndex(s=>s[0]===a.phase);
+      const steps=PL_STAGES.map(([key,label],i)=>{
+        const cls=key===a.phase?"step now":(curIdx>=0&&i<curIdx?"step done":"step");
+        return '<span class="'+cls+'">'+esc(label)+'</span>';
+      }).join("");
+      return '<div class="lane-ag'+(stale?" stale":"")+'"><div class="flex wrapflex"><span class="who">'+esc(a.agent||a.who)+'</span>'+(a.agent&&a.agent!==a.who?'<span class="chip">'+esc(a.who)+'</span>':'')+'</div>'
+        +(a.detail?'<div class="t" style="margin:5px 0 0;font-size:12.5px">'+esc(a.detail)+'</div>':'')
+        +'<div class="steps">'+steps+'</div>'
+        +'<div class="sub" style="margin-top:6px">เริ่ม '+esc(String(a.started_at||"").replace("T"," "))+(stale?' · อาจค้าง':'')+'</div></div>';
+    }).join("");
+    return '<div class="card lane"><div class="lane-hd"><span class="chip mdl">'+esc(p)+'</span><span class="sub" style="margin-left:auto">'+agents.length+' agent'+(agents.length>1?"s":"")+' กำลังทำงาน</span></div>'+rows+'</div>';
+  }).join("");
 }
 
 const AG=[["iris","Iris (advisor)"],["vera","Vera (auditor)"],["sage","Sage (hotel-pms data)"],["mira","Mira (UI)"],["bolt","Bolt (backend)"],["echo","Echo (investment)"],["nyx","Nyx (news)"],["openclaw","openclaw"]];
