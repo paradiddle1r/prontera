@@ -251,6 +251,7 @@ const BACKEND=(location.protocol==="file:"||LOCAL.includes(location.hostname))?"
 const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|roadmap_set|roadmap_clear|no_claude|brief|agent|iris_run|vera_run)(\?|$)/;
 function url(p){ if(KEY&&CEORE.test(p)&&p.indexOf("key=")<0) p+=(p.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(KEY); return BACKEND+p; }
 async function getJSON(p){ try{const r=await fetch(url(p));return r.ok?await r.json():null;}catch(_){return null;} }
+async function postJSON(p,body){ try{const r=await fetch(url(p),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});return r.ok?await r.json().catch(()=>({ok:true})):null;}catch(_){return null;} }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function avColor(s){const h=[...String(s)].reduce((a,c)=>a+c.charCodeAt(0),0)%360;return"linear-gradient(135deg,hsl("+h+",70%,58%),hsl("+((h+40)%360)+",70%,52%))";}
 const fmtK=n=>n>=1e6?(n/1e6).toFixed(n>=1e7?0:1)+"M":n>=1e3?Math.round(n/1e3)+"k":""+Math.round(n);
@@ -281,6 +282,7 @@ function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 const NAV=[
   ["overview","ภาพรวม","overview"],["projects","โปรเจค & Cron","projects"],["activity","Live Activity","activity"],
   ["chat","แชท","chat"],["search","ค้นหา","search"],["skills","สกิล (เรียนรู้)","bulb"],
+  ["profile","โปรไฟล์เจ้าของ","work"],
   ["models","โมเดล & Token","models"],["work","สรุปงาน","work"],["invest","การลงทุน","invest"],
   ["office","Office view","office"]
 ];
@@ -296,7 +298,7 @@ function go(v){
   document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   const n=NAV.find(x=>x[0]===v)||NAV[0];
   document.getElementById("ttl").textContent=n[1];
-  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,chat:renderChat,search:renderSearch,skills:renderSkills,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
+  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,chat:renderChat,search:renderSearch,skills:renderSkills,profile:renderProfile,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
   (R[v]||renderOverview)();
 }
 const V=()=>document.getElementById("view");
@@ -471,6 +473,29 @@ async function renderSkills(){
       +sk.map(function(s){return '<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b>'+esc(s.name||"")+'</b>'+(s.by==="learned"?'<span class="verdict v-ok">⚡ learned</span>':'<span class="chip">'+esc(s.by||"")+'</span>')+(s.when?'<span class="sub">'+esc(s.when)+'</span>':'')+'</div><div class="muted fs13" style="margin-top:4px">'+esc(s.body||"")+'</div></div>';}).join("")
     +'</div>';
   }).join("");
+}
+async function renderProfile(){
+  V().innerHTML='<div class="wrap"><div class="hd">โปรไฟล์เจ้าของ <span class="sub">— USER.md ที่ทุก agent อ่าน · แก้ไขได้ตรงนี้</span></div><div id="pfbox"><div class="empty">กำลังโหลด…</div></div></div>';
+  const box=document.getElementById("pfbox");
+  const d=await getJSON("/owner_profile");
+  const hasData=d&&typeof d==="object"&&Object.keys(d).length>0;
+  const raw=hasData?(typeof d.notes==="string"&&Object.keys(d).length===1?d.notes:JSON.stringify(d,null,2)):"";
+  box.innerHTML=(hasData
+      ? '<div class="card" style="margin-bottom:12px">'+Object.entries(d).map(function(e){
+          return '<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b style="text-transform:capitalize">'+esc(e[0])+'</b></div><div class="muted fs13" style="margin-top:4px">'+esc(typeof e[1]==="string"?e[1]:JSON.stringify(e[1]))+'</div></div>';
+        }).join("")+'</div>'
+      : '<div class="empty">ยังไม่มีโปรไฟล์</div>')
+    +'<div class="card"><div class="sub" style="margin-bottom:8px">แก้ไขโปรไฟล์ (free-form)</div>'
+    +'<textarea id="pftxt" rows="6" placeholder="พิมพ์ข้อมูลโปรไฟล์เจ้าของ เช่น ชื่อ, ความชอบ, หมายเหตุ…" style="width:100%">'+esc(raw)+'</textarea>'
+    +'<div class="ctl" style="margin-top:8px"><button class="btn pri" id="pfsave">'+ic("plus")+'บันทึก</button><span class="sub" id="pfmsg"></span></div></div>';
+  const btn=document.getElementById("pfsave");
+  if(btn) btn.onclick=async function(){
+    const msg=document.getElementById("pfmsg"), txt=document.getElementById("pftxt").value;
+    msg.textContent="กำลังบันทึก…";
+    const r=await postJSON("/owner_profile",{notes:txt});
+    if(r){ toast("บันทึกแล้ว"); renderProfile(); }
+    else { msg.textContent="✕ บันทึกไม่สำเร็จ (endpoint ยังไม่พร้อม)"; }
+  };
 }
 function renderOffice(){
   V().innerHTML='<div class="office"><iframe id="ofr" src="prontera-v2.html" title="Prontera office (game world)"></iframe><a class="offull" href="prontera-v2.html" target="_blank" rel="noopener">เปิดเต็มหน้า ↗</a></div>';
