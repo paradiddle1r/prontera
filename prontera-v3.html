@@ -84,6 +84,8 @@ button{font-family:inherit;cursor:pointer}
 .chip.live{background:rgba(48,164,108,.16);color:var(--ok);border-color:rgba(48,164,108,.3)}
 .chip.mdl{background:rgba(10,132,255,.13);color:var(--accent);border-color:rgba(10,132,255,.26)}
 .chip.mono{font-family:var(--mono);font-size:11px}
+.clk{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.clk:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(20,28,46,.18),0 4px 10px rgba(20,28,46,.1)}
 
 .tkrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .tkrow:last-child{border-bottom:0}
@@ -198,6 +200,13 @@ input:disabled{opacity:.4}
 .cmdk-item.hist .hh b{flex:1;min-width:0;font-weight:500;font-size:14px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cmdk-item.hist .hs{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+/* ── agent memory & learnings panel (m4) ── */
+.agmem-overlay{position:fixed;inset:0;z-index:210;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,14,24,.42);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.agmem-overlay.on{display:flex}
+.agmem-modal{position:relative;width:100%;max-width:540px;max-height:82vh;overflow-y:auto;border-radius:22px;padding:22px;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid rgba(10,132,255,.28);box-shadow:0 24px 70px rgba(10,132,255,.16),0 8px 26px rgba(0,0,0,.32)}
+.agmem-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:var(--glass-3);border:1px solid var(--hair);display:grid;place-items:center;color:var(--muted);font-size:14px;line-height:1;box-shadow:var(--shadow)}
+.agmem-close:hover{color:var(--accent)}
+
 :root[data-theme="dark"]{--text:#f2f3f5;--muted:#a4a7b0;--faint:#7e828c;--line:rgba(255,255,255,.12);
   --glass:rgba(28,30,38,.5);--glass-2:rgba(28,30,38,.62);--glass-3:rgba(44,46,56,.66);
   --hair:rgba(255,255,255,.14);--shadow:0 10px 34px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);--accent:#0a84ff}
@@ -241,6 +250,13 @@ input:disabled{opacity:.4}
       <span class="cmdk-hintkey">Esc</span>
     </div>
     <div class="cmdk-list" id="cmdkList"></div>
+  </div>
+</div>
+
+<div class="agmem-overlay" id="agmemOverlay" role="dialog" aria-modal="true" aria-label="Memory &amp; learnings">
+  <div class="agmem-modal">
+    <button class="agmem-close" id="agmemClose" type="button" aria-label="ปิด">✕</button>
+    <div id="agmemBody"><div class="empty">กำลังโหลด…</div></div>
   </div>
 </div>
 
@@ -325,8 +341,9 @@ async function renderOverview(){
   const busy={}; Object.values(working).forEach(a=>{if(a.agent)busy[a.agent]=a.phase;});
   document.getElementById("rost").innerHTML=agents.map(a=>{
     const ph=busy[a.id];
-    return '<div class="ag"><div class="ag-top"><div class="ag-av" style="background:'+avColor(a.id)+'">'+esc((a.name||a.id)[0].toUpperCase())+'</div><div><div class="ag-nm">'+esc(a.name||a.id)+'</div><div class="ag-rl">'+esc(a.role||"")+'</div></div></div><div class="ag-meta"><span class="chip mdl">'+esc(a.backend||"claude")+(a.model?" · "+esc(a.model):"")+'</span>'+(ph?'<span class="chip live">● '+esc(ph)+'</span>':'')+'<span class="chip">'+(a.tickets||0)+' งาน</span></div></div>';
+    return '<div class="ag clk" data-agent="'+esc(a.id)+'" title="ดูความจำ/สกิลของ '+esc(a.name||a.id)+'"><div class="ag-top"><div class="ag-av" style="background:'+avColor(a.id)+'">'+esc((a.name||a.id)[0].toUpperCase())+'</div><div><div class="ag-nm">'+esc(a.name||a.id)+'</div><div class="ag-rl">'+esc(a.role||"")+'</div></div></div><div class="ag-meta"><span class="chip mdl">'+esc(a.backend||"claude")+(a.model?" · "+esc(a.model):"")+'</span>'+(ph?'<span class="chip live">● '+esc(ph)+'</span>':'')+'<span class="chip">'+(a.tickets||0)+' งาน</span></div></div>';
   }).join("")||'<div class="empty">ไม่มีข้อมูล agent</div>';
+  document.getElementById("rost").querySelectorAll("[data-agent]").forEach(function(el){ el.onclick=function(){ openAgentMemory(el.dataset.agent); }; });
   renderTokBars(document.getElementById("tok"),lim);
 }
 function renderTokBars(box,lim){
@@ -469,10 +486,11 @@ async function renderSkills(){
   const d=await getJSON("/skills"); const ents=(d&&typeof d==="object")?Object.entries(d):[];
   if(!ents.length){ box.innerHTML='<div class="empty">ยังไม่มีสกิล</div>'; return; }
   box.innerHTML=ents.map(function(e){var aid=e[0],sk=e[1]||[];
-    return '<div class="card" style="margin-bottom:12px"><div class="flex" style="margin-bottom:8px"><div class="ag-av" style="width:30px;height:30px;border-radius:9px;font-size:13px;background:'+avColor(aid)+'">'+esc(aid[0].toUpperCase())+'</div><b style="text-transform:capitalize">'+esc(aid)+'</b><span class="chip">'+sk.length+'</span></div>'
+    return '<div class="card" style="margin-bottom:12px"><div class="flex clk" data-agent="'+esc(aid)+'" title="ดูความจำ/สกิลของ '+esc(aid)+'" style="margin-bottom:8px"><div class="ag-av" style="width:30px;height:30px;border-radius:9px;font-size:13px;background:'+avColor(aid)+'">'+esc(aid[0].toUpperCase())+'</div><b style="text-transform:capitalize">'+esc(aid)+'</b><span class="chip">'+sk.length+'</span></div>'
       +sk.map(function(s){return '<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b>'+esc(s.name||"")+'</b>'+(s.by==="learned"?'<span class="verdict v-ok">⚡ learned</span>':'<span class="chip">'+esc(s.by||"")+'</span>')+(s.when?'<span class="sub">'+esc(s.when)+'</span>':'')+'</div><div class="muted fs13" style="margin-top:4px">'+esc(s.body||"")+'</div></div>';}).join("")
     +'</div>';
   }).join("");
+  box.querySelectorAll("[data-agent]").forEach(function(el){ el.onclick=function(){ openAgentMemory(el.dataset.agent); }; });
 }
 async function renderProfile(){
   V().innerHTML='<div class="wrap"><div class="hd">โปรไฟล์เจ้าของ <span class="sub">— USER.md ที่ทุก agent อ่าน · แก้ไขได้ตรงนี้</span></div><div id="pfbox"><div class="empty">กำลังโหลด…</div></div></div>';
@@ -497,6 +515,43 @@ async function renderProfile(){
     else { msg.textContent="✕ บันทึกไม่สำเร็จ (endpoint ยังไม่พร้อม)"; }
   };
 }
+// ── m4: per-agent "Memory & learnings" panel — opened from the roster card (Overview) or the agent header row (Skills) ──
+async function openAgentMemory(agentId){
+  const ov=document.getElementById("agmemOverlay"), body=document.getElementById("agmemBody");
+  ov.classList.add("on"); body.innerHTML='<div class="empty">กำลังโหลด…</div>';
+  const [dash,sk]=await Promise.all([getJSON("/dashboard"),getJSON("/skills")]);
+  const agents=(dash&&dash.agents)||[];
+  const a=agents.find(function(x){return x.id===agentId;})||{id:agentId,name:agentId};
+  const mySkills=(sk&&typeof sk==="object"&&Array.isArray(sk[agentId]))?sk[agentId]:[];
+  renderAgentMemoryBody(a,mySkills);
+}
+function renderAgentMemoryBody(a,sk){
+  const body=document.getElementById("agmemBody"); if(!body) return;
+  body.innerHTML='<div class="flex" style="margin-bottom:14px"><div class="ag-av" style="width:44px;height:44px;border-radius:13px;font-size:17px;background:'+avColor(a.id)+'">'+esc((a.name||a.id)[0].toUpperCase())+'</div><div><div class="ag-nm" style="font-size:16px">'+esc(a.name||a.id)+'</div><div class="ag-rl">'+esc(a.role||"")+'</div></div></div>'
+    +'<div class="ag-meta" style="margin-bottom:18px"><span class="chip mdl">'+esc(a.backend||"claude")+(a.model?" · "+esc(a.model):"")+'</span><span class="chip">'+(a.tickets||0)+' งาน</span></div>'
+    +'<div class="hd" style="margin:0 0 10px">สกิลที่เรียนรู้แล้ว <span class="sub">— ⚡ = เรียนจากงานจริงที่ CI ผ่าน</span></div>'
+    +(sk.length
+      ? sk.map(function(s){return '<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b>'+esc(s.name||"")+'</b>'+(s.by==="learned"?'<span class="verdict v-ok">⚡ learned</span>':'<span class="chip">'+esc(s.by||"")+'</span>')+(s.when?'<span class="sub">'+esc(s.when)+'</span>':'')+'</div><div class="muted fs13" style="margin-top:4px">'+esc(s.body||"")+'</div></div>';}).join("")
+      : '<div class="empty">ยังไม่มีสกิลที่บันทึกไว้</div>')
+    +'<div class="card" style="margin-top:16px"><div class="sub" style="margin-bottom:8px">จดจำไว้ / persist this — โน้ตสั้นๆ ให้ '+esc(a.name||a.id)+'</div>'
+    +'<textarea id="amnote" rows="3" placeholder="พิมพ์สิ่งที่อยากให้ '+esc(a.name||a.id)+' จำไว้…" style="width:100%"></textarea>'
+    +'<div class="ctl" style="margin-top:8px"><button class="btn pri" id="amsave">'+ic("plus")+'จดจำไว้ / persist this</button><span class="sub" id="ammsg"></span></div></div>';
+  const btn=document.getElementById("amsave");
+  if(btn) btn.onclick=async function(){
+    const msg=document.getElementById("ammsg"), noteEl=document.getElementById("amnote"), note=(noteEl.value||"").trim();
+    if(!note){ msg.textContent="พิมพ์โน้ตก่อน"; return; }
+    msg.textContent="กำลังบันทึก…";
+    let r=await postJSON("/agent_memory",{agent:a.id,note:note});
+    if(!r) r=await postJSON("/skills",{agent:a.id,note:note});
+    if(r){ toast("บันทึกแล้ว"); openAgentMemory(a.id); }
+    else { msg.textContent="✕ บันทึกไม่สำเร็จ (endpoint ยังไม่พร้อม)"; }
+  };
+}
+function closeAgentMemory(){ const ov=document.getElementById("agmemOverlay"); if(ov) ov.classList.remove("on"); }
+document.getElementById("agmemClose").onclick=closeAgentMemory;
+document.getElementById("agmemOverlay").addEventListener("mousedown",function(e){ if(e.target.id==="agmemOverlay") closeAgentMemory(); });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("agmemOverlay"); if(ov&&ov.classList.contains("on")) closeAgentMemory(); } });
+
 function renderOffice(){
   V().innerHTML='<div class="office"><iframe id="ofr" src="prontera-v2.html" title="Prontera office (game world)"></iframe><a class="offull" href="prontera-v2.html" target="_blank" rel="noopener">เปิดเต็มหน้า ↗</a></div>';
   const f=document.getElementById("ofr");
