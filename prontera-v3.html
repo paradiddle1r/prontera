@@ -438,11 +438,51 @@ async function renderChat(){
 function addMsg(cls,who,txt){const m=document.getElementById("msgs");if(m.querySelector(".empty"))m.innerHTML="";const d=document.createElement("div");d.className="msg "+cls;d.innerHTML=(who?'<div class="nm">'+esc(who)+'</div>':'')+esc(txt);m.appendChild(d);m.scrollTop=m.scrollHeight;}
 
 async function renderModels(){
-  V().innerHTML='<div class="wrap"><div class="hd">Token / Mana ต่อ backend</div><div class="card" id="tok2"></div><div class="hd">โมเดลต่อ agent <span class="sub">— backend ที่ผูกไว้จริง</span></div><div class="grid g-cards" id="ml"><div class="empty">กำลังโหลด…</div></div></div>';
+  V().innerHTML='<div class="wrap">'
+    +'<!-- /isolation_status endpoint needed — returns [{agent,backend,isolationMode,healthy,lastCheck}] -->'
+    +'<div class="hd">สถานะ Isolation & Backend <span class="sub">— isolation mode (worktree / strict-mcp / clone) + health ต่อ agent/backend</span></div>'
+    +'<div id="isohint" class="sub" style="margin:-7px 0 12px"></div>'
+    +'<div class="grid g-cards" id="isohealth"><div class="empty">กำลังโหลด…</div></div>'
+    +'<div class="hd">Token / Mana ต่อ backend</div><div class="card" id="tok2"></div>'
+    +'<div class="hd">โมเดลต่อ agent <span class="sub">— backend ที่ผูกไว้จริง</span></div><div class="grid g-cards" id="ml"><div class="empty">กำลังโหลด…</div></div></div>';
   const [lim,dash]=await Promise.all([getJSON("/limits"),getJSON("/dashboard")]);
   renderTokBars(document.getElementById("tok2"),lim);
   const ag=(dash&&dash.agents)||[];
   document.getElementById("ml").innerHTML=ag.map(a=>'<div class="ag"><div class="ag-top"><div class="ag-av" style="background:'+avColor(a.id)+'">'+esc((a.name||a.id)[0].toUpperCase())+'</div><div><div class="ag-nm">'+esc(a.name||a.id)+'</div><div class="ag-rl">'+esc(a.role||"")+'</div></div></div><div class="ag-meta"><span class="chip mdl">'+esc(a.backend||"claude")+'</span><span class="chip">'+esc(a.model||"–")+'</span></div></div>').join("")||'<div class="empty">ไม่มีข้อมูล</div>';
+  renderHealthCard(ag);
+}
+
+// per-agent isolation + health panel — backend endpoint not implemented yet, see comment above
+async function renderHealthCard(agents){
+  const box=document.getElementById("isohealth"),hint=document.getElementById("isohint");
+  if(!box)return;
+  let rows=await getJSON("/isolation_status");
+  if(!Array.isArray(rows)||!rows.length){
+    const h=await getJSON("/health");
+    rows=Array.isArray(h)&&h.length?h:null;
+  }
+  const list=Array.isArray(agents)?agents:[];
+  if(!rows||!rows.length){
+    if(hint)hint.textContent="ยังไม่มีข้อมูล isolation — รอ backend เปิด endpoint /isolation_status";
+    box.innerHTML=list.length?list.map(a=>healthCardHTML({agent:a.id,backend:a.backend||"claude",isolationMode:null,healthy:null,lastCheck:null},a)).join("")
+      :'<div class="empty">ยังไม่มีข้อมูล isolation — รอ backend เปิด endpoint /isolation_status</div>';
+    return;
+  }
+  if(hint)hint.textContent="";
+  box.innerHTML=rows.map(r=>healthCardHTML(r,list.find(a=>a.id===r.agent))).join("")||'<div class="empty">ยังไม่มีข้อมูล isolation</div>';
+}
+function healthCardHTML(r,a){
+  const nm=(a&&(a.name||a.id))||r.agent||"–";
+  const dotCol=r.healthy===true?"var(--okdot)":r.healthy===false?"var(--bad)":"var(--warn)";
+  const stTxt=r.healthy===true?"ok":r.healthy===false?"bad":"ไม่ทราบ";
+  const isoTxt=r.isolationMode||"ไม่ทราบ";
+  const isoCls=r.isolationMode?"chip mdl":"chip";
+  const lastChk=r.lastCheck?esc(String(r.lastCheck).replace("T"," ")):"–";
+  return '<div class="ag"><div class="ag-top"><div class="ag-av" style="background:'+avColor(r.agent||nm)+'">'+esc(String(nm)[0]||"?").toUpperCase()+'</div>'
+    +'<div><div class="ag-nm">'+esc(nm)+'</div><div class="ag-rl">'+esc(r.backend||(a&&a.backend)||"claude")+'</div></div></div>'
+    +'<div class="ag-meta"><span class="'+isoCls+'">isolation: '+esc(isoTxt)+'</span><span class="chip mono">last check: '+lastChk+'</span></div>'
+    +'<div class="tkrow" style="padding-top:8px;margin-top:10px;border-top:1px solid var(--line)"><div class="nm"><span class="st" style="background:'+dotCol+'"></span>health</div><div class="pc" style="flex:1;text-align:right">'+esc(stTxt)+'</div></div>'
+    +'</div>';
 }
 
 async function renderWork(){
