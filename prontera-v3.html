@@ -192,6 +192,11 @@ input:disabled{opacity:.4}
 .cmdk-item.sel{background:rgba(10,132,255,.15);color:var(--accent)}
 .cmdk-item.sel svg{color:var(--accent)}
 .cmdk-empty{padding:26px 18px;text-align:center;color:var(--faint);font-size:13.5px}
+.cmdk-group{padding:10px 13px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--faint)}
+.cmdk-item.hist{flex-direction:column;align-items:stretch;gap:3px}
+.cmdk-item.hist .hh{display:flex;align-items:center;gap:8px}
+.cmdk-item.hist .hh b{flex:1;min-width:0;font-weight:500;font-size:14px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmdk-item.hist .hs{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 :root[data-theme="dark"]{--text:#f2f3f5;--muted:#a4a7b0;--faint:#7e828c;--line:rgba(255,255,255,.12);
   --glass:rgba(28,30,38,.5);--glass-2:rgba(28,30,38,.62);--glass-3:rgba(44,46,56,.66);
@@ -448,7 +453,13 @@ async function renderSearch(){
   };
   document.getElementById("hgo").onclick=run;
   document.getElementById("hq").addEventListener("keydown",function(e){ if(e.key==="Enter") run(); });
-  document.getElementById("hq").focus();
+  if(pendingSearchQuery){
+    const pq=pendingSearchQuery; pendingSearchQuery=null;
+    document.getElementById("hq").value=pq;
+    run();
+  } else {
+    document.getElementById("hq").focus();
+  }
 }
 async function renderSkills(){
   V().innerHTML='<div class="wrap"><div class="hd">สกิลของทีม <span class="sub">— procedure ที่บันทึก/เรียนรู้เอง (Hermes-style) · ⚡ = เรียนจากงานจริงที่ CI ผ่าน</span></div><div id="skbox"><div class="empty">กำลังโหลด…</div></div></div>';
@@ -482,35 +493,77 @@ function applyTheme(){
 function cycleTheme(){ const cur=localStorage.getItem("prontera_theme")||"auto"; const nx={auto:"light",light:"dark",dark:"auto"}[cur]; localStorage.setItem("prontera_theme",nx); applyTheme(); toast("ธีม: "+nx); }
 _mq.addEventListener("change",()=>{ if((localStorage.getItem("prontera_theme")||"auto")==="auto") applyTheme(); });
 
-/* ── command palette (⌘K / Ctrl+K) — jump targets reuse the same NAV array that builds #nav/#mnav, so this list can never drift out of sync. m2 (history_search results) is a follow-up: keep #cmdkInput generic so results can be swapped in later without touching the shell. */
+/* ── command palette (⌘K / Ctrl+K) — jump targets reuse the same NAV array that builds #nav/#mnav, so this list can never drift out of sync. m2: /history_search results are wired in as a second, debounced group below the (still-instant) NAV matches. */
 let cmdkItems=NAV.slice(), cmdkSel=0;
+let cmdkHistItems=[], cmdkHistQuery="", cmdkHistTimer=null, cmdkHistReq=0;
+let pendingSearchQuery=null; // set by a history-result activation; renderSearch() consumes it on entry
 function cmdkMatch(n,q){ if(!q) return true; q=q.toLowerCase(); return n[1].toLowerCase().indexOf(q)>=0 || n[0].toLowerCase().indexOf(q)>=0; }
-function cmdkRender(){
+function cmdkItemHtml(it,i){
+  const sel=i===cmdkSel?" sel":"";
+  if(it.kind==="hist"){
+    const r=it.r, snip=(r.snippet||"").slice(0,90);
+    return '<div class="cmdk-item hist'+sel+'" data-i="'+i+'"><div class="hh"><b>'+esc(r.title||"")+'</b><span class="chip">'+esc(r.kind||"")+'</span></div>'+(snip?'<div class="hs">'+esc(snip)+'</div>':'')+'</div>';
+  }
+  return '<div class="cmdk-item'+sel+'" data-i="'+i+'">'+ic(it.icon)+'<span>'+esc(it.label)+'</span></div>';
+}
+function cmdkRenderList(){
   const list=document.getElementById("cmdkList"); const q=(document.getElementById("cmdkInput").value||"").trim();
-  cmdkItems=NAV.filter(n=>cmdkMatch(n,q));
+  const navMatches=NAV.filter(n=>cmdkMatch(n,q)).map(n=>({kind:"nav",id:n[0],label:n[1],icon:n[2]}));
+  const histMatches=cmdkHistItems.map(r=>({kind:"hist",r:r}));
+  cmdkItems=navMatches.concat(histMatches);
   if(!cmdkItems.length){ list.innerHTML='<div class="cmdk-empty">ไม่พบหัวข้อที่ตรงกับ "'+esc(q)+'"</div>'; return; }
   if(cmdkSel>=cmdkItems.length) cmdkSel=0;
-  list.innerHTML=cmdkItems.map((n,i)=>'<div class="cmdk-item'+(i===cmdkSel?" sel":"")+'" data-i="'+i+'">'+ic(n[2])+'<span>'+esc(n[1])+'</span></div>').join("");
+  let html=navMatches.map((it,i)=>cmdkItemHtml(it,i)).join("");
+  if(histMatches.length) html+='<div class="cmdk-group">ประวัติงาน</div>'+histMatches.map((it,i)=>cmdkItemHtml(it,navMatches.length+i)).join("");
+  list.innerHTML=html;
   list.querySelectorAll(".cmdk-item").forEach(el=>{
     el.onmousedown=e=>e.preventDefault(); // keep focus on input
     el.onclick=()=>cmdkActivate(parseInt(el.dataset.i,10));
     el.onmouseenter=()=>{ cmdkSel=parseInt(el.dataset.i,10); cmdkUpdateSel(); };
   });
 }
+async function cmdkRunHistFetch(q){
+  const myReq=++cmdkHistReq;
+  const d=await getJSON("/history_search?q="+encodeURIComponent(q)+"&limit=6");
+  if(myReq!==cmdkHistReq) return; // a newer request started while this one was in flight — drop it
+  cmdkHistItems=Array.isArray(d)?d.slice(0,6):[];
+  cmdkHistQuery=q;
+  cmdkRenderList();
+}
+function cmdkRender(){
+  const q=(document.getElementById("cmdkInput").value||"").trim();
+  if(cmdkHistTimer){ clearTimeout(cmdkHistTimer); cmdkHistTimer=null; }
+  if(q!==cmdkHistQuery){ cmdkHistItems=[]; } // stale results from a previous query — clear immediately, instant NAV filter is unaffected
+  cmdkRenderList(); // NAV filtering stays synchronous/instant
+  if(q.length>=2) cmdkHistTimer=setTimeout(()=>cmdkRunHistFetch(q),200);
+}
 function cmdkUpdateSel(){
   document.querySelectorAll(".cmdk-item").forEach(el=>el.classList.toggle("sel",parseInt(el.dataset.i,10)===cmdkSel));
   const sel=document.querySelector(".cmdk-item.sel"); if(sel) sel.scrollIntoView({block:"nearest"});
 }
-function cmdkActivate(i){ const n=cmdkItems[i]; if(!n) return; go(n[0]); cmdkClose(); }
+function cmdkActivate(i){
+  const it=cmdkItems[i]; if(!it) return;
+  if(it.kind==="hist"){
+    const q=cmdkHistQuery;
+    cmdkClose();
+    pendingSearchQuery=q;
+    go("search");
+    return;
+  }
+  go(it.id); cmdkClose();
+}
 function cmdkOpen(){
   const ov=document.getElementById("cmdkOverlay"); if(ov.classList.contains("on")) return;
   ov.classList.add("on"); cmdkSel=0;
   const inp=document.getElementById("cmdkInput"); inp.value="";
-  cmdkRender(); setTimeout(()=>inp.focus(),0);
+  if(cmdkHistTimer){ clearTimeout(cmdkHistTimer); cmdkHistTimer=null; }
+  cmdkHistItems=[]; cmdkHistQuery=""; cmdkHistReq++;
+  cmdkRenderList(); setTimeout(()=>inp.focus(),0);
 }
 function cmdkClose(){
   const ov=document.getElementById("cmdkOverlay"); if(!ov.classList.contains("on")) return;
   ov.classList.remove("on"); document.getElementById("cmdkInput").blur();
+  if(cmdkHistTimer){ clearTimeout(cmdkHistTimer); cmdkHistTimer=null; }
 }
 function cmdkIsTyping(el){
   if(!el) return false; const tag=(el.tagName||"").toLowerCase();
