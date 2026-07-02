@@ -129,6 +129,9 @@ input:disabled{opacity:.4}
 
 .qi{border-radius:14px;padding:13px 15px;margin-bottom:11px}
 .qi .t{font-weight:500;margin:5px 0}
+.qi-icb{padding:6px;width:28px;height:28px;flex:0 0 28px;border-radius:9px;justify-content:center}
+.qi-icb svg{width:14px;height:14px;margin:0}
+.qi-editta{margin-top:2px}
 .ws{border-radius:14px;padding:14px 16px;margin-bottom:11px}
 .verdict{font-size:11.5px;padding:3px 10px;border-radius:999px;font-weight:600}
 .v-ok{background:rgba(48,164,108,.16);color:var(--ok)}
@@ -285,6 +288,7 @@ const ICON={
   play:'<path d="M5 3l14 9-14 9z"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   x:'<path d="M18 6L6 18M6 6l12 12"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
   refresh:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/>',
   bolt:'<path d="M13 2L3 14h9l-1 8 10-12h-9z"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
@@ -480,6 +484,62 @@ async function renderSearch(){
     document.getElementById("hq").focus();
   }
 }
+// ── skill row markup + delete/edit wiring — shared by renderSkills() (Skills nav list) and
+// renderAgentMemoryBody() (per-agent memory modal) so both surfaces stay in sync. ──
+function skillRowHtml(aid,s){
+  const name=esc(s.name||""), body=esc(s.body||"");
+  return '<div class="qi" style="margin:6px 0" data-agent="'+esc(aid)+'" data-name="'+name+'">'
+    +'<div class="flex wrapflex" style="justify-content:space-between;gap:8px">'
+      +'<div class="flex wrapflex" style="flex:1;min-width:0"><b>'+name+'</b>'+(s.by==="learned"?'<span class="verdict v-ok">⚡ learned</span>':'<span class="chip">'+esc(s.by||"")+'</span>')+(s.when?'<span class="sub">'+esc(s.when)+'</span>':'')+'</div>'
+      +'<div class="flex" style="gap:4px;flex:0 0 auto">'
+        +'<button class="btn qi-icb" data-skedit title="แก้ไขสกิลนี้">'+ic("edit")+'</button>'
+        +'<button class="btn qi-icb" data-skdel title="ลบสกิลนี้">'+ic("x")+'</button>'
+      +'</div>'
+    +'</div>'
+    +'<div class="muted fs13 qi-body" style="margin-top:4px">'+body+'</div>'
+    +'<div class="qi-editbox" style="display:none;margin-top:8px">'
+      +'<textarea class="qi-editta" rows="3" style="width:100%">'+body+'</textarea>'
+      +'<div class="ctl" style="margin-top:6px"><button class="btn pri qi-savebtn">'+ic("plus")+'บันทึก</button><button class="btn qi-cancelbtn">ยกเลิก</button></div>'
+    +'</div>'
+    +'<div class="sub qi-msg" style="margin-top:4px"></div>'
+  +'</div>';
+}
+function wireSkillRows(container,onChanged){
+  container.querySelectorAll(".qi[data-name]").forEach(function(row){
+    const aid=row.dataset.agent, name=row.dataset.name;
+    const editBtn=row.querySelector("[data-skedit]"), delBtn=row.querySelector("[data-skdel]");
+    const editbox=row.querySelector(".qi-editbox"), bodyEl=row.querySelector(".qi-body");
+    const msg=row.querySelector(".qi-msg"), saveBtn=row.querySelector(".qi-savebtn"), cancelBtn=row.querySelector(".qi-cancelbtn"), ta=row.querySelector(".qi-editta");
+    if(editBtn) editBtn.onclick=function(e){
+      e.stopPropagation();
+      const opening=editbox.style.display==="none";
+      editbox.style.display=opening?"block":"none";
+      if(bodyEl) bodyEl.style.display=opening?"none":"";
+      if(opening&&ta) ta.focus();
+    };
+    if(cancelBtn) cancelBtn.onclick=function(e){ e.stopPropagation(); editbox.style.display="none"; if(bodyEl) bodyEl.style.display=""; };
+    if(saveBtn) saveBtn.onclick=async function(e){
+      e.stopPropagation();
+      const newBody=(ta.value||"").trim();
+      if(msg) msg.textContent="กำลังบันทึก…";
+      // NOTE: overwriting-by-name assumes the backend upserts a skill keyed on (agent,name) — i.e.
+      // POSTing the same name again replaces the existing body instead of appending a duplicate row.
+      // /skills and /agent_memory may need server-side support for this upsert semantic.
+      let r=await postJSON("/skills",{agent:aid,name:name,body:newBody});
+      if(!r) r=await postJSON("/agent_memory",{agent:aid,name:name,note:newBody});
+      if(r){ toast("แก้ไขสกิลแล้ว"); onChanged(); }
+      else if(msg){ msg.textContent="✕ บันทึกไม่สำเร็จ (endpoint ยังไม่พร้อม)"; }
+    };
+    if(delBtn) delBtn.onclick=async function(e){
+      e.stopPropagation();
+      if(msg) msg.textContent="กำลังลบ…";
+      let r=await postJSON("/skill_remove",{agent:aid,name:name});
+      if(!r) r=await postJSON("/skills_remove",{agent:aid,name:name});
+      if(r){ toast("ลบสกิลแล้ว"); onChanged(); }
+      else if(msg){ msg.textContent="✕ ลบไม่สำเร็จ (endpoint ยังไม่พร้อม)"; }
+    };
+  });
+}
 async function renderSkills(){
   V().innerHTML='<div class="wrap"><div class="hd">สกิลของทีม <span class="sub">— procedure ที่บันทึก/เรียนรู้เอง (Hermes-style) · ⚡ = เรียนจากงานจริงที่ CI ผ่าน</span></div><div id="skbox"><div class="empty">กำลังโหลด…</div></div></div>';
   const box=document.getElementById("skbox");
@@ -487,10 +547,11 @@ async function renderSkills(){
   if(!ents.length){ box.innerHTML='<div class="empty">ยังไม่มีสกิล</div>'; return; }
   box.innerHTML=ents.map(function(e){var aid=e[0],sk=e[1]||[];
     return '<div class="card" style="margin-bottom:12px"><div class="flex clk" data-agent="'+esc(aid)+'" title="ดูความจำ/สกิลของ '+esc(aid)+'" style="margin-bottom:8px"><div class="ag-av" style="width:30px;height:30px;border-radius:9px;font-size:13px;background:'+avColor(aid)+'">'+esc(aid[0].toUpperCase())+'</div><b style="text-transform:capitalize">'+esc(aid)+'</b><span class="chip">'+sk.length+'</span></div>'
-      +sk.map(function(s){return '<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b>'+esc(s.name||"")+'</b>'+(s.by==="learned"?'<span class="verdict v-ok">⚡ learned</span>':'<span class="chip">'+esc(s.by||"")+'</span>')+(s.when?'<span class="sub">'+esc(s.when)+'</span>':'')+'</div><div class="muted fs13" style="margin-top:4px">'+esc(s.body||"")+'</div></div>';}).join("")
+      +sk.map(function(s){return skillRowHtml(aid,s);}).join("")
     +'</div>';
   }).join("");
-  box.querySelectorAll("[data-agent]").forEach(function(el){ el.onclick=function(){ openAgentMemory(el.dataset.agent); }; });
+  box.querySelectorAll(".clk[data-agent]").forEach(function(el){ el.onclick=function(){ openAgentMemory(el.dataset.agent); }; });
+  wireSkillRows(box, renderSkills);
 }
 async function renderProfile(){
   V().innerHTML='<div class="wrap"><div class="hd">โปรไฟล์เจ้าของ <span class="sub">— USER.md ที่ทุก agent อ่าน · แก้ไขได้ตรงนี้</span></div><div id="pfbox"><div class="empty">กำลังโหลด…</div></div></div>';
@@ -531,11 +592,12 @@ function renderAgentMemoryBody(a,sk){
     +'<div class="ag-meta" style="margin-bottom:18px"><span class="chip mdl">'+esc(a.backend||"claude")+(a.model?" · "+esc(a.model):"")+'</span><span class="chip">'+(a.tickets||0)+' งาน</span></div>'
     +'<div class="hd" style="margin:0 0 10px">สกิลที่เรียนรู้แล้ว <span class="sub">— ⚡ = เรียนจากงานจริงที่ CI ผ่าน</span></div>'
     +(sk.length
-      ? sk.map(function(s){return '<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b>'+esc(s.name||"")+'</b>'+(s.by==="learned"?'<span class="verdict v-ok">⚡ learned</span>':'<span class="chip">'+esc(s.by||"")+'</span>')+(s.when?'<span class="sub">'+esc(s.when)+'</span>':'')+'</div><div class="muted fs13" style="margin-top:4px">'+esc(s.body||"")+'</div></div>';}).join("")
+      ? sk.map(function(s){return skillRowHtml(a.id,s);}).join("")
       : '<div class="empty">ยังไม่มีสกิลที่บันทึกไว้</div>')
     +'<div class="card" style="margin-top:16px"><div class="sub" style="margin-bottom:8px">จดจำไว้ / persist this — โน้ตสั้นๆ ให้ '+esc(a.name||a.id)+'</div>'
     +'<textarea id="amnote" rows="3" placeholder="พิมพ์สิ่งที่อยากให้ '+esc(a.name||a.id)+' จำไว้…" style="width:100%"></textarea>'
     +'<div class="ctl" style="margin-top:8px"><button class="btn pri" id="amsave">'+ic("plus")+'จดจำไว้ / persist this</button><span class="sub" id="ammsg"></span></div></div>';
+  wireSkillRows(body, function(){ openAgentMemory(a.id); });
   const btn=document.getElementById("amsave");
   if(btn) btn.onclick=async function(){
     const msg=document.getElementById("ammsg"), noteEl=document.getElementById("amnote"), note=(noteEl.value||"").trim();
