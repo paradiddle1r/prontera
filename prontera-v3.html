@@ -651,15 +651,34 @@ async function loadPipelines(){
 
 const AG=[["iris","Iris (advisor)"],["vera","Vera (auditor)"],["sage","Sage (hotel-pms data)"],["mira","Mira (UI)"],["bolt","Bolt (backend)"],["echo","Echo (investment)"],["nyx","Nyx (news)"],["openclaw","openclaw"]];
 async function renderChat(){
-  V().innerHTML='<div class="chatwrap"><div class="msgs" id="msgs"><div class="empty" style="margin:auto">เลือก agent แล้วพิมพ์ข้อความ — Iris จะช่วยกระจายงานให้ห้องที่เกี่ยวข้อง</div></div><div class="chatbar"><select id="who">'+AG.map(a=>'<option value="'+a[0]+'">'+esc(a[1])+'</option>').join("")+'</select><input id="say" placeholder="พิมพ์ข้อความ…" /><button class="btn pri" id="send">ส่ง</button></div></div>';
+  V().innerHTML='<div class="chatwrap"><div class="msgs" id="msgs"><div class="empty" style="margin:auto">เลือก agent แล้วพิมพ์ข้อความ — Iris จะช่วยกระจายงานให้ห้องที่เกี่ยวข้อง</div></div><div class="ctl" id="ctxMeterRow" style="padding:6px 2px"><span class="bar" style="max-width:160px"><i id="ctxMeterBar" style="width:0%"></i></span><span class="chip" id="ctxMeterLbl">~0 msgs · ~0% context ใช้ไป</span><button class="btn" id="compressBtn" type="button">บีบอัดบทสนทนา</button></div><div class="chatbar"><select id="who">'+AG.map(a=>'<option value="'+a[0]+'">'+esc(a[1])+'</option>').join("")+'</select><input id="say" placeholder="พิมพ์ข้อความ…" /><button class="btn pri" id="send">ส่ง</button></div></div>';
   const send=async()=>{const inp=document.getElementById("say"),t=inp.value.trim();if(!t)return;const who=document.getElementById("who").value;addMsg("me",null,t);inp.value="";const b=document.getElementById("send");b.disabled=true;addMsg("bot",who,"…");
     const path=who==="iris"?("/brief?task="+encodeURIComponent(t)):("/agent/"+encodeURIComponent(who)+"/chat?task="+encodeURIComponent(t));
     const r=await getJSON(path);const txt=r?(r.text||r.summary||r.reply||JSON.stringify(r)):"(เชื่อมต่อไม่ได้)";
     const m=document.getElementById("msgs");m.removeChild(m.lastChild);addMsg("bot",who,txt);b.disabled=false;};
   document.getElementById("send").onclick=send;
   document.getElementById("say").addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+  const compressBtn=document.getElementById("compressBtn");
+  if(compressBtn) compressBtn.onclick=async function(){
+    compressBtn.disabled=true; compressBtn.textContent="กำลังบีบอัด…";
+    const r=await postJSON("/chat_compress",{});
+    compressBtn.disabled=false;
+    if(r){ compressBtn.textContent="✓ บีบอัดแล้ว"; toast("✓ บีบอัดบทสนทนาแล้ว"); }
+    else { compressBtn.textContent="บีบอัดบทสนทนา"; toast("ยังไม่มี backend endpoint /chat_compress — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้"); }
+  };
+  updateContextMeter();
 }
-function addMsg(cls,who,txt){const m=document.getElementById("msgs");if(m.querySelector(".empty"))m.innerHTML="";const d=document.createElement("div");d.className="msg "+cls;d.innerHTML=(who?'<div class="nm">'+esc(who)+'</div>':'')+esc(txt);m.appendChild(d);m.scrollTop=m.scrollHeight;}
+function addMsg(cls,who,txt){const m=document.getElementById("msgs");if(m.querySelector(".empty"))m.innerHTML="";const d=document.createElement("div");d.className="msg "+cls;d.innerHTML=(who?'<div class="nm">'+esc(who)+'</div>':'')+esc(txt);m.appendChild(d);m.scrollTop=m.scrollHeight;updateContextMeter();}
+function updateContextMeter(){
+  const m=document.getElementById("msgs");if(!m)return;
+  const kids=[...m.children].filter(c=>!c.classList.contains("empty"));
+  const chars=kids.reduce((a,c)=>a+(c.textContent||"").length,0);
+  const tokEst=Math.round(chars/4);
+  const pct=Math.max(0,Math.min(100,Math.round(tokEst/200000*100)));
+  const bar=document.getElementById("ctxMeterBar"),lbl=document.getElementById("ctxMeterLbl");
+  if(bar) bar.style.width=pct+"%";
+  if(lbl) lbl.textContent="~"+kids.length+" msgs · ~"+pct+"% context ใช้ไป";
+}
 
 async function renderModels(tgt){
   (tgt||V()).innerHTML='<div class="wrap">'
