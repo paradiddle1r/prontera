@@ -316,7 +316,7 @@ function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 const NAV=[
   ["overview","ภาพรวม","overview"],["projects","โปรเจค & Cron","projects"],["activity","Live Activity","activity"],
   ["pipelines","งานคู่ขนาน","pipelines"],
-  ["chat","แชท","chat"],["search","ค้นหา","search"],["skills","สกิล (เรียนรู้)","bulb"],
+  ["chat","แชท","chat"],["search","ค้นหา","search"],["recall","ความต่อเนื่อง & เซสชัน","work"],["skills","สกิล (เรียนรู้)","bulb"],
   ["profile","โปรไฟล์เจ้าของ","work"],
   ["models","โมเดล & Token","models"],["work","สรุปงาน","work"],["invest","การลงทุน","invest"],
   ["office","Office view","office"]
@@ -333,7 +333,7 @@ function go(v){
   document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   const n=NAV.find(x=>x[0]===v)||NAV[0];
   document.getElementById("ttl").textContent=n[1];
-  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,skills:renderSkills,profile:renderProfile,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
+  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,recall:renderRecall,skills:renderSkills,profile:renderProfile,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
   (R[v]||renderOverview)();
 }
 const V=()=>document.getElementById("view");
@@ -581,6 +581,67 @@ async function renderSearch(){
   } else {
     document.getElementById("hq").focus();
   }
+}
+
+// ── Recall — recent conversation sessions per agent, with continuity badges linking a session
+// back to the earlier one it picked up from (Hermes-style long-session recall). Distinct from the
+// keyword-driven renderSearch() above: this is a browse/skim view, not a search box.
+async function renderRecall(){
+  V().innerHTML='<div class="wrap"><div class="hd">ความต่อเนื่อง & เซสชัน <span class="sub">— เซสชันล่าสุดของแต่ละ agent และการต่อเนื่องข้าม session</span></div><div id="rcbox"><div class="empty">กำลังโหลด…</div></div></div>';
+  const box=document.getElementById("rcbox");
+  // /recent_sessions endpoint needed — returns [{agent,agentName,sessionId,startedAt,endedAt,summary,continuesFrom}]
+  let sessions=await getJSON("/recent_sessions");
+  if(!Array.isArray(sessions)) sessions=await deriveRecentSessions();
+  if(!sessions||!sessions.length){ box.innerHTML='<div class="empty">ยังไม่มีประวัติเซสชัน</div>'; return; }
+  const byAgent={};
+  sessions.forEach(function(s){ const k=s.agent||s.agentName||"?"; (byAgent[k]=byAgent[k]||[]).push(s); });
+  const agents=Object.keys(byAgent).sort();
+  box.innerHTML=agents.map(function(k){
+    const list=byAgent[k].slice().sort(function(a,b){ return String(b.startedAt||"").localeCompare(String(a.startedAt||"")); });
+    const name=list[0].agentName||k;
+    return '<div class="sub" style="margin:14px 0 6px;font-weight:600">'+esc(name)+'</div>'
+      +list.map(function(s){
+        const range=esc(String(s.startedAt||"").replace("T"," "))+(s.endedAt?' → '+esc(String(s.endedAt||"").replace("T"," ")):'');
+        return '<div class="ws"><div class="flex wrapflex"><span class="chip mdl">'+esc(name)+'</span><span class="sub">'+range+'</span>'
+          +(s.continuesFrom?'<span class="verdict v-ok">↩ continued from '+esc(String(s.continuesFrom).replace("T"," "))+'</span>':'')+'</div>'
+          +(s.summary?'<div class="t" style="margin-top:6px">'+esc(s.summary)+'</div>':'<div class="muted fs13" style="margin-top:6px">(ไม่มีสรุป)</div>')+'</div>';
+      }).join("");
+  }).join("");
+}
+// Best-effort fallback while /recent_sessions doesn't exist yet: reuse /history_search (empty query,
+// most-recent items) as a proxy for "recent sessions"; if that's also unavailable/empty, fall back
+// further to /activity so the view still shows something. Neither source has real continuesFrom data,
+// so continuity badges will only appear once /recent_sessions ships.
+async function deriveRecentSessions(){
+  const hs=await getJSON("/history_search?q=&limit=20");
+  if(Array.isArray(hs)&&hs.length){
+    return hs.map(function(r,i){
+      return {
+        agent:r.agent||r.agentName||"?",
+        agentName:r.agentName||r.agent||"?",
+        sessionId:r.sessionId||r.id||("hs-"+i),
+        startedAt:r.when||r.started_at||r.startedAt||"",
+        endedAt:r.ended_at||r.endedAt||"",
+        summary:r.title||r.snippet||"",
+        continuesFrom:r.continuesFrom||null
+      };
+    });
+  }
+  const act=await getJSON("/activity")||{};
+  const ks=Object.keys(act);
+  if(!ks.length) return [];
+  return ks.map(function(k){
+    const a=act[k]||{};
+    return {
+      agent:a.agent||k,
+      agentName:a.agent||k,
+      sessionId:k+"-"+(a.started_at||""),
+      startedAt:a.started_at||"",
+      endedAt:"",
+      summary:a.detail||a.phase||"",
+      continuesFrom:null
+    };
+  });
 }
 // ── skill row markup + delete/edit wiring — shared by renderSkills() (Skills nav list) and
 // renderAgentMemoryBody() (per-agent memory modal) so both surfaces stay in sync. ──
