@@ -185,6 +185,10 @@ input:disabled{opacity:.4}
 .kcard:last-child{margin-bottom:0}
 .kcard.live{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
 .kcard.done{opacity:.8}
+.kcard[role="button"]{cursor:pointer;transition:border-color .15s,transform .1s}
+.kcard[role="button"]:hover{border-color:var(--accent)}
+.kcard[role="button"]:active{transform:scale(.99)}
+.kcard[role="button"]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kt{font-size:13px;font-weight:550;line-height:1.36;margin-bottom:6px;word-break:break-word}
 .km{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .kmeta{font-size:11px;color:var(--muted)}
@@ -269,6 +273,17 @@ input:disabled{opacity:.4}
 .agmem-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:var(--glass-3);border:1px solid var(--hair);display:grid;place-items:center;color:var(--muted);font-size:14px;line-height:1;box-shadow:var(--shadow)}
 .agmem-close:hover{color:var(--accent)}
 
+/* ── Task Detail drawer (Live Task Console m1) — opened from a Kanban card click ── */
+.taskdetail-overlay{position:fixed;inset:0;z-index:210;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,14,24,.42);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.taskdetail-overlay.on{display:flex}
+.taskdetail-modal{position:relative;width:100%;max-width:540px;max-height:82vh;overflow-y:auto;border-radius:22px;padding:22px;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid rgba(10,132,255,.28);box-shadow:0 24px 70px rgba(10,132,255,.16),0 8px 26px rgba(0,0,0,.32)}
+.taskdetail-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:var(--glass-3);border:1px solid var(--hair);display:grid;place-items:center;color:var(--muted);font-size:14px;line-height:1;box-shadow:var(--shadow)}
+.taskdetail-close:hover{color:var(--accent)}
+.tdrow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.tdrow:last-child{border-bottom:0}
+.tdrow .tdk{min-width:96px;flex:0 0 96px;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;padding-top:2px}
+.tdrow .tdv{font-size:13.5px;color:var(--text);word-break:break-word}
+
 :root[data-theme="dark"]{--text:#f2f3f5;--muted:#a4a7b0;--faint:#7e828c;--line:rgba(255,255,255,.12);
   --glass:rgba(28,30,38,.5);--glass-2:rgba(28,30,38,.62);--glass-3:rgba(44,46,56,.66);
   --hair:rgba(255,255,255,.14);--shadow:0 10px 34px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);--accent:#0a84ff}
@@ -319,6 +334,13 @@ input:disabled{opacity:.4}
   <div class="agmem-modal">
     <button class="agmem-close" id="agmemClose" type="button" aria-label="ปิด">✕</button>
     <div id="agmemBody"><div class="empty">กำลังโหลด…</div></div>
+  </div>
+</div>
+
+<div class="taskdetail-overlay" id="taskdetailOverlay" role="dialog" aria-modal="true" aria-label="รายละเอียดงาน">
+  <div class="taskdetail-modal">
+    <button class="taskdetail-close" id="taskdetailClose" type="button" aria-label="ปิด">✕</button>
+    <div id="taskdetailBody"><div class="empty">ไม่มีข้อมูล</div></div>
   </div>
 </div>
 
@@ -910,8 +932,14 @@ function renderTeam(){
 }
 
 /* Kanban board — the team's work grouped กำลังทำ / ค้าง / เสร็จ, แยกต่อโปรเจค (feeds /board) */
-function _kcard(title,agent,meta,cls){
-  return '<div class="kcard '+(cls||"")+'"><div class="kt">'+esc(title||"(ไม่มีชื่อ)")+'</div><div class="km">'+(agent?'<span class="chip sm">'+esc(agent)+'</span>':'')+(meta?'<span class="kmeta">'+esc(meta)+'</span>':'')+'</div></div>';
+function _pushBoardTask(t){
+  if(!window._boardTasks) window._boardTasks=[];
+  window._boardTasks.push(t);
+  return window._boardTasks.length-1;
+}
+function _kcard(title,agent,meta,cls,idx){
+  const clickAttrs=idx==null?"":' data-idx="'+idx+'" role="button" tabindex="0"';
+  return '<div class="kcard '+(cls||"")+'"'+clickAttrs+'><div class="kt">'+esc(title||"(ไม่มีชื่อ)")+'</div><div class="km">'+(agent?'<span class="chip sm">'+esc(agent)+'</span>':'')+(meta?'<span class="kmeta">'+esc(meta)+'</span>':'')+'</div></div>';
 }
 function _kcol(title,cls,items,emptyTxt){
   return '<div class="kcol '+cls+'"><div class="kh"><span>'+esc(title)+'</span><span class="kn">'+items.length+'</span></div>'+(items.length?items.join(""):'<div class="kempty">'+esc(emptyTxt)+'</div>')+'</div>';
@@ -919,19 +947,68 @@ function _kcol(title,cls,items,emptyTxt){
 function _boardProject(p,v){
   const rm=v.roadmap, pct=rm&&rm.total?Math.round(100*rm.done/rm.total):0;
   const head='<div class="bph"><div class="bpt">'+esc(p)+(rm?'<span class="chip">🎯 '+esc(rm.title)+' · '+rm.done+'/'+rm.total+(rm.by==="iris"?' · โดย Iris':'')+'</span>':'<span class="chip warn">ยังไม่มีเป้าหมาย — Iris จะตั้งให้รอบถัดไป</span>')+'</div>'+(rm?'<div class="pbar"><i style="width:'+pct+'%"></i></div>':'')+'</div>';
-  const doing=[]; if(v.doing) doing.push(_kcard(v.doing.title,v.doing.agent,"● "+(v.doing.phase||"ทำงาน"),"live"));
-  const pend=(v.pending||[]).map(t=>_kcard(t.title,t.agent,t.ms?("milestone "+t.ms):(t.model||""),""));
-  const done=(v.done||[]).map(t=>_kcard(t.title,t.agent,(t.verdict?("✓ "+t.verdict):"")+(t.commit?(" · "+t.commit):""),"done"));
+  const doing=[];
+  if(v.doing){
+    const idx=_pushBoardTask(Object.assign({},v.doing,{project:p,status:"กำลังทำ"}));
+    doing.push(_kcard(v.doing.title,v.doing.agent,"● "+(v.doing.phase||"ทำงาน"),"live",idx));
+  }
+  const pend=(v.pending||[]).map(t=>{
+    const idx=_pushBoardTask(Object.assign({},t,{project:p,status:"ค้างอยู่"}));
+    return _kcard(t.title,t.agent,t.ms?("milestone "+t.ms):(t.model||""),"",idx);
+  });
+  const done=(v.done||[]).map(t=>{
+    const idx=_pushBoardTask(Object.assign({},t,{project:p,status:"เสร็จ"}));
+    return _kcard(t.title,t.agent,(t.verdict?("✓ "+t.verdict):"")+(t.commit?(" · "+t.commit):""),"done",idx);
+  });
   return '<div class="bproj">'+head+'<div class="kanban">'
     +_kcol("กำลังทำ","doing",doing,"ทีมว่างอยู่")
     +_kcol("ค้างอยู่ (backlog)","pending",pend,"ไม่มีงานค้าง")
     +_kcol("เสร็จล่าสุด","done",done,"ยังไม่มี")+'</div></div>';
 }
+/* m1 (Live Task Console): Task Detail drawer — click/Enter/Space on a .kcard opens it with the full
+   task object captured in window._boardTasks at render time (no extra fetch, /board already has it all) */
+function openTaskDetail(t){
+  const ov=document.getElementById("taskdetailOverlay"), body=document.getElementById("taskdetailBody");
+  if(!ov||!body||!t) return;
+  const statusCls=t.status==="กำลังทำ"?"live":"";
+  const rows=[];
+  if(t.phase) rows.push(["เฟส",t.phase]);
+  if(t.model) rows.push(["โมเดล",t.model]);
+  if(t.ms) rows.push(["Milestone",t.ms]);
+  if(t.verdict) rows.push(["ผลตรวจ","✓ "+t.verdict]);
+  if(t.commit) rows.push(["Commit",t.commit]);
+  body.innerHTML='<div class="flex" style="margin-bottom:14px"><div class="ag-av" style="width:44px;height:44px;border-radius:13px;font-size:17px;background:'+avColor(t.agent||t.project||"?")+'">'+esc(((t.agent||t.project||"?")[0]||"?").toUpperCase())+'</div><div><div class="ag-nm" style="font-size:16px">'+esc(t.title||"(ไม่มีชื่อ)")+'</div><div class="ag-rl">'+esc(t.project||"")+'</div></div></div>'
+    +'<div class="ag-meta" style="margin-bottom:18px"><span class="chip '+statusCls+'">'+esc(t.status||"")+'</span>'+(t.agent?'<span class="chip sm">'+esc(t.agent)+'</span>':'')+(t.model?'<span class="chip mdl">'+esc(t.model)+'</span>':'')+'</div>'
+    +'<div class="hd" style="margin:0 0 6px">รายละเอียดงาน</div>'
+    +(rows.length?'<div class="card" style="padding:4px 12px">'+rows.map(r=>'<div class="tdrow"><div class="tdk">'+esc(r[0])+'</div><div class="tdv">'+esc(r[1])+'</div></div>').join("")+'</div>':'<div class="empty">ไม่มีรายละเอียดเพิ่มเติม</div>');
+  ov.classList.add("on");
+}
+function closeTaskDetail(){ const ov=document.getElementById("taskdetailOverlay"); if(ov) ov.classList.remove("on"); }
+document.getElementById("taskdetailClose").onclick=closeTaskDetail;
+document.getElementById("taskdetailOverlay").addEventListener("mousedown",function(e){ if(e.target.id==="taskdetailOverlay") closeTaskDetail(); });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("taskdetailOverlay"); if(ov&&ov.classList.contains("on")) closeTaskDetail(); } });
 let boardReload=null; // exposed so the Task Assignment Hub modal can refetch the board after a successful submit
 async function renderBoard(){
   await loadProjects();
   V().innerHTML='<div class="wrap"><div class="ctl" style="margin-bottom:14px"><select id="bp"><option value="">ทุกโปรเจค</option>'+PROJ.map(p=>'<option value="'+p[0]+'">'+p[0]+'</option>').join("")+'</select><button class="btn" id="brl">'+ic("refresh")+'รีเฟรช</button><button class="btn pri" id="taOpenBtn">'+ic("plus")+'New Task</button><span class="spacer"></span><span class="sub">แตะ ▶ ในแท็บ “โปรเจค” เพื่อสั่งงานเดี๋ยวนี้</span></div><div id="bwrap"><div class="empty">กำลังโหลด…</div></div></div>';
+  const bwrap=document.getElementById("bwrap");
+  // delegated click/keyboard handler — cards are re-rendered on every load() but #bwrap itself persists
+  bwrap.addEventListener("click",function(e){
+    const card=e.target.closest(".kcard[data-idx]");
+    if(!card||!bwrap.contains(card)) return;
+    const t=(window._boardTasks||[])[+card.getAttribute("data-idx")];
+    if(t) openTaskDetail(t);
+  });
+  bwrap.addEventListener("keydown",function(e){
+    if(e.key!=="Enter"&&e.key!==" ") return;
+    const card=e.target.closest(".kcard[data-idx]");
+    if(!card||!bwrap.contains(card)) return;
+    e.preventDefault();
+    const t=(window._boardTasks||[])[+card.getAttribute("data-idx")];
+    if(t) openTaskDetail(t);
+  });
   async function load(){
+    window._boardTasks=[];
     const proj=document.getElementById("bp").value;
     const d=await getJSON("/board"+(proj?("?project="+encodeURIComponent(proj)):""));
     const wrap=document.getElementById("bwrap");
