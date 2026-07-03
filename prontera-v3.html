@@ -736,8 +736,22 @@ async function renderWork(){
   box.innerHTML=days.map(day=>'<div class="hd" style="margin:18px 0 8px">'+esc(day.date||"")+' · '+(day.results||[]).length+' งาน</div>'+(day.results||[]).map(r=>{const v=r.review||{};const vc=v.verdict==="ok"?"v-ok":v.verdict==="fix"?"v-fix":"v-unclear";return '<div class="ws"><div class="flex wrapflex"><span class="chip mdl">'+esc(r.project||"")+'</span><span class="chip">'+esc(r.agent||"")+'</span>'+(r.commit?'<span class="chip mono">'+esc(String(r.commit).slice(0,7))+'</span>':'')+(v.verdict?'<span class="verdict '+vc+'">'+esc(v.verdict)+(v.source==="ci"?" · CI":"")+'</span>':'')+'</div><div class="t">'+esc(r.title||"")+'</div>'+(v.feedback?'<div class="muted fs13">'+esc(v.feedback)+'</div>':'')+'</div>';}).join("")).join("");
 }
 
-async function renderAnalytics(){
-  V().innerHTML='<div class="wrap"><div class="hd">Team Velocity — งานสำเร็จรายวัน</div><div class="grid g-kpi" id="ana-kpi"></div><div class="card" id="velbox"><div class="empty">กำลังโหลด…</div></div></div>';
+/* Analytics — segmented control folding Velocity (chart) and Audit Trail (flattened work_summary
+   results list) under one tab, same pattern as Team & Models above (renderTeam / teamTab). */
+let anaTab="velocity";
+function renderAnalytics(){
+  V().innerHTML='<div style="padding:18px 24px 0"><div class="seg" id="anaseg"></div></div><div id="anac"><div class="empty">กำลังโหลด…</div></div>';
+  const segs=[["velocity","Velocity"],["audit","Audit Trail"]];
+  const seg=document.getElementById("anaseg"), host=document.getElementById("anac");
+  const subs={velocity:renderAnalyticsVelocity,audit:renderAuditTrail};
+  seg.innerHTML=segs.map(s=>'<button data-t="'+s[0]+'">'+esc(s[1])+'</button>').join("");
+  const draw=t=>{ anaTab=t; seg.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); host.innerHTML=""; (subs[t]||renderAnalyticsVelocity)(host); };
+  seg.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>draw(b.dataset.t));
+  draw(anaTab);
+}
+async function renderAnalyticsVelocity(tgt){
+  const V0=()=>tgt||V();
+  V0().innerHTML='<div class="wrap"><div class="hd">Team Velocity — งานสำเร็จรายวัน</div><div class="grid g-kpi" id="ana-kpi"></div><div class="card" id="velbox"><div class="empty">กำลังโหลด…</div></div></div>';
   const kpiBox=document.getElementById("ana-kpi"),box=document.getElementById("velbox");
   const d=await getJSON("/work_summary");const days=(d&&d.days)||[];
   if(!days.length){ kpiBox.innerHTML=""; box.innerHTML='<div class="empty">ยังไม่มีข้อมูล — จะปรากฏเมื่อทีมรันงานเสร็จ</div>'; return; }
@@ -790,6 +804,68 @@ async function renderAnalytics(){
   const svg='<svg viewBox="0 0 '+svgW+' '+svgH+'" width="100%" height="240" preserveAspectRatio="xMinYMid meet">'+bars+'</svg>';
   const legend='<div class="flex wrapflex" style="gap:12px;margin-top:14px">'+projects.map(p=>'<span class="chip" style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:'+colorFor(p)+';display:inline-block"></span>'+esc(p)+' ('+totals[p]+')</span>').join("")+'</div>';
   box.innerHTML='<div style="overflow-x:auto">'+svg+'</div>'+legend;
+}
+
+/* Audit Trail sub-view: flattens every day's results[] (same /work_summary shape renderWork already
+   consumes — {project,agent,title,commit,review:{verdict,feedback,source}}) into one reverse-
+   chronological list. No `id` field exists on these result objects (only on /board's task objects
+   consumed by openTaskDetail), so rows can't be wired into the Task Detail drawer's Diff Preview —
+   each row just expands an inline detail panel instead. */
+async function renderAuditTrail(tgt){
+  const host=tgt||V();
+  host.innerHTML='<div class="wrap"><div class="hd">Audit Trail — ผลตรวจงานทั้งหมด</div><div id="atbox"><div class="empty">กำลังโหลด…</div></div></div>';
+  const box=document.getElementById("atbox");
+  const d=await getJSON("/work_summary");const days=(d&&d.days)||[];
+  const sortedDays=days.slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+  const flat=[];
+  sortedDays.forEach(day=>{
+    (day.results||[]).slice().reverse().forEach(r=>flat.push({date:day.date||"",r:r}));
+  });
+  if(!flat.length){ box.innerHTML='<div class="empty">ยังไม่มีข้อมูล — จะปรากฏเมื่อทีมรันงานเสร็จ</div>'; return; }
+  const expanded=new Set();
+  function verdictBadge(r){
+    const v=r.review||{};
+    const vs=String(v.verdict||"");
+    if(!vs) return "";
+    const passLike=/^ok$|ผ่าน|pass/i.test(vs);
+    const failLike=/^fix$|ไม่ผ่าน|fail/i.test(vs);
+    const cls=passLike?"v-ok":failLike?"v-fix":(!failLike&&r.commit)?"v-ok":"v-unclear";
+    const mark=cls==="v-ok"?"✓ ":cls==="v-fix"?"✕ ":"";
+    return '<span class="verdict '+cls+'">'+mark+esc(vs)+(v.source==="ci"?" · CI":"")+'</span>';
+  }
+  function snippet(r){
+    const v=r.review||{};
+    const s=String(v.feedback||r.title||"");
+    return s.length>60?esc(s.slice(0,60))+"…":esc(s);
+  }
+  function draw(){
+    box.innerHTML=flat.map((e,i)=>{
+      const r=e.r,v=r.review||{};
+      const open=expanded.has(i);
+      const detail=v.feedback||r.commit?('<div class="card" style="margin-top:10px;padding:10px 12px">'
+          +(v.feedback?'<div class="fs13" style="white-space:pre-wrap;line-height:1.6">'+esc(v.feedback)+'</div>':'<div class="empty">ไม่มีรายละเอียดเพิ่มเติม</div>')
+          +(r.commit?'<div class="sub mono" style="margin-top:8px">commit: '+esc(r.commit)+'</div>':'')
+        +'</div>'):'<div class="empty" style="margin-top:10px">ไม่มีรายละเอียดเพิ่มเติม</div>';
+      return '<div class="ws" data-idx="'+i+'" role="button" tabindex="0" aria-expanded="'+(open?"true":"false")+'" style="cursor:pointer">'
+        +'<div class="flex wrapflex"><span class="chip mdl">'+esc(r.project||"")+'</span><span class="chip">'+esc(r.agent||"")+'</span>'
+        +(r.commit?'<span class="chip mono">'+esc(String(r.commit).slice(0,7))+'</span>':'')
+        +verdictBadge(r)
+        +'<span class="sub" style="margin-left:auto">'+esc(e.date)+'</span></div>'
+        +'<div class="t">'+esc(r.title||"")+'</div>'
+        +(snippet(r)?'<div class="muted fs13">'+snippet(r)+'</div>':'')
+        +(open?detail:'')
+        +'</div>';
+    }).join("");
+  }
+  draw();
+  const toggle=el=>{ if(!el)return; const i=+el.getAttribute("data-idx"); if(expanded.has(i))expanded.delete(i);else expanded.add(i); draw(); };
+  box.addEventListener("click",e=>toggle(e.target.closest(".ws[data-idx]")));
+  box.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const row=e.target.closest(".ws[data-idx]");
+    if(!row||!box.contains(row))return;
+    e.preventDefault();toggle(row);
+  });
 }
 
 async function renderInvest(){
