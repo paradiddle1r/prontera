@@ -200,6 +200,17 @@ input:disabled{opacity:.4}
 .agpick input{margin:0}
 @media (max-width:860px){ .office{height:calc(100dvh - 122px);padding:8px} }
 
+/* ── Task Assignment Hub — "New Task" modal, modeled on the cmdk/agmem overlay pattern ── */
+.taskm-overlay{position:fixed;inset:0;z-index:220;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,14,24,.42);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.taskm-overlay.on{display:flex}
+.taskm-modal{position:relative;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;border-radius:22px;padding:22px;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid rgba(10,132,255,.28);box-shadow:0 24px 70px rgba(10,132,255,.16),0 8px 26px rgba(0,0,0,.32)}
+.taskm-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:var(--glass-3);border:1px solid var(--hair);display:grid;place-items:center;color:var(--muted);font-size:14px;line-height:1;box-shadow:var(--shadow)}
+.taskm-close:hover{color:var(--accent)}
+.taskm-modal .hd{margin:0 0 14px}
+.taskm-fld{margin-bottom:11px}
+.taskm-fld label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.taskm-fld select,.taskm-fld input,.taskm-fld textarea{width:100%}
+
 .page{display:none}.page.on{display:block}
 
 .mtop{display:none}
@@ -308,6 +319,19 @@ input:disabled{opacity:.4}
   <div class="agmem-modal">
     <button class="agmem-close" id="agmemClose" type="button" aria-label="ปิด">✕</button>
     <div id="agmemBody"><div class="empty">กำลังโหลด…</div></div>
+  </div>
+</div>
+
+<div class="taskm-overlay" id="taskmOverlay" role="dialog" aria-modal="true" aria-label="สร้างงานใหม่">
+  <div class="taskm-modal">
+    <button class="taskm-close" id="taskmClose" type="button" aria-label="ปิด">✕</button>
+    <div class="hd">+ งานใหม่ (New Task)</div>
+    <div class="taskm-fld"><label for="taProj">โปรเจค</label><select id="taProj"></select></div>
+    <div class="taskm-fld"><label for="taAgent">มอบหมายให้ (agent)</label><select id="taAgent"></select></div>
+    <div class="taskm-fld"><label for="taPriority">ความสำคัญ</label><select id="taPriority"><option value="high">สูง</option><option value="med" selected>กลาง</option><option value="low">ต่ำ</option></select></div>
+    <div class="taskm-fld"><label for="taDue">กำหนดส่ง</label><input type="date" id="taDue"/></div>
+    <div class="taskm-fld"><label for="taTitle">หัวข้อ/รายละเอียดงาน</label><textarea id="taTitle" rows="3" placeholder="เช่น เพิ่มปุ่ม New Task บน Kanban board…"></textarea></div>
+    <div class="ctl" style="margin-top:6px"><button class="btn pri" id="taSubmit">＋ สร้างงาน</button><span class="sub" id="taMsg"></span></div>
   </div>
 </div>
 
@@ -903,9 +927,10 @@ function _boardProject(p,v){
     +_kcol("ค้างอยู่ (backlog)","pending",pend,"ไม่มีงานค้าง")
     +_kcol("เสร็จล่าสุด","done",done,"ยังไม่มี")+'</div></div>';
 }
+let boardReload=null; // exposed so the Task Assignment Hub modal can refetch the board after a successful submit
 async function renderBoard(){
   await loadProjects();
-  V().innerHTML='<div class="wrap"><div class="ctl" style="margin-bottom:14px"><select id="bp"><option value="">ทุกโปรเจค</option>'+PROJ.map(p=>'<option value="'+p[0]+'">'+p[0]+'</option>').join("")+'</select><button class="btn" id="brl">'+ic("refresh")+'รีเฟรช</button><span class="spacer"></span><span class="sub">แตะ ▶ ในแท็บ “โปรเจค” เพื่อสั่งงานเดี๋ยวนี้</span></div><div id="bwrap"><div class="empty">กำลังโหลด…</div></div></div>';
+  V().innerHTML='<div class="wrap"><div class="ctl" style="margin-bottom:14px"><select id="bp"><option value="">ทุกโปรเจค</option>'+PROJ.map(p=>'<option value="'+p[0]+'">'+p[0]+'</option>').join("")+'</select><button class="btn" id="brl">'+ic("refresh")+'รีเฟรช</button><button class="btn pri" id="taOpenBtn">'+ic("plus")+'New Task</button><span class="spacer"></span><span class="sub">แตะ ▶ ในแท็บ “โปรเจค” เพื่อสั่งงานเดี๋ยวนี้</span></div><div id="bwrap"><div class="empty">กำลังโหลด…</div></div></div>';
   async function load(){
     const proj=document.getElementById("bp").value;
     const d=await getJSON("/board"+(proj?("?project="+encodeURIComponent(proj)):""));
@@ -916,8 +941,63 @@ async function renderBoard(){
   }
   document.getElementById("bp").onchange=load;
   document.getElementById("brl").onclick=load;
+  boardReload=load;
+  document.getElementById("taOpenBtn").onclick=openTaskModal;
   load();
 }
+
+/* ── Task Assignment Hub — "New Task" modal (Kanban board header). Open/submit/close mechanics and the
+   async getJSON call style are modeled on the project_create flow in renderProjects()'s #ncreate handler
+   above (~line 486-495): validate required fields, disable the submit button while in flight, getJSON()
+   with encoded query params, toast() + refresh on success. ── */
+function taskmAgentOptions(projName){
+  const meta=PROJMETA.find(p=>p.name===projName)||{};
+  let ids=meta.agents;
+  if(typeof ids==="string") ids=ids.split(",").map(s=>s.trim()).filter(Boolean);
+  if(!Array.isArray(ids)||!ids.length) ids=AG.filter(a=>["iris","vera","openclaw"].indexOf(a[0])<0).map(a=>a[0]);
+  return ids.map(function(id){ const a=AG.find(x=>x[0]===id); return [id,(a?a[1]:id)]; });
+}
+function taskmRefreshAgents(){
+  const projSel=document.getElementById("taProj"), agentSel=document.getElementById("taAgent");
+  if(!projSel||!agentSel) return;
+  const opts=taskmAgentOptions(projSel.value);
+  agentSel.innerHTML=opts.map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join("")||'<option value="">(ไม่มี agent)</option>';
+}
+async function openTaskModal(){
+  await loadProjects();
+  const ov=document.getElementById("taskmOverlay"); if(!ov) return;
+  const projSel=document.getElementById("taProj");
+  projSel.innerHTML=PROJ.map(p=>'<option value="'+esc(p[0])+'">'+esc(p[0])+'</option>').join("");
+  projSel.onchange=taskmRefreshAgents;
+  taskmRefreshAgents();
+  document.getElementById("taPriority").value="med";
+  document.getElementById("taDue").value="";
+  document.getElementById("taTitle").value="";
+  document.getElementById("taMsg").textContent="";
+  ov.classList.add("on");
+  setTimeout(function(){ const t=document.getElementById("taTitle"); if(t) t.focus(); },0);
+}
+function closeTaskModal(){ const ov=document.getElementById("taskmOverlay"); if(ov) ov.classList.remove("on"); }
+async function submitTaskModal(){
+  const proj=document.getElementById("taProj").value, agent=document.getElementById("taAgent").value,
+    priority=document.getElementById("taPriority").value, due=document.getElementById("taDue").value,
+    title=document.getElementById("taTitle").value.trim(), msg=document.getElementById("taMsg"), btn=document.getElementById("taSubmit");
+  if(!proj||!agent||!title){ msg.textContent="กรอกโปรเจค, agent และหัวข้องานก่อน"; return; }
+  btn.disabled=true; msg.textContent="กำลังสร้าง…";
+  const r=await getJSON("/queue_add?name="+encodeURIComponent(title)+"&project="+encodeURIComponent(proj)+"&agent="+encodeURIComponent(agent)+"&priority="+encodeURIComponent(priority)+"&due="+encodeURIComponent(due)+"&title="+encodeURIComponent(title));
+  btn.disabled=false;
+  if(r&&r.ok){
+    closeTaskModal();
+    toast("✓ เพิ่มงานใหม่: "+title);
+    if(boardReload) boardReload(); else if(CUR==="board") renderBoard();
+  } else {
+    msg.textContent="✕ "+((r&&(r.error||r.message))||"สร้างงานไม่สำเร็จ");
+  }
+}
+document.getElementById("taskmClose").onclick=closeTaskModal;
+document.getElementById("taskmOverlay").addEventListener("mousedown",function(e){ if(e.target.id==="taskmOverlay") closeTaskModal(); });
+document.getElementById("taSubmit").onclick=submitTaskModal;
+document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("taskmOverlay"); if(ov&&ov.classList.contains("on")) closeTaskModal(); } });
 
 function renderOffice(){
   V().innerHTML='<div class="office"><div class="oframe">'
