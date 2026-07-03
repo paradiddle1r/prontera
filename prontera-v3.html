@@ -1026,10 +1026,17 @@ function openTaskDetail(t){
   const canCancel=t.status==="ค้างอยู่"&&!!t.id;
   const canRetry=!!t.id;
   const canReassign=!!t.id&&t.status!=="เสร็จ";
+  const showDiff=(t.status==="เสร็จ"||t.phase==="reviewing")&&!!t.id;
   body.innerHTML='<div class="flex" style="margin-bottom:14px"><div class="ag-av" style="width:44px;height:44px;border-radius:13px;font-size:17px;background:'+avColor(t.agent||t.project||"?")+'">'+esc(((t.agent||t.project||"?")[0]||"?").toUpperCase())+'</div><div><div class="ag-nm" style="font-size:16px">'+esc(t.title||"(ไม่มีชื่อ)")+'</div><div class="ag-rl">'+esc(t.project||"")+'</div></div></div>'
     +'<div class="ag-meta" style="margin-bottom:18px"><span class="chip '+statusCls+'">'+esc(t.status||"")+'</span>'+(t.agent?'<span class="chip sm">'+esc(t.agent)+'</span>':'')+(t.model?'<span class="chip mdl">'+esc(t.model)+'</span>':'')+'</div>'
     +'<div class="hd" style="margin:0 0 6px">รายละเอียดงาน</div>'
     +(rows.length?'<div class="card" style="padding:4px 12px">'+rows.map(r=>'<div class="tdrow"><div class="tdk">'+esc(r[0])+'</div><div class="tdv">'+esc(r[1])+'</div></div>').join("")+'</div>':'<div class="empty">ไม่มีรายละเอียดเพิ่มเติม</div>')
+    +(showDiff?(
+      '<div class="hd" style="margin:18px 0 6px;display:flex;align-items:center;gap:8px"><span style="flex:1">Diff Preview</span>'
+        +'<button class="btn chip" id="tdDiffToggle" type="button" aria-expanded="false" style="padding:5px 12px;font-size:12px"><span id="tdDiffChevron" style="display:inline-block;transition:transform .15s">▾</span>&nbsp;ดู diff</button>'
+      +'</div>'
+      +'<div id="tdDiffBody" style="display:none"></div>'
+    ):'')
     +((canRetry||canReassign||canCancel)?(
       '<div class="hd" style="margin:18px 0 6px">การจัดการ</div>'
       +'<div class="ctl" id="tdActions">'
@@ -1048,9 +1055,70 @@ function openTaskDetail(t){
    real /queue_remove endpoint (same call the queue-list delete button at loadQ() uses); Retry and
    Reassign POST to endpoints that don't exist server-side yet, so a null/404 response is treated as
    "not wired yet" rather than a silent failure. */
+/* m3 (Diff Preview): renders the per-file list returned by /task_diff — {files:[{path,additions,
+   deletions,patch}]}. Each file row is independently collapsible; patch text gets simple line-based
+   +/- coloring via var(--ok)/var(--bad), no syntax-highlighter dependency. */
+function _renderDiffPatch(patch){
+  return String(patch||"").split("\n").map(function(line){
+    var style="";
+    if(line.charAt(0)==="+") style="background:rgba(48,164,108,.12);color:var(--ok)";
+    else if(line.charAt(0)==="-") style="background:rgba(229,72,77,.12);color:var(--bad)";
+    return '<span style="display:block;padding:0 6px;'+style+'">'+esc(line.length?line:" ")+'</span>';
+  }).join("");
+}
+function _renderDiffFiles(files){
+  if(!Array.isArray(files)||!files.length) return '<div class="empty">ไม่มีไฟล์ที่เปลี่ยนแปลง</div>';
+  return files.map(function(f,i){
+    const add=f.additions!=null?f.additions:0, del=f.deletions!=null?f.deletions:0;
+    return '<div class="card" style="padding:0;margin-bottom:8px;overflow:hidden">'
+      +'<div class="tdDiffFileHd" data-difffile="'+i+'" role="button" tabindex="0" style="display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer">'
+        +'<span class="mono" style="flex:1;font-size:12.5px;word-break:break-all">'+esc(f.path||"(unknown)")+'</span>'
+        +'<span class="chip" style="color:var(--ok);border-color:var(--ok)">+'+add+'</span>'
+        +'<span class="chip" style="color:var(--bad);border-color:var(--bad)">-'+del+'</span>'
+        +'<span data-chev="'+i+'" style="display:inline-block;transition:transform .15s;color:var(--faint)">▾</span>'
+      +'</div>'
+      +'<div data-diffpatch="'+i+'" style="display:none;border-top:1px solid var(--line)">'
+        +'<pre class="mono" style="margin:0;padding:10px 0;font-size:12px;line-height:1.55;overflow-x:auto;white-space:pre">'+_renderDiffPatch(f.patch)+'</pre>'
+      +'</div>'
+    +'</div>';
+  }).join("");
+}
 function _wireTaskDetailActions(t){
   const msg=document.getElementById("tdActionMsg");
   if(!msg) return;
+  const diffToggle=document.getElementById("tdDiffToggle"), diffBody=document.getElementById("tdDiffBody");
+  if(diffToggle&&diffBody){
+    let diffLoaded=false;
+    diffToggle.onclick=async function(){
+      const chev=document.getElementById("tdDiffChevron");
+      const opening=diffBody.style.display==="none";
+      if(!opening){ diffBody.style.display="none"; diffToggle.setAttribute("aria-expanded","false"); if(chev) chev.style.transform="rotate(0deg)"; return; }
+      diffBody.style.display="block"; diffToggle.setAttribute("aria-expanded","true"); if(chev) chev.style.transform="rotate(180deg)";
+      if(diffLoaded) return;
+      diffLoaded=true;
+      diffBody.innerHTML='<div class="empty">กำลังโหลด diff…</div>';
+      const r=await getJSON("/task_diff?id="+encodeURIComponent(t.id));
+      if(r&&Array.isArray(r.files)){
+        diffBody.innerHTML=_renderDiffFiles(r.files);
+        diffBody.querySelectorAll("[data-difffile]").forEach(function(h){
+          const toggleFile=function(){
+            const idx=h.dataset.difffile;
+            const patchEl=diffBody.querySelector('[data-diffpatch="'+idx+'"]');
+            const chevEl=diffBody.querySelector('[data-chev="'+idx+'"]');
+            if(!patchEl) return;
+            const openFile=patchEl.style.display==="none";
+            patchEl.style.display=openFile?"block":"none";
+            if(chevEl) chevEl.style.transform=openFile?"rotate(180deg)":"rotate(0deg)";
+          };
+          h.onclick=toggleFile;
+          h.onkeydown=function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggleFile(); } };
+        });
+      } else {
+        diffBody.innerHTML='<div class="empty">ยังไม่มี backend endpoint /task_diff — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้</div>';
+        diffLoaded=false;
+      }
+    };
+  }
   const cancelBtn=document.getElementById("tdCancel");
   if(cancelBtn) cancelBtn.onclick=function(){
     msg.innerHTML='ยืนยันยกเลิกงานนี้? <button class="btn" id="tdCancelYes" type="button" style="padding:4px 10px;margin-left:6px">ยืนยัน</button> <button class="btn" id="tdCancelNo" type="button" style="padding:4px 10px">ไม่ใช่</button>';
