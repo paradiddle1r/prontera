@@ -421,6 +421,7 @@ const NAV=[
   ["projects","โปรเจค","projects"],
   ["chat","แชท","chat"],
   ["team","ทีม & โมเดล","models"],
+  ["analytics","Analytics","invest"],
   ["invest","การลงทุน","invest"],
   ["office","Office view","office"]
 ];
@@ -443,7 +444,7 @@ function go(v){
   document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   const n=NAV.find(x=>x[0]===v)||NAV_HIDDEN.find(x=>x[0]===v)||NAV[0];
   document.getElementById("ttl").textContent=n[1];
-  const R={overview:renderOverview,board:renderBoard,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,recall:renderRecall,skills:renderSkills,profile:renderProfile,team:renderTeam,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
+  const R={overview:renderOverview,board:renderBoard,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,recall:renderRecall,skills:renderSkills,profile:renderProfile,team:renderTeam,models:renderModels,work:renderWork,analytics:renderAnalytics,invest:renderInvest,office:renderOffice};
   (R[v]||renderOverview)();
 }
 const V=()=>document.getElementById("view");
@@ -733,6 +734,62 @@ async function renderWork(){
   const d=await getJSON("/work_summary");const days=(d&&d.days)||[];const box=document.getElementById("wk");
   if(!days.length){box.innerHTML='<div class="empty">ยังไม่มีสรุปงาน — จะปรากฏเมื่อทีมรันงานเสร็จ</div>';return;}
   box.innerHTML=days.map(day=>'<div class="hd" style="margin:18px 0 8px">'+esc(day.date||"")+' · '+(day.results||[]).length+' งาน</div>'+(day.results||[]).map(r=>{const v=r.review||{};const vc=v.verdict==="ok"?"v-ok":v.verdict==="fix"?"v-fix":"v-unclear";return '<div class="ws"><div class="flex wrapflex"><span class="chip mdl">'+esc(r.project||"")+'</span><span class="chip">'+esc(r.agent||"")+'</span>'+(r.commit?'<span class="chip mono">'+esc(String(r.commit).slice(0,7))+'</span>':'')+(v.verdict?'<span class="verdict '+vc+'">'+esc(v.verdict)+(v.source==="ci"?" · CI":"")+'</span>':'')+'</div><div class="t">'+esc(r.title||"")+'</div>'+(v.feedback?'<div class="muted fs13">'+esc(v.feedback)+'</div>':'')+'</div>';}).join("")).join("");
+}
+
+async function renderAnalytics(){
+  V().innerHTML='<div class="wrap"><div class="hd">Team Velocity — งานสำเร็จรายวัน</div><div class="grid g-kpi" id="ana-kpi"></div><div class="card" id="velbox"><div class="empty">กำลังโหลด…</div></div></div>';
+  const kpiBox=document.getElementById("ana-kpi"),box=document.getElementById("velbox");
+  const d=await getJSON("/work_summary");const days=(d&&d.days)||[];
+  if(!days.length){ kpiBox.innerHTML=""; box.innerHTML='<div class="empty">ยังไม่มีข้อมูล — จะปรากฏเมื่อทีมรันงานเสร็จ</div>'; return; }
+  const sorted=days.slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+  const PALETTE=["#6ee7b7","#60a5fa","#f472b6","#fbbf24","#a78bfa","#34d399","#f87171","#38bdf8","#fb923c","#c084fc"];
+  const projColor={};let pIdx=0;
+  function colorFor(p){
+    if(projColor[p])return projColor[p];
+    const c=pIdx<PALETTE.length?PALETTE[pIdx++]:"hsl("+([...String(p)].reduce((a,c2)=>a+c2.charCodeAt(0),0)%360)+",65%,58%)";
+    projColor[p]=c;return c;
+  }
+  function shortLabel(ds){ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(ds||"")); return m?m[2]+"/"+m[3]:String(ds||"").slice(0,5); }
+  const perDay=sorted.map(day=>{
+    const results=day.results||[]; const byProj={};
+    results.forEach(r=>{const p=r.project||"other"; byProj[p]=(byProj[p]||0)+1;});
+    return {date:day.date||"",total:results.length,byProj:byProj};
+  });
+  const totals={};
+  perDay.forEach(dd=>{Object.keys(dd.byProj).forEach(p=>{totals[p]=(totals[p]||0)+dd.byProj[p];});});
+  const projects=Object.keys(totals).sort((a,b)=>totals[b]-totals[a]);
+  projects.forEach(p=>colorFor(p));
+  function pad2(n){return n<10?"0"+n:""+n;}
+  const now=new Date(); const todayKey=now.getFullYear()+"-"+pad2(now.getMonth()+1)+"-"+pad2(now.getDate());
+  const todayEntry=perDay.find(dd=>dd.date===todayKey);
+  const todayCount=todayEntry?todayEntry.total:0;
+  const last7=perDay.slice(-7);
+  const avg7=last7.length?(last7.reduce((a,dd)=>a+dd.total,0)/last7.length):0;
+  const fastest=projects.length?projects[0]:null;
+  kpiBox.innerHTML=[
+    ["งานสำเร็จวันนี้",todayCount,"work"],
+    ["เฉลี่ย/วัน (7 วันล่าสุด)",avg7.toFixed(1),"activity"],
+    ["โปรเจคที่เร็วที่สุด",fastest?(esc(fastest)+" ("+totals[fastest]+")"):"–","invest"]
+  ].map(k=>'<div class="kpi"><div class="l">'+ic(k[2])+esc(k[0])+'</div><div class="v">'+k[1]+'</div></div>').join("");
+  const chartH=180,barW=28,gap=14,padL=16,padT=30,padB=30;
+  const maxTotal=Math.max(1,...perDay.map(dd=>dd.total));
+  const svgW=padL*2+perDay.length*(barW+gap);
+  const svgH=padT+chartH+padB;
+  let bars="";
+  perDay.forEach(dd=>{
+    const x=padL+perDay.indexOf(dd)*(barW+gap);
+    let yCursor=padT+chartH;
+    Object.keys(dd.byProj).sort().forEach(p=>{
+      const cnt=dd.byProj[p]; const h=chartH*(cnt/maxTotal);
+      yCursor-=h;
+      bars+='<rect x="'+x+'" y="'+yCursor.toFixed(1)+'" width="'+barW+'" height="'+h.toFixed(1)+'" fill="'+colorFor(p)+'" rx="2"><title>'+esc(p)+": "+cnt+'</title></rect>';
+    });
+    bars+='<text x="'+(x+barW/2)+'" y="'+(padT-8)+'" text-anchor="middle" font-size="11" fill="var(--text)">'+dd.total+'</text>';
+    bars+='<text x="'+(x+barW/2)+'" y="'+(padT+chartH+18)+'" text-anchor="middle" font-size="10" fill="var(--muted)">'+esc(shortLabel(dd.date))+'</text>';
+  });
+  const svg='<svg viewBox="0 0 '+svgW+' '+svgH+'" width="100%" height="240" preserveAspectRatio="xMinYMid meet">'+bars+'</svg>';
+  const legend='<div class="flex wrapflex" style="gap:12px;margin-top:14px">'+projects.map(p=>'<span class="chip" style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:'+colorFor(p)+';display:inline-block"></span>'+esc(p)+' ('+totals[p]+')</span>').join("")+'</div>';
+  box.innerHTML='<div style="overflow-x:auto">'+svg+'</div>'+legend;
 }
 
 async function renderInvest(){
