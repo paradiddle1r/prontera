@@ -218,6 +218,8 @@ input:disabled{opacity:.4}
 @media(max-width:860px){.seg{width:100%;overflow-x:auto}}
 .agpick{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--glass-2);border:1px solid var(--hair);padding:5px 11px;border-radius:10px;cursor:pointer}
 .agpick input{margin:0}
+.pausebar{display:flex;align-items:center;gap:12px;justify-content:center;background:rgba(255,159,10,.16);color:#c77700;border-bottom:1px solid rgba(255,159,10,.32);padding:9px 16px;font-size:13.5px;font-weight:600}
+.tbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 @media (max-width:860px){ .office{height:calc(100dvh - 122px);padding:8px} }
 
 /* ── Task Assignment Hub — "New Task" modal, modeled on the cmdk/agmem overlay pattern ── */
@@ -333,8 +335,10 @@ input:disabled{opacity:.4}
       <div class="notif-panel-head"><b>การแจ้งเตือน</b><button class="notif-mark-all" id="notifMarkAll" type="button">อ่านทั้งหมด</button></div>
       <div class="notif-list" id="notifList"></div>
     </div>
+    <button class="tbtn" id="pauseBtn" type="button" aria-label="พักงานอัตโนมัติ" title="พัก/เล่นงานอัตโนมัติทั้งหมด"></button>
     <button class="tbtn" id="themeBtn" aria-label="สลับธีม light / dark / auto"></button>
   </div>
+  <div id="pausebar" class="pausebar" style="display:none">⏸ พักงานอัตโนมัติอยู่ — cron ทุกโปรเจค + Iris/Vera หยุดชั่วคราว (สั่งรันเอง ▶ ยังได้) <button class="btn sm" id="pauseResume">เล่นต่อ</button></div>
   <div id="view"></div>
 </main>
 
@@ -382,7 +386,7 @@ input:disabled{opacity:.4}
 const KEY=(function(){try{const u=new URLSearchParams(location.search).get("key");if(u)localStorage.setItem("prontera_gkey",u);return u||localStorage.getItem("prontera_gkey")||"";}catch(_){return"";}})();
 const LOCAL=["localhost","127.0.0.1",""];
 const BACKEND=(location.protocol==="file:"||LOCAL.includes(location.hostname))?"":"https://pornchais-mac-mini.tail62b220.ts.net:8443";
-const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|roadmap_set|roadmap_clear|roadmap_auto|project_create|no_claude|brief|agent|iris_run|vera_run)(\?|$)/;
+const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|roadmap_set|roadmap_clear|roadmap_auto|project_create|no_claude|pause|brief|agent|iris_run|vera_run)(\?|$)/;
 function url(p){ if(KEY&&CEORE.test(p)&&p.indexOf("key=")<0) p+=(p.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(KEY); return BACKEND+p; }
 async function getJSON(p){ try{const r=await fetch(url(p));return r.ok?await r.json():null;}catch(_){return null;} }
 async function postJSON(p,body){ try{const r=await fetch(url(p),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});return r.ok?await r.json().catch(()=>({ok:true})):null;}catch(_){return null;} }
@@ -1586,6 +1590,17 @@ document.addEventListener("keydown",e=>{
 applyTheme();
 buildNav();
 document.getElementById("themeBtn").onclick=cycleTheme;
+let PAUSED=false;
+function applyPauseUI(){
+  var b=document.getElementById("pauseBtn"), bar=document.getElementById("pausebar");
+  if(b){ b.innerHTML='<span style="font-size:14px;line-height:1">'+(PAUSED?"▶":"⏸")+'</span>'; b.title=PAUSED?"งานถูกพักอยู่ — คลิกเพื่อเล่นต่อ":"พักงานอัตโนมัติทั้งหมด"; b.classList.toggle("on",PAUSED); }
+  if(bar) bar.style.display=PAUSED?"flex":"none";
+}
+async function refreshPause(){ var c=await getJSON("/config"); PAUSED=!!(c&&c.paused); applyPauseUI(); }
+async function togglePause(){ PAUSED=!PAUSED; applyPauseUI(); var r=await getJSON("/pause?on="+(PAUSED?1:0)); if(!(r&&r.ok)){ PAUSED=!PAUSED; applyPauseUI(); toast("สลับไม่สำเร็จ (CEO เท่านั้น)"); return; } toast(PAUSED?"⏸ พักงานอัตโนมัติแล้ว":"▶ เล่นงานต่อแล้ว"); }
+document.getElementById("pauseBtn").onclick=togglePause;
+var _prb=document.getElementById("pauseResume"); if(_prb) _prb.onclick=togglePause;
+refreshPause();
 document.getElementById("notifBell").onclick=e=>{ e.stopPropagation(); notifToggle(); };
 document.getElementById("notifMarkAll").onclick=e=>{ e.stopPropagation(); notifMarkAllRead(); };
 go("overview"); refreshTokens(); setInterval(refreshTokens,30000);
