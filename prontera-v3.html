@@ -998,11 +998,74 @@ function openTaskDetail(t){
   if(t.ms) rows.push(["Milestone",t.ms]);
   if(t.verdict) rows.push(["ผลตรวจ","✓ "+t.verdict]);
   if(t.commit) rows.push(["Commit",t.commit]);
+  const canCancel=t.status==="ค้างอยู่"&&!!t.id;
+  const canRetry=!!t.id;
+  const canReassign=!!t.id;
   body.innerHTML='<div class="flex" style="margin-bottom:14px"><div class="ag-av" style="width:44px;height:44px;border-radius:13px;font-size:17px;background:'+avColor(t.agent||t.project||"?")+'">'+esc(((t.agent||t.project||"?")[0]||"?").toUpperCase())+'</div><div><div class="ag-nm" style="font-size:16px">'+esc(t.title||"(ไม่มีชื่อ)")+'</div><div class="ag-rl">'+esc(t.project||"")+'</div></div></div>'
     +'<div class="ag-meta" style="margin-bottom:18px"><span class="chip '+statusCls+'">'+esc(t.status||"")+'</span>'+(t.agent?'<span class="chip sm">'+esc(t.agent)+'</span>':'')+(t.model?'<span class="chip mdl">'+esc(t.model)+'</span>':'')+'</div>'
     +'<div class="hd" style="margin:0 0 6px">รายละเอียดงาน</div>'
-    +(rows.length?'<div class="card" style="padding:4px 12px">'+rows.map(r=>'<div class="tdrow"><div class="tdk">'+esc(r[0])+'</div><div class="tdv">'+esc(r[1])+'</div></div>').join("")+'</div>':'<div class="empty">ไม่มีรายละเอียดเพิ่มเติม</div>');
+    +(rows.length?'<div class="card" style="padding:4px 12px">'+rows.map(r=>'<div class="tdrow"><div class="tdk">'+esc(r[0])+'</div><div class="tdv">'+esc(r[1])+'</div></div>').join("")+'</div>':'<div class="empty">ไม่มีรายละเอียดเพิ่มเติม</div>')
+    +((canRetry||canReassign||canCancel)?(
+      '<div class="hd" style="margin:18px 0 6px">การจัดการ</div>'
+      +'<div class="ctl" id="tdActions">'
+        +(canRetry?'<button class="btn" id="tdRetry" type="button">'+ic("refresh")+'ลองใหม่ (Retry)</button>':'')
+        +(canReassign?'<button class="btn" id="tdReassign" type="button">มอบหมายใหม่ (Reassign)</button>':'')
+        +(canCancel?'<button class="btn" id="tdCancel" type="button">'+ic("x")+'ยกเลิก (Cancel)</button>':'')
+      +'</div>'
+      +'<div id="tdActionMsg" class="sub" style="margin-top:8px"></div>'
+      +'<div id="tdReassignBox" style="display:none;margin-top:10px"></div>'
+    ):'');
   ov.classList.add("on");
+  _wireTaskDetailActions(t);
+}
+/* m2 (Task Control Center): action-bar handlers for the drawer opened above. Reuses the existing
+   getJSON/postJSON helpers and .btn/.chip/.taskm-fld CSS — no new design language. Cancel hits the
+   real /queue_remove endpoint (same call the queue-list delete button at loadQ() uses); Retry and
+   Reassign POST to endpoints that don't exist server-side yet, so a null/404 response is treated as
+   "not wired yet" rather than a silent failure. */
+function _wireTaskDetailActions(t){
+  const msg=document.getElementById("tdActionMsg");
+  if(!msg) return;
+  const cancelBtn=document.getElementById("tdCancel");
+  if(cancelBtn) cancelBtn.onclick=function(){
+    msg.innerHTML='ยืนยันยกเลิกงานนี้? <button class="btn" id="tdCancelYes" type="button" style="padding:4px 10px;margin-left:6px">ยืนยัน</button> <button class="btn" id="tdCancelNo" type="button" style="padding:4px 10px">ไม่ใช่</button>';
+    document.getElementById("tdCancelYes").onclick=async function(){
+      msg.textContent="กำลังยกเลิก…";
+      await getJSON("/queue_remove?id="+encodeURIComponent(t.id));
+      toast("✓ ยกเลิกงานแล้ว: "+(t.title||t.id));
+      closeTaskDetail();
+      if(boardReload) boardReload();
+    };
+    document.getElementById("tdCancelNo").onclick=function(){ msg.textContent=""; };
+  };
+  const retryBtn=document.getElementById("tdRetry");
+  if(retryBtn) retryBtn.onclick=async function(){
+    retryBtn.disabled=true; msg.textContent="กำลังส่งคำสั่งลองใหม่…";
+    const r=await postJSON("/task_retry",{id:t.id});
+    retryBtn.disabled=false;
+    if(r){ msg.textContent="✓ ส่งคำสั่งลองใหม่แล้ว"; toast("✓ ลองใหม่: "+(t.title||t.id)); if(boardReload) boardReload(); }
+    else { msg.textContent="ยังไม่มี backend endpoint /task_retry — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้"; toast("ยังไม่มี backend endpoint /task_retry"); }
+  };
+  const reassignBtn=document.getElementById("tdReassign"), box=document.getElementById("tdReassignBox");
+  if(reassignBtn) reassignBtn.onclick=function(){
+    if(box.style.display==="none"||!box.innerHTML){
+      const opts=taskmAgentOptions(t.project);
+      box.innerHTML='<div class="taskm-fld"><label for="tdAgentSel">เลือก agent ใหม่</label><select id="tdAgentSel">'+(opts.length?opts.map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join(""):'<option value="">(ไม่มี agent)</option>')+'</select></div><div class="ctl" style="margin-top:6px"><button class="btn pri" id="tdReassignSubmit" type="button">ยืนยันมอบหมายใหม่</button></div>';
+      box.style.display="block";
+      document.getElementById("tdReassignSubmit").onclick=async function(){
+        const sel=document.getElementById("tdAgentSel"), newAgent=sel?sel.value:"";
+        if(!newAgent){ msg.textContent="เลือก agent ก่อน"; return; }
+        const submitBtn=document.getElementById("tdReassignSubmit");
+        submitBtn.disabled=true; msg.textContent="กำลังมอบหมายใหม่…";
+        const r=await postJSON("/task_reassign",{id:t.id,agent:newAgent});
+        submitBtn.disabled=false;
+        if(r){ msg.textContent="✓ มอบหมายใหม่ให้ "+newAgent; toast("✓ มอบหมายใหม่: "+newAgent); if(boardReload) boardReload(); }
+        else { msg.textContent="ยังไม่มี backend endpoint /task_reassign — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้"; toast("ยังไม่มี backend endpoint /task_reassign"); }
+      };
+    } else {
+      box.style.display="none"; box.innerHTML="";
+    }
+  };
 }
 function closeTaskDetail(){ const ov=document.getElementById("taskdetailOverlay"); if(ov) ov.classList.remove("on"); }
 document.getElementById("taskdetailClose").onclick=closeTaskDetail;
