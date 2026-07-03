@@ -988,10 +988,13 @@ function _boardProject(p,v){
   const rm=v.roadmap, pct=rm&&rm.total?Math.round(100*rm.done/rm.total):0;
   const head='<div class="bph"><div class="bpt">'+esc(p)+(rm?'<span class="chip">🎯 '+esc(rm.title)+' · '+rm.done+'/'+rm.total+(rm.by==="iris"?' · โดย Iris':'')+'</span>':'<span class="chip warn">ยังไม่มีเป้าหมาย — Iris จะตั้งให้รอบถัดไป</span>')+'</div>'+(rm?'<div class="pbar"><i style="width:'+pct+'%"></i></div>':'')+'</div>';
   const doing=[];
-  if(v.doing){
-    const idx=_pushBoardTask(Object.assign({},v.doing,{project:p,status:"กำลังทำ"}));
-    doing.push(_kcard(v.doing.title,v.doing.agent,"● "+(v.doing.phase||"ทำงาน"),"live",idx));
-  }
+  /* m3: v.doing may be a single task object (legacy/current) or an array of task objects
+     (future shape for concurrent work) — normalize to a list and render one live card each */
+  const doingList=Array.isArray(v.doing)?v.doing:(v.doing?[v.doing]:[]);
+  doingList.forEach(dt=>{
+    const idx=_pushBoardTask(Object.assign({},dt,{project:p,status:"กำลังทำ"}));
+    doing.push(_kcard(dt.title,dt.agent,"● "+(dt.phase||"ทำงาน"),"live",idx));
+  });
   const pend=(v.pending||[]).map(t=>{
     const idx=_pushBoardTask(Object.assign({},t,{project:p,status:"ค้างอยู่"}));
     return _kcard(t.title,t.agent,t.ms?("milestone "+t.ms):(t.model||""),"",idx);
@@ -1001,10 +1004,13 @@ function _boardProject(p,v){
     return _kcard(t.title,t.agent,(t.verdict?("✓ "+t.verdict):"")+(t.commit?(" · "+t.commit):""),"done",idx);
   });
   return '<div class="bproj">'+head+'<div class="kanban">'
-    +_kcol("กำลังทำ","doing",doing,"ทีมว่างอยู่")
+    +_kcol("กำลังทำ"+(doingList.length>1?' ⚡ '+doingList.length+' พร้อมกัน':""),"doing",doing,"ทีมว่างอยู่")
     +_kcol("ค้างอยู่ (backlog)","pending",pend,"ไม่มีงานค้าง")
     +_kcol("เสร็จล่าสุด","done",done,"ยังไม่มี")+'</div></div>';
 }
+/* m4: /board's `doing` field is currently a single object server-side — the UI above now accepts
+   either shape, so the backend can switch `doing` to an array (for real concurrent tasks) later
+   without requiring another frontend change */
 /* m1 (Live Task Console): Task Detail drawer — click/Enter/Space on a .kcard opens it with the full
    task object captured in window._boardTasks at render time (no extra fetch, /board already has it all) */
 function openTaskDetail(t){
