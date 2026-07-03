@@ -196,6 +196,8 @@ input:disabled{opacity:.4}
 .seg button{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:550;padding:7px 15px;border-radius:9px;cursor:pointer;white-space:nowrap}
 .seg button.on{background:var(--glass-3);color:var(--text);box-shadow:var(--shadow)}
 @media(max-width:860px){.seg{width:100%;overflow-x:auto}}
+.agpick{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--glass-2);border:1px solid var(--hair);padding:5px 11px;border-radius:10px;cursor:pointer}
+.agpick input{margin:0}
 @media (max-width:860px){ .office{height:calc(100dvh - 122px);padding:8px} }
 
 .page{display:none}.page.on{display:block}
@@ -415,7 +417,9 @@ function renderTokBars(box,lim){
   }).join("");
 }
 
-const PROJ=[["hotel-pms","hotelpms"],["hostgate","hostgate"],["discord-bot","discordbot"],["prontera","prontera"]];
+let PROJMETA=[{name:"hotel-pms",base:"hotelpms",builtin:true},{name:"hostgate",base:"hostgate",builtin:true},{name:"discord-bot",base:"discordbot",builtin:true},{name:"prontera",base:"prontera",builtin:true}];
+let PROJ=PROJMETA.map(p=>[p.name,p.base]);
+async function loadProjects(){ const d=await getJSON("/projects_list"); if(Array.isArray(d)&&d.length){ PROJMETA=d; PROJ=d.map(p=>[p.name,p.base||p.name]); } return PROJMETA; }
 async function loadRoadmap(project){
   var box=document.getElementById("rmbox"); if(!box) return;
   var d=await getJSON("/roadmap?project="+encodeURIComponent(project));
@@ -431,6 +435,7 @@ async function loadRoadmap(project){
   var clr=document.getElementById("rmclr"); if(clr) clr.onclick=async function(){ await getJSON("/roadmap_clear?project="+encodeURIComponent(project)); loadRoadmap(project); };
 }
 async function renderProjects(){
+  await loadProjects();
   V().innerHTML='<div class="wrap">'
     +'<div class="hd">🎯 โปรเจคใหญ่ (Roadmap) <span class="sub">— กำหนดเป้าใหญ่ → ทีมทำ milestone ถัดไปต่อกันทุกรอบจนเป็นฟีเจอร์ใหญ่ (เห็นผลสะสม)</span></div>'
     +'<div id="rmbox"><div class="empty">กำลังโหลด…</div></div>'
@@ -439,6 +444,12 @@ async function renderProjects(){
       +'<input id="rg" placeholder="เป้าหมาย/วิสัยทัศน์ (goal)" style="width:100%;margin-bottom:8px"/>'
       +'<textarea id="rms" rows="3" placeholder="milestones เรียงลำดับ คั่นด้วย | หรือขึ้นบรรทัดใหม่ (แต่ละอันควรจบใน 1 รอบ)\nเช่น: Palette overlay + hotkey | Fuzzy command filter | เชื่อม history search | Keyboard nav" style="width:100%"></textarea>'
       +'<div class="ctl" style="margin-top:8px"><button class="btn pri" id="rsave">'+ic("plus")+'ตั้งเป็นโปรเจคใหญ่</button><button class="btn" id="rauto" title="ให้หัวหน้า (Iris) อ่านโค้ดจริงแล้วเสนอเป้าหมายใหญ่ + milestones ให้เอง (loop engineering)">'+ic("bolt")+'ให้ Iris ตั้งให้เอง</button><span class="sub" id="rmsg"></span></div></div>'
+    +'<div class="hd">➕ สร้างโปรเจคใหม่ <span class="sub">— ชื่อ + repo (https, จะใส่หรือไม่ก็ได้) + เลือก agent + เป้าหมาย → ทีมเริ่มดูแลได้เลย</span></div>'
+    +'<div class="card" style="margin-bottom:12px"><div class="ctl" style="gap:8px;margin-bottom:8px"><input id="np" placeholder="ชื่อ a-z 0-9 - เช่น my-notes" style="flex:1;min-width:150px"/><input id="no" placeholder="https git repo (ไม่ใส่ก็ได้)" style="flex:2;min-width:190px"/></div>'
+    +'<div class="sub" style="margin:2px 0 6px">มอบหมาย agent (เลือกได้หลายตัว):</div><div id="nag" class="ctl" style="gap:9px;margin-bottom:9px;flex-wrap:wrap"></div>'
+    +'<input id="ng" placeholder="เป้าหมาย/วิสัยทัศน์ (goal)" style="width:100%;margin-bottom:8px"/>'
+    +'<textarea id="nms" rows="2" placeholder="milestones (ไม่ใส่ก็ได้) คั่นด้วย | หรือขึ้นบรรทัดใหม่" style="width:100%"></textarea>'
+    +'<div class="ctl" style="margin-top:8px"><button class="btn pri" id="ncreate">'+ic("plus")+'สร้างโปรเจค</button><span class="sub" id="nmsg"></span></div></div>'
     +'<div class="hd">Cron แต่ละโปรเจค <span class="sub">— เปิด/ปิด · เวลาประจำวัน หรือ ทุกๆ N ชม. · ▶ รันเดี๋ยวนี้</span></div><div id="crons"><div class="empty">กำลังโหลด…</div></div><div class="hd">ระบุงานล่วงหน้า (queue)</div><div class="card"><div class="ctl" style="gap:8px;margin-bottom:10px"><select id="qp">'+PROJ.map(p=>'<option>'+p[0]+'</option>').join("")+'</select><input id="qt" placeholder="หัวข้องาน" style="flex:1;min-width:140px"/></div><textarea id="qd" rows="2" placeholder="รายละเอียด/คำสั่งให้ agent" style="width:100%"></textarea><div class="ctl" style="margin-top:8px"><button class="btn pri" id="qadd">'+ic("plus")+'เพิ่มเข้า queue</button><span class="sub" id="qmsg"></span></div><div id="qlist" style="margin-top:12px"></div></div></div>';
   loadRoadmap(document.getElementById("rp").value);
   document.getElementById("rp").onchange=function(){ loadRoadmap(this.value); };
@@ -465,12 +476,24 @@ async function renderProjects(){
       +'<div class="lbl"><label class="sw"><input type="checkbox" data-en="'+p+'"'+(en?" checked":"")+'/><span class="tr"></span></label>'+esc(p)+'</div>'
       +'<div class="ctl"><input type="time" data-tm="'+p+'"'+((!en||ev>0)?" disabled":"")+' value="'+esc(tv)+'"/>'
       +'<span class="sub">ทุกๆ</span><input class="num" type="number" min="0" max="168" data-ev="'+p+'"'+(!en?" disabled":"")+' value="'+ev+'"/><span class="sub">ชม.</span>'
-      +'<button class="btn run" data-run="'+p+'" aria-label="รัน '+esc(p)+'">'+ic("play")+'</button></div></div></div>';
+      +'<button class="btn run" data-run="'+p+'" aria-label="รัน '+esc(p)+'">'+ic("play")+'</button>'+(((PROJMETA.find(x=>x.name===p)||{}).builtin===false)?'<button class="btn" data-delproj="'+p+'" title="ลบโปรเจค" aria-label="ลบ '+esc(p)+'">'+ic("x")+'</button>':'')+'</div></div></div>';
   }).join("");
   document.querySelectorAll("[data-en]").forEach(cb=>cb.onchange=async()=>{const p=cb.dataset.en,on=cb.checked;await getJSON("/set_project_cron?project="+encodeURIComponent(p)+"&enabled="+(on?1:0));const t=document.querySelector('[data-tm="'+p+'"]'),e=document.querySelector('[data-ev="'+p+'"]');if(e)e.disabled=!on;if(t)t.disabled=!on||((parseFloat(e&&e.value||0)||0)>0);});
   document.querySelectorAll("[data-tm]").forEach(i=>i.onchange=()=>getJSON("/set_project_cron?project="+encodeURIComponent(i.dataset.tm)+"&time="+encodeURIComponent(i.value)));
   document.querySelectorAll("[data-ev]").forEach(i=>i.onchange=async()=>{const v=Math.max(0,Math.min(168,parseInt(i.value||"0",10)||0));i.value=v;await getJSON("/set_project_cron?project="+encodeURIComponent(i.dataset.ev)+"&every="+v);const t=document.querySelector('[data-tm="'+i.dataset.ev+'"]');if(t)t.disabled=(v>0);});
   document.querySelectorAll("[data-run]").forEach(b=>b.onclick=async()=>{b.disabled=true;const r=await getJSON("/run_project?project="+encodeURIComponent(b.dataset.run));toast(r&&r.status==="started"?"▶ เริ่มรัน "+b.dataset.run:"รันไม่สำเร็จ (CEO เท่านั้น)");setTimeout(()=>b.disabled=false,2500);});
+  (function(){ var w=AG.filter(a=>["iris","vera","openclaw"].indexOf(a[0])<0), box=document.getElementById("nag"); if(box) box.innerHTML=w.map(a=>'<label class="agpick"><input type="checkbox" value="'+a[0]+'"'+(a[0]==="mira"?" checked":"")+'/>'+esc(a[1])+'</label>').join(""); })();
+  var _nc=document.getElementById("ncreate"); if(_nc) _nc.onclick=async function(){
+    var name=document.getElementById("np").value.trim(), origin=document.getElementById("no").value.trim(), goal=document.getElementById("ng").value.trim(), ms=document.getElementById("nms").value.trim();
+    var ags=[].slice.call(document.querySelectorAll("#nag input:checked")).map(x=>x.value), m=document.getElementById("nmsg");
+    if(!name){ m.textContent="ใส่ชื่อโปรเจคก่อน"; return; }
+    if(!ags.length){ m.textContent="เลือกอย่างน้อย 1 agent"; return; }
+    m.textContent="กำลังสร้าง…";
+    var r=await getJSON("/project_create?name="+encodeURIComponent(name)+"&origin="+encodeURIComponent(origin)+"&agents="+encodeURIComponent(ags.join(","))+"&goal="+encodeURIComponent(goal)+"&milestones="+encodeURIComponent(ms));
+    if(r&&r.ok){ m.textContent="✓ สร้างแล้ว: "+r.project; toast("สร้างโปรเจค "+r.project); await loadProjects(); renderProjects(); }
+    else m.textContent="✕ "+((r&&(r.error||r.message))||"ไม่สำเร็จ (CEO เท่านั้น)");
+  };
+  document.querySelectorAll("[data-delproj]").forEach(b=>b.onclick=async()=>{ if(!confirm("ลบโปรเจค "+b.dataset.delproj+" ? (ลบ roadmap ด้วย)"))return; var r=await getJSON("/project_delete?name="+encodeURIComponent(b.dataset.delproj)); if(r&&r.ok){toast("ลบแล้ว");await loadProjects();renderProjects();}else toast((r&&(r.error||r.message))||"ลบไม่สำเร็จ"); });
   document.getElementById("qadd").onclick=async()=>{const p=document.getElementById("qp").value,t=document.getElementById("qt").value.trim(),d=document.getElementById("qd").value.trim(),m=document.getElementById("qmsg");if(!t){m.textContent="ใส่หัวข้อก่อน";return;}m.textContent="กำลังเพิ่ม…";const r=await getJSON("/queue_add?project="+encodeURIComponent(p)+"&title="+encodeURIComponent(t)+"&prompt="+encodeURIComponent(d));if(r&&r.ok){m.textContent="✓ เพิ่มแล้ว";document.getElementById("qt").value="";document.getElementById("qd").value="";loadQ();}else m.textContent="✕ "+((r&&(r.error||r.message))||"ไม่สำเร็จ");};
   loadQ();
 }
@@ -854,6 +877,7 @@ function _boardProject(p,v){
     +_kcol("เสร็จล่าสุด","done",done,"ยังไม่มี")+'</div></div>';
 }
 async function renderBoard(){
+  await loadProjects();
   V().innerHTML='<div class="wrap"><div class="ctl" style="margin-bottom:14px"><select id="bp"><option value="">ทุกโปรเจค</option>'+PROJ.map(p=>'<option value="'+p[0]+'">'+p[0]+'</option>').join("")+'</select><button class="btn" id="brl">'+ic("refresh")+'รีเฟรช</button><span class="spacer"></span><span class="sub">แตะ ▶ ในแท็บ “โปรเจค” เพื่อสั่งงานเดี๋ยวนี้</span></div><div id="bwrap"><div class="empty">กำลังโหลด…</div></div></div>';
   async function load(){
     const proj=document.getElementById("bp").value;
