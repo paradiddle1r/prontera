@@ -512,6 +512,33 @@ async function loadAct(){
   }).join(""):'<div class="empty">😴 ตอนนี้ไม่มี agent ทำงานอยู่ — รันตามเวลาที่ตั้งใน “โปรเจค & Cron” หรือกด ▶</div>';
 }
 
+// ── Global background activity poller — always-on, independent of CUR/tab, reuses /activity so toast()
+// fires on real state transitions (finish/reviewing/stale) even while the user sits on Overview/Chat/Models.
+let bgActSeen=null; // module-level lastSeen snapshot: {agentId:{phase,updated_at,project,stale}} — null until first poll
+async function pollActivityGlobal(){
+  const d=await getJSON("/activity")||{};
+  const now={};
+  Object.keys(d).forEach(k=>{
+    const a=d[k]||{};
+    let stale=false; try{stale=(Date.now()-Date.parse(a.updated_at))>180000;}catch(_){}
+    now[k]={phase:a.phase,updated_at:a.updated_at,project:a.project,stale:stale};
+  });
+  if(!bgActSeen){ bgActSeen=now; return; } // first poll: seed silently, no toasts (avoid spam on page open)
+  Object.keys(bgActSeen).forEach(k=>{
+    if(!now[k]){
+      const prev=bgActSeen[k];
+      toast("✓ "+k+" เสร็จงานแล้ว ("+(prev.project||"-")+")");
+    }
+  });
+  Object.keys(now).forEach(k=>{
+    const cur=now[k], prev=bgActSeen[k];
+    if(!prev) return; // brand-new agent id this poll — no prior state to diff a transition against
+    if(cur.phase==="reviewing"&&prev.phase!=="reviewing") toast("👀 Vera กำลังรีวิว "+k);
+    if(cur.stale&&!prev.stale) toast("⚠ "+k+" ค้าง/ไม่ตอบสนอง ("+(cur.project||"-")+")");
+  });
+  bgActSeen=now;
+}
+
 // ── Live parallel-work (pipelines) — same /activity payload as Live Activity, grouped BY PROJECT into
 // swimlanes so concurrent runs across rooms are visible at a glance, each agent shown with a phase stepper.
 let plTimer=null;
@@ -1019,6 +1046,7 @@ applyTheme();
 buildNav();
 document.getElementById("themeBtn").onclick=cycleTheme;
 go("overview"); refreshTokens(); setInterval(refreshTokens,30000);
+pollActivityGlobal(); setInterval(pollActivityGlobal,6000);
 </script>
 </body>
 </html>
