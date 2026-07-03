@@ -160,10 +160,43 @@ input:disabled{opacity:.4}
 .chatbar{display:flex;gap:10px;padding:15px 24px;border-top:1px solid var(--hair);background:rgba(255,255,255,.5);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);align-items:flex-end}
 .chatbar select{flex:0 0 auto}.chatbar input{flex:1}
 
-.office{position:relative;height:calc(100dvh - 60px);width:100%}
-.office iframe{width:100%;height:100%;border:0;background:#0a0e14;display:block}
-.offull{position:absolute;top:12px;right:16px;z-index:5;font-size:12.5px;font-weight:500;color:var(--text);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);box-shadow:var(--shadow);padding:7px 13px;border-radius:999px}
-@media (max-width:860px){ .office{height:calc(100dvh - 122px)} }
+/* Office view — the game world framed in glass so it blends with the dashboard theme (mesh bg shows in the gutter) */
+.office{height:calc(100dvh - 60px);width:100%;padding:14px;display:flex}
+.office .oframe{flex:1;display:flex;flex-direction:column;border-radius:22px;overflow:hidden;border:1px solid var(--hair);box-shadow:var(--shadow);background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+.office .ohead{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;font-weight:600;color:var(--text);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-bottom:1px solid var(--hair)}
+.office .ohead svg{width:16px;height:16px;opacity:.8}
+.office iframe{flex:1;width:100%;border:0;background:#070b12;display:block}
+.obtn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--text);background:var(--glass-2);border:1px solid var(--hair);padding:5px 11px;border-radius:999px;cursor:pointer;text-decoration:none}
+.obtn svg{width:14px;height:14px}
+@media (max-width:860px){ .office{height:calc(100dvh - 122px);padding:8px} }
+/* Kanban board — งานกำลังทำ / ค้าง / เสร็จ แยกต่อโปรเจค */
+.bproj{margin-bottom:26px}
+.bph{margin-bottom:11px}
+.bpt{font-size:15.5px;font-weight:700;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pbar{height:6px;background:var(--glass-3);border:1px solid var(--hair);border-radius:999px;overflow:hidden;margin-top:8px;max-width:420px}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#5ac8fa);border-radius:999px}
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:860px){.kanban{grid-template-columns:1fr}}
+.kcol{background:var(--glass-2);border:1px solid var(--hair);border-radius:16px;padding:11px;min-height:76px}
+.kcol.doing{border-color:color-mix(in srgb,var(--accent) 45%,var(--hair))}
+.kh{font-weight:700;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.kn{background:var(--glass-3);border:1px solid var(--hair);border-radius:999px;padding:1px 8px;font-size:11px;color:var(--text)}
+.kcard{background:var(--glass-3);border:1px solid var(--hair);border-radius:12px;padding:9px 11px;margin-bottom:8px;box-shadow:var(--shadow)}
+.kcard:last-child{margin-bottom:0}
+.kcard.live{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.kcard.done{opacity:.8}
+.kt{font-size:13px;font-weight:550;line-height:1.36;margin-bottom:6px;word-break:break-word}
+.km{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.kmeta{font-size:11px;color:var(--muted)}
+.kempty{color:var(--faint);font-size:12px;padding:10px 6px;text-align:center}
+.chip.sm{font-size:10.5px;padding:1px 7px}
+.chip.warn{background:rgba(255,159,10,.16);color:#c77700;border-color:rgba(255,159,10,.3)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.seg{display:inline-flex;gap:4px;background:var(--glass-2);border:1px solid var(--hair);border-radius:13px;padding:4px}
+.seg button{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:550;padding:7px 15px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--glass-3);color:var(--text);box-shadow:var(--shadow)}
+@media(max-width:860px){.seg{width:100%;overflow-x:auto}}
+@media (max-width:860px){ .office{height:calc(100dvh - 122px);padding:8px} }
 
 .page{display:none}.page.on{display:block}
 
@@ -280,7 +313,7 @@ input:disabled{opacity:.4}
 const KEY=(function(){try{const u=new URLSearchParams(location.search).get("key");if(u)localStorage.setItem("prontera_gkey",u);return u||localStorage.getItem("prontera_gkey")||"";}catch(_){return"";}})();
 const LOCAL=["localhost","127.0.0.1",""];
 const BACKEND=(location.protocol==="file:"||LOCAL.includes(location.hostname))?"":"https://pornchais-mac-mini.tail62b220.ts.net:8443";
-const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|roadmap_set|roadmap_clear|no_claude|brief|agent|iris_run|vera_run)(\?|$)/;
+const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|roadmap_set|roadmap_clear|roadmap_auto|project_create|no_claude|brief|agent|iris_run|vera_run)(\?|$)/;
 function url(p){ if(KEY&&CEORE.test(p)&&p.indexOf("key=")<0) p+=(p.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(KEY); return BACKEND+p; }
 async function getJSON(p){ try{const r=await fetch(url(p));return r.ok?await r.json():null;}catch(_){return null;} }
 async function postJSON(p,body){ try{const r=await fetch(url(p),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});return r.ok?await r.json().catch(()=>({ok:true})):null;}catch(_){return null;} }
@@ -314,12 +347,20 @@ const ICON={
 function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'+(c?' style="color:'+c+'"':'')+' aria-hidden="true">'+(ICON[n]||"")+'</svg>';}
 
 const NAV=[
-  ["overview","ภาพรวม","overview"],["projects","โปรเจค & Cron","projects"],["activity","Live Activity","activity"],
-  ["pipelines","งานคู่ขนาน","pipelines"],
-  ["chat","แชท","chat"],["search","ค้นหา","search"],["recall","ความต่อเนื่อง & เซสชัน","work"],["skills","สกิล (เรียนรู้)","bulb"],
-  ["profile","โปรไฟล์เจ้าของ","work"],
-  ["models","โมเดล & Token","models"],["work","สรุปงาน","work"],["invest","การลงทุน","invest"],
+  ["overview","ภาพรวม","overview"],
+  ["board","บอร์ดงาน","work"],
+  ["projects","โปรเจค","projects"],
+  ["chat","แชท","chat"],
+  ["team","ทีม & โมเดล","models"],
+  ["invest","การลงทุน","invest"],
   ["office","Office view","office"]
+];
+// Folded into Board / the Team tab / ⌘K palette — reachable, just not cluttering the main nav.
+const NAV_HIDDEN=[
+  ["activity","Live Activity","activity"],["pipelines","งานคู่ขนาน","pipelines"],
+  ["work","สรุปงานรายวัน","work"],["recall","ความต่อเนื่อง & เซสชัน","work"],
+  ["skills","สกิล (เรียนรู้)","bulb"],["profile","โปรไฟล์เจ้าของ","overview"],
+  ["models","โมเดล & Token","models"],["search","ค้นหาประวัติงาน","search"]
 ];
 const MNAV=NAV.map(function(n){return n[0];});   // mobile bottom-nav: all tabs, horizontally scrollable
 let CUR="overview";
@@ -331,9 +372,9 @@ function buildNav(){
 function go(v){
   CUR=v;
   document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
-  const n=NAV.find(x=>x[0]===v)||NAV[0];
+  const n=NAV.find(x=>x[0]===v)||NAV_HIDDEN.find(x=>x[0]===v)||NAV[0];
   document.getElementById("ttl").textContent=n[1];
-  const R={overview:renderOverview,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,recall:renderRecall,skills:renderSkills,profile:renderProfile,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
+  const R={overview:renderOverview,board:renderBoard,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,recall:renderRecall,skills:renderSkills,profile:renderProfile,team:renderTeam,models:renderModels,work:renderWork,invest:renderInvest,office:renderOffice};
   (R[v]||renderOverview)();
 }
 const V=()=>document.getElementById("view");
@@ -397,7 +438,7 @@ async function renderProjects(){
       +'<div class="ctl" style="gap:8px;margin-bottom:8px"><select id="rp">'+PROJ.map(p=>'<option'+(p[0]==="prontera"?" selected":"")+'>'+p[0]+'</option>').join("")+'</select><input id="rt" placeholder="ชื่อโปรเจคใหญ่ เช่น Command palette + search" style="flex:1;min-width:160px"/></div>'
       +'<input id="rg" placeholder="เป้าหมาย/วิสัยทัศน์ (goal)" style="width:100%;margin-bottom:8px"/>'
       +'<textarea id="rms" rows="3" placeholder="milestones เรียงลำดับ คั่นด้วย | หรือขึ้นบรรทัดใหม่ (แต่ละอันควรจบใน 1 รอบ)\nเช่น: Palette overlay + hotkey | Fuzzy command filter | เชื่อม history search | Keyboard nav" style="width:100%"></textarea>'
-      +'<div class="ctl" style="margin-top:8px"><button class="btn pri" id="rsave">'+ic("plus")+'ตั้งเป็นโปรเจคใหญ่</button><span class="sub" id="rmsg"></span></div></div>'
+      +'<div class="ctl" style="margin-top:8px"><button class="btn pri" id="rsave">'+ic("plus")+'ตั้งเป็นโปรเจคใหญ่</button><button class="btn" id="rauto" title="ให้หัวหน้า (Iris) อ่านโค้ดจริงแล้วเสนอเป้าหมายใหญ่ + milestones ให้เอง (loop engineering)">'+ic("bolt")+'ให้ Iris ตั้งให้เอง</button><span class="sub" id="rmsg"></span></div></div>'
     +'<div class="hd">Cron แต่ละโปรเจค <span class="sub">— เปิด/ปิด · เวลาประจำวัน หรือ ทุกๆ N ชม. · ▶ รันเดี๋ยวนี้</span></div><div id="crons"><div class="empty">กำลังโหลด…</div></div><div class="hd">ระบุงานล่วงหน้า (queue)</div><div class="card"><div class="ctl" style="gap:8px;margin-bottom:10px"><select id="qp">'+PROJ.map(p=>'<option>'+p[0]+'</option>').join("")+'</select><input id="qt" placeholder="หัวข้องาน" style="flex:1;min-width:140px"/></div><textarea id="qd" rows="2" placeholder="รายละเอียด/คำสั่งให้ agent" style="width:100%"></textarea><div class="ctl" style="margin-top:8px"><button class="btn pri" id="qadd">'+ic("plus")+'เพิ่มเข้า queue</button><span class="sub" id="qmsg"></span></div><div id="qlist" style="margin-top:12px"></div></div></div>';
   loadRoadmap(document.getElementById("rp").value);
   document.getElementById("rp").onchange=function(){ loadRoadmap(this.value); };
@@ -408,6 +449,14 @@ async function renderProjects(){
     var r=await getJSON("/roadmap_set?project="+encodeURIComponent(p)+"&title="+encodeURIComponent(t)+"&goal="+encodeURIComponent(g)+"&milestones="+encodeURIComponent(ms));
     if(r&&r.ok){ m.textContent="✓ ตั้งแล้ว "+r.milestones+" milestones"; document.getElementById("rt").value="";document.getElementById("rg").value="";document.getElementById("rms").value=""; loadRoadmap(p); }
     else m.textContent="✕ "+((r&&(r.error||r.message))||"ไม่สำเร็จ (CEO เท่านั้น)");
+  };
+  document.getElementById("rauto").onclick=async function(){
+    var p=document.getElementById("rp").value, m=document.getElementById("rmsg"), b=this;
+    b.disabled=true; m.textContent="🤖 Iris กำลังอ่านโค้ดแล้วคิดเป้าหมาย… (อาจใช้เวลาสักครู่)";
+    var r=await getJSON("/roadmap_auto?project="+encodeURIComponent(p));
+    b.disabled=false;
+    if(r&&r.ok){ m.textContent="✓ Iris ตั้งให้แล้ว "+r.milestones+" milestones"; loadRoadmap(p); toast("Iris ตั้งเป้าหมายให้ "+p+" แล้ว"); }
+    else m.textContent="✕ "+((r&&(r.error||r.message))||"Iris เสนอไม่สำเร็จ ลองใหม่ (CEO เท่านั้น)");
   };
   const cfg=await getJSON("/config")||{};
   document.getElementById("crons").innerHTML=PROJ.map(([p,b])=>{
@@ -495,8 +544,8 @@ async function renderChat(){
 }
 function addMsg(cls,who,txt){const m=document.getElementById("msgs");if(m.querySelector(".empty"))m.innerHTML="";const d=document.createElement("div");d.className="msg "+cls;d.innerHTML=(who?'<div class="nm">'+esc(who)+'</div>':'')+esc(txt);m.appendChild(d);m.scrollTop=m.scrollHeight;}
 
-async function renderModels(){
-  V().innerHTML='<div class="wrap">'
+async function renderModels(tgt){
+  (tgt||V()).innerHTML='<div class="wrap">'
     +'<!-- /isolation_status endpoint needed — returns [{agent,backend,isolationMode,healthy,lastCheck}] -->'
     +'<div class="hd">สถานะ Isolation & Backend <span class="sub">— isolation mode (worktree / strict-mcp / clone) + health ต่อ agent/backend</span></div>'
     +'<div id="isohint" class="sub" style="margin:-7px 0 12px"></div>'
@@ -699,8 +748,8 @@ function wireSkillRows(container,onChanged){
     };
   });
 }
-async function renderSkills(){
-  V().innerHTML='<div class="wrap"><div class="hd">สกิลของทีม <span class="sub">— procedure ที่บันทึก/เรียนรู้เอง (Hermes-style) · ⚡ = เรียนจากงานจริงที่ CI ผ่าน</span></div><div id="skbox"><div class="empty">กำลังโหลด…</div></div></div>';
+async function renderSkills(tgt){
+  (tgt||V()).innerHTML='<div class="wrap"><div class="hd">สกิลของทีม <span class="sub">— procedure ที่บันทึก/เรียนรู้เอง (Hermes-style) · ⚡ = เรียนจากงานจริงที่ CI ผ่าน</span></div><div id="skbox"><div class="empty">กำลังโหลด…</div></div></div>';
   const box=document.getElementById("skbox");
   const d=await getJSON("/skills"); const ents=(d&&typeof d==="object")?Object.entries(d):[];
   if(!ents.length){ box.innerHTML='<div class="empty">ยังไม่มีสกิล</div>'; return; }
@@ -712,8 +761,8 @@ async function renderSkills(){
   box.querySelectorAll(".clk[data-agent]").forEach(function(el){ el.onclick=function(){ openAgentMemory(el.dataset.agent); }; });
   wireSkillRows(box, renderSkills);
 }
-async function renderProfile(){
-  V().innerHTML='<div class="wrap"><div class="hd">โปรไฟล์เจ้าของ <span class="sub">— USER.md ที่ทุก agent อ่าน · แก้ไขได้ตรงนี้</span></div><div id="pfbox"><div class="empty">กำลังโหลด…</div></div></div>';
+async function renderProfile(tgt){
+  (tgt||V()).innerHTML='<div class="wrap"><div class="hd">โปรไฟล์เจ้าของ <span class="sub">— USER.md ที่ทุก agent อ่าน · แก้ไขได้ตรงนี้</span></div><div id="pfbox"><div class="empty">กำลังโหลด…</div></div></div>';
   const box=document.getElementById("pfbox");
   const d=await getJSON("/owner_profile");
   const hasData=d&&typeof d==="object"&&Object.keys(d).length>0;
@@ -773,11 +822,62 @@ document.getElementById("agmemClose").onclick=closeAgentMemory;
 document.getElementById("agmemOverlay").addEventListener("mousedown",function(e){ if(e.target.id==="agmemOverlay") closeAgentMemory(); });
 document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("agmemOverlay"); if(ov&&ov.classList.contains("on")) closeAgentMemory(); } });
 
+/* Team & Models — one tab folding Skills, Models/Token, Owner Profile under a segmented control */
+let teamTab="skills";
+function renderTeam(){
+  V().innerHTML='<div style="padding:18px 24px 0"><div class="seg" id="tseg"></div></div><div id="teamc"><div class="empty">กำลังโหลด…</div></div>';
+  const segs=[["skills","สกิล & ความจำ"],["models","โมเดล & Token"],["profile","โปรไฟล์เจ้าของ"]];
+  const seg=document.getElementById("tseg"), host=document.getElementById("teamc");
+  const subs={skills:renderSkills,models:renderModels,profile:renderProfile};
+  seg.innerHTML=segs.map(s=>'<button data-t="'+s[0]+'">'+esc(s[1])+'</button>').join("");
+  const draw=t=>{ teamTab=t; seg.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); host.innerHTML=""; (subs[t]||renderSkills)(host); };
+  seg.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>draw(b.dataset.t));
+  draw(teamTab);
+}
+
+/* Kanban board — the team's work grouped กำลังทำ / ค้าง / เสร็จ, แยกต่อโปรเจค (feeds /board) */
+function _kcard(title,agent,meta,cls){
+  return '<div class="kcard '+(cls||"")+'"><div class="kt">'+esc(title||"(ไม่มีชื่อ)")+'</div><div class="km">'+(agent?'<span class="chip sm">'+esc(agent)+'</span>':'')+(meta?'<span class="kmeta">'+esc(meta)+'</span>':'')+'</div></div>';
+}
+function _kcol(title,cls,items,emptyTxt){
+  return '<div class="kcol '+cls+'"><div class="kh"><span>'+esc(title)+'</span><span class="kn">'+items.length+'</span></div>'+(items.length?items.join(""):'<div class="kempty">'+esc(emptyTxt)+'</div>')+'</div>';
+}
+function _boardProject(p,v){
+  const rm=v.roadmap, pct=rm&&rm.total?Math.round(100*rm.done/rm.total):0;
+  const head='<div class="bph"><div class="bpt">'+esc(p)+(rm?'<span class="chip">🎯 '+esc(rm.title)+' · '+rm.done+'/'+rm.total+(rm.by==="iris"?' · โดย Iris':'')+'</span>':'<span class="chip warn">ยังไม่มีเป้าหมาย — Iris จะตั้งให้รอบถัดไป</span>')+'</div>'+(rm?'<div class="pbar"><i style="width:'+pct+'%"></i></div>':'')+'</div>';
+  const doing=[]; if(v.doing) doing.push(_kcard(v.doing.title,v.doing.agent,"● "+(v.doing.phase||"ทำงาน"),"live"));
+  const pend=(v.pending||[]).map(t=>_kcard(t.title,t.agent,t.ms?("milestone "+t.ms):(t.model||""),""));
+  const done=(v.done||[]).map(t=>_kcard(t.title,t.agent,(t.verdict?("✓ "+t.verdict):"")+(t.commit?(" · "+t.commit):""),"done"));
+  return '<div class="bproj">'+head+'<div class="kanban">'
+    +_kcol("กำลังทำ","doing",doing,"ทีมว่างอยู่")
+    +_kcol("ค้างอยู่ (backlog)","pending",pend,"ไม่มีงานค้าง")
+    +_kcol("เสร็จล่าสุด","done",done,"ยังไม่มี")+'</div></div>';
+}
+async function renderBoard(){
+  V().innerHTML='<div class="wrap"><div class="ctl" style="margin-bottom:14px"><select id="bp"><option value="">ทุกโปรเจค</option>'+PROJ.map(p=>'<option value="'+p[0]+'">'+p[0]+'</option>').join("")+'</select><button class="btn" id="brl">'+ic("refresh")+'รีเฟรช</button><span class="spacer"></span><span class="sub">แตะ ▶ ในแท็บ “โปรเจค” เพื่อสั่งงานเดี๋ยวนี้</span></div><div id="bwrap"><div class="empty">กำลังโหลด…</div></div></div>';
+  async function load(){
+    const proj=document.getElementById("bp").value;
+    const d=await getJSON("/board"+(proj?("?project="+encodeURIComponent(proj)):""));
+    const wrap=document.getElementById("bwrap");
+    if(!d){ wrap.innerHTML='<div class="empty">เชื่อมต่อ backend ไม่ได้</div>'; return; }
+    const ks=Object.keys(d);
+    wrap.innerHTML=ks.length?ks.map(p=>_boardProject(p,d[p])).join(""):'<div class="empty">ไม่มีข้อมูล</div>';
+  }
+  document.getElementById("bp").onchange=load;
+  document.getElementById("brl").onclick=load;
+  load();
+}
+
 function renderOffice(){
-  V().innerHTML='<div class="office"><iframe id="ofr" src="prontera-v2.html" title="Prontera office (game world)"></iframe><a class="offull" href="prontera-v2.html" target="_blank" rel="noopener">เปิดเต็มหน้า ↗</a></div>';
+  V().innerHTML='<div class="office"><div class="oframe">'
+    +'<div class="ohead">'+ic("office")+'<span>Prontera Office — โลกเกม</span><span class="spacer"></span>'
+    +'<button class="obtn" id="orl" title="รีเฟรช">'+ic("refresh")+'รีเฟรช</button>'
+    +'<a class="obtn" href="prontera-v2.html" target="_blank" rel="noopener">เปิดเต็มหน้า ↗</a></div>'
+    +'<iframe id="ofr" src="prontera-v2.html" title="Prontera office (game world)"></iframe></div></div>';
   const f=document.getElementById("ofr");
   const kick=()=>{try{f.contentWindow.dispatchEvent(new Event("resize"));}catch(_){}};
   f.onload=()=>{ kick(); setTimeout(kick,500); setTimeout(kick,1500); };
+  const rl=document.getElementById("orl"); if(rl) rl.onclick=()=>{ const s=f.src; f.src=s; };
 }
 
 let toEl=null;
@@ -809,7 +909,7 @@ function cmdkItemHtml(it,i){
 }
 function cmdkRenderList(){
   const list=document.getElementById("cmdkList"); const q=(document.getElementById("cmdkInput").value||"").trim();
-  const navMatches=NAV.filter(n=>cmdkMatch(n,q)).map(n=>({kind:"nav",id:n[0],label:n[1],icon:n[2]}));
+  const navMatches=NAV.concat(NAV_HIDDEN).filter(n=>cmdkMatch(n,q)).map(n=>({kind:"nav",id:n[0],label:n[1],icon:n[2]}));
   const histMatches=cmdkHistItems.map(r=>({kind:"hist",r:r}));
   cmdkItems=navMatches.concat(histMatches);
   if(!cmdkItems.length){ list.innerHTML='<div class="cmdk-empty">ไม่พบหัวข้อที่ตรงกับ "'+esc(q)+'"</div>'; return; }
