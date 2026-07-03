@@ -59,6 +59,22 @@ button{font-family:inherit;cursor:pointer}
 .tbtn{display:grid;place-items:center;width:38px;height:38px;border-radius:999px;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);color:var(--text);box-shadow:var(--shadow);transition:color .15s}
 .tbtn:hover{color:var(--accent)}
 .tbtn svg{width:18px;height:18px}
+#notifBell{position:relative}
+.notif-badge{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#ff3b30;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;box-shadow:0 0 0 2px var(--glass-3)}
+.notif-panel{position:fixed;width:340px;max-width:92vw;max-height:min(70vh,480px);display:flex;flex-direction:column;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow);z-index:230;overflow:hidden;opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .16s,transform .16s}
+.notif-panel.on{opacity:1;transform:translateY(0);pointer-events:auto}
+.notif-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--hair);flex:0 0 auto}
+.notif-panel-head b{font-size:13.5px;color:var(--text)}
+.notif-mark-all{font:inherit;font-size:12px;color:var(--accent);background:none;border:0;cursor:pointer;padding:2px 4px}
+.notif-mark-all:hover{text-decoration:underline}
+.notif-list{overflow-y:auto;flex:1;padding:6px}
+.notif-item{display:flex;gap:10px;padding:9px 8px;border-radius:10px;align-items:flex-start}
+.notif-item.unread{background:rgba(10,132,255,.1)}
+.notif-item .ic{font-size:15px;line-height:1.5;flex:0 0 auto}
+.notif-item .body{flex:1;min-width:0}
+.notif-item .txt{font-size:13px;color:var(--text);word-break:break-word}
+.notif-item .ts{font-size:11px;color:var(--muted);margin-top:2px}
+.notif-empty{padding:30px 14px;text-align:center;color:var(--muted);font-size:13px}
 .wrap{padding:24px;max-width:1180px}
 .hd{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:28px 0 13px}
 .hd:first-child{margin-top:6px}
@@ -312,6 +328,11 @@ input:disabled{opacity:.4}
   <div class="topbar"><h1 id="ttl">ภาพรวม</h1><span class="sub" id="tsub"></span><span class="spacer"></span>
     <button class="cmdk-openbtn" id="cmdkOpenBtn" type="button" aria-label="เปิด command palette (⌘K)" title="Command palette — ⌘K / Ctrl+K"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>ค้นหา/ไปที่…</span><b>⌘K</b></button>
     <span class="tk"><span class="ring" id="tkring"></span><span id="tktxt">tokens</span></span>
+    <button class="tbtn" id="notifBell" type="button" aria-haspopup="true" aria-expanded="false" aria-label="การแจ้งเตือน" title="การแจ้งเตือน"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none"></span></button>
+    <div class="notif-panel" id="notifPanel" role="dialog" aria-label="ประวัติการแจ้งเตือน">
+      <div class="notif-panel-head"><b>การแจ้งเตือน</b><button class="notif-mark-all" id="notifMarkAll" type="button">อ่านทั้งหมด</button></div>
+      <div class="notif-list" id="notifList"></div>
+    </div>
     <button class="tbtn" id="themeBtn" aria-label="สลับธีม light / dark / auto"></button>
   </div>
   <div id="view"></div>
@@ -1088,8 +1109,81 @@ function renderOffice(){
   const rl=document.getElementById("orl"); if(rl) rl.onclick=()=>{ const s=f.src; f.src=s; };
 }
 
+/* ── Notification bell: in-memory + localStorage history of every toast() ─────────────────────────
+   Every toast() call also records an entry here (icon derived from its leading glyph, newest first,
+   capped to last NOTIF_CAP). toast() itself is untouched as the transient popup. */
+const NOTIF_KEY="prontera_notifications", NOTIF_CAP=50;
+let notifStore=[];
+try{ notifStore=JSON.parse(localStorage.getItem(NOTIF_KEY)||"[]"); if(!Array.isArray(notifStore)) notifStore=[]; }catch(_){ notifStore=[]; }
+function notifSave(){ try{ localStorage.setItem(NOTIF_KEY,JSON.stringify(notifStore.slice(0,NOTIF_CAP))); }catch(_){} }
+function notifIcon(t){
+  t=String(t||"");
+  if(t.indexOf("✓")===0) return "✓";
+  if(t.indexOf("⚠")===0) return "⚠";
+  if(t.indexOf("👀")===0) return "👀";
+  if(t.indexOf("▶")===0) return "▶";
+  if(t.indexOf("✗")===0) return "✗";
+  return "🔔";
+}
+function notifAdd(text){
+  notifStore.unshift({id:Date.now()+"_"+Math.random().toString(36).slice(2,7),text:String(text),icon:notifIcon(text),ts:Date.now(),read:false});
+  if(notifStore.length>NOTIF_CAP) notifStore.length=NOTIF_CAP;
+  notifSave();
+  notifRenderBadge();
+  const panel=document.getElementById("notifPanel");
+  if(panel&&panel.classList.contains("on")) notifRenderList();
+}
+function notifUnreadCount(){ return notifStore.reduce((n,x)=>n+(x.read?0:1),0); }
+function notifRenderBadge(){
+  const b=document.getElementById("notifBadge"); if(!b) return;
+  const c=notifUnreadCount();
+  if(c>0){ b.textContent=c>99?"99+":String(c); b.style.display="block"; } else { b.style.display="none"; }
+}
+function notifFmtTs(ts){
+  try{ return new Date(ts).toLocaleString("th-TH",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); }catch(_){ return ""; }
+}
+function notifRenderList(){
+  const list=document.getElementById("notifList"); if(!list) return;
+  if(!notifStore.length){ list.innerHTML='<div class="notif-empty">ยังไม่มีการแจ้งเตือน</div>'; return; }
+  list.innerHTML=notifStore.map(n=>'<div class="notif-item'+(n.read?"":" unread")+'"><span class="ic">'+esc(n.icon)+'</span><div class="body"><div class="txt">'+esc(n.text)+'</div><div class="ts">'+esc(notifFmtTs(n.ts))+'</div></div></div>').join("");
+}
+function notifMarkAllRead(){
+  let changed=false;
+  notifStore.forEach(n=>{ if(!n.read){ n.read=true; changed=true; } });
+  if(changed){ notifSave(); notifRenderBadge(); notifRenderList(); }
+}
+function notifOpen(){
+  const panel=document.getElementById("notifPanel"), btn=document.getElementById("notifBell");
+  if(!panel||!btn) return;
+  const r=btn.getBoundingClientRect();
+  panel.style.top=(r.bottom+8)+"px";
+  panel.style.right=Math.max(8,window.innerWidth-r.right)+"px";
+  notifRenderList();
+  panel.classList.add("on");
+  btn.setAttribute("aria-expanded","true");
+  notifMarkAllRead();
+  document.addEventListener("mousedown",notifOutsideClick,true);
+}
+function notifClose(){
+  const panel=document.getElementById("notifPanel"), btn=document.getElementById("notifBell");
+  if(panel) panel.classList.remove("on");
+  if(btn) btn.setAttribute("aria-expanded","false");
+  document.removeEventListener("mousedown",notifOutsideClick,true);
+}
+function notifOutsideClick(e){
+  const panel=document.getElementById("notifPanel"), btn=document.getElementById("notifBell");
+  if(!panel) return;
+  if(panel.contains(e.target)||(btn&&btn.contains(e.target))) return;
+  notifClose();
+}
+function notifToggle(){
+  const panel=document.getElementById("notifPanel");
+  if(panel&&panel.classList.contains("on")) notifClose(); else notifOpen();
+}
+notifRenderBadge();
+
 let toEl=null;
-function toast(t){ if(!toEl){toEl=document.createElement("div");toEl.style.cssText="position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);color:var(--text);padding:10px 18px;border-radius:999px;font-size:13.5px;z-index:99;box-shadow:var(--shadow);transition:opacity .3s";document.body.appendChild(toEl);} toEl.textContent=t; toEl.style.opacity="1"; clearTimeout(toEl._t); toEl._t=setTimeout(()=>toEl.style.opacity="0",2600); }
+function toast(t){ notifAdd(t); if(!toEl){toEl=document.createElement("div");toEl.style.cssText="position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);color:var(--text);padding:10px 18px;border-radius:999px;font-size:13.5px;z-index:99;box-shadow:var(--shadow);transition:opacity .3s";document.body.appendChild(toEl);} toEl.textContent=t; toEl.style.opacity="1"; clearTimeout(toEl._t); toEl._t=setTimeout(()=>toEl.style.opacity="0",2600); }
 
 const _mq=matchMedia("(prefers-color-scheme:dark)");
 function applyTheme(){
@@ -1197,11 +1291,14 @@ document.addEventListener("keydown",e=>{
     return;
   }
   if(e.key==="Escape"&&isOpen){ cmdkClose(); }
+  if(e.key==="Escape"){ const np=document.getElementById("notifPanel"); if(np&&np.classList.contains("on")) notifClose(); }
 });
 
 applyTheme();
 buildNav();
 document.getElementById("themeBtn").onclick=cycleTheme;
+document.getElementById("notifBell").onclick=e=>{ e.stopPropagation(); notifToggle(); };
+document.getElementById("notifMarkAll").onclick=e=>{ e.stopPropagation(); notifMarkAllRead(); };
 go("overview"); refreshTokens(); setInterval(refreshTokens,30000);
 pollActivityGlobal(); setInterval(pollActivityGlobal,6000);
 </script>
