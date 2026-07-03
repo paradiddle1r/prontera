@@ -1025,7 +1025,7 @@ function openTaskDetail(t){
   if(t.commit) rows.push(["Commit",t.commit]);
   const canCancel=t.status==="ค้างอยู่"&&!!t.id;
   const canRetry=!!t.id;
-  const canReassign=!!t.id;
+  const canReassign=!!t.id&&t.status!=="เสร็จ";
   body.innerHTML='<div class="flex" style="margin-bottom:14px"><div class="ag-av" style="width:44px;height:44px;border-radius:13px;font-size:17px;background:'+avColor(t.agent||t.project||"?")+'">'+esc(((t.agent||t.project||"?")[0]||"?").toUpperCase())+'</div><div><div class="ag-nm" style="font-size:16px">'+esc(t.title||"(ไม่มีชื่อ)")+'</div><div class="ag-rl">'+esc(t.project||"")+'</div></div></div>'
     +'<div class="ag-meta" style="margin-bottom:18px"><span class="chip '+statusCls+'">'+esc(t.status||"")+'</span>'+(t.agent?'<span class="chip sm">'+esc(t.agent)+'</span>':'')+(t.model?'<span class="chip mdl">'+esc(t.model)+'</span>':'')+'</div>'
     +'<div class="hd" style="margin:0 0 6px">รายละเอียดงาน</div>'
