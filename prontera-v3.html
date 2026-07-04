@@ -75,6 +75,9 @@ button{font-family:inherit;cursor:pointer}
 .notif-item .txt{font-size:13px;color:var(--text);word-break:break-word}
 .notif-item .ts{font-size:11px;color:var(--muted);margin-top:2px}
 .notif-empty{padding:30px 14px;text-align:center;color:var(--muted);font-size:13px}
+.notif-appr-card{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);border-left:3px solid var(--accent);border-radius:12px;padding:12px;margin:6px 4px 8px;box-shadow:var(--shadow)}
+.notif-appr-card .ctl .btn{padding:7px 12px;font-size:12.5px}
+.notif-appr-sep{height:1px;background:var(--line);margin:2px 10px 10px}
 .wrap{padding:24px;max-width:1180px}
 .hd{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:28px 0 13px}
 .hd:first-child{margin-top:6px}
@@ -1502,6 +1505,47 @@ function notifMarkAllRead(){
   notifStore.forEach(n=>{ if(!n.read){ n.read=true; changed=true; } });
   if(changed){ notifSave(); notifRenderBadge(); notifRenderList(); }
 }
+async function notifRenderApprovalsInline(){
+  const list=document.getElementById("notifList"); if(!list) return;
+  list.querySelectorAll(".notif-appr-card,.notif-appr-sep").forEach(el=>el.remove());
+  const d=await getJSON("/approvals_list");
+  if(!Array.isArray(d)||!d.length) return;
+  const panel=document.getElementById("notifPanel");
+  if(!panel||!panel.classList.contains("on")) return; // panel closed again before this resolved
+  const html=d.map(item=>{
+    return '<div class="notif-appr-card" data-id="'+esc(item.id)+'" data-label="'+esc(item.action_type||item.id)+'">'
+      +'<div class="ag-meta" style="margin-top:0">'
+      +'<span class="chip">'+esc(item.project||"–")+'</span>'
+      +'<span class="chip">'+esc(item.agent||"–")+'</span>'
+      +'<span class="chip" style="background:'+apprRiskColor(item.risk_tier)+';color:#fff;border-color:transparent">'+esc(item.risk_tier||"?")+'</span>'
+      +'</div>'
+      +'<div style="margin-top:8px;font-weight:600;font-size:13px">'+esc(item.action_type||"")+'</div>'
+      +'<div class="sub" style="margin-top:3px">'+esc(item.summary||"")+'</div>'
+      +'<div class="ctl" style="margin-top:10px;display:flex;gap:8px"><button class="btn pri" data-act="approve" type="button">✓ อนุมัติ</button><button class="btn" data-act="reject" type="button">✗ ปฏิเสธ</button></div>'
+      +'<div class="sub apprMsg" style="margin-top:6px"></div>'
+      +'</div>';
+  }).join("")+'<div class="notif-appr-sep"></div>';
+  list.insertAdjacentHTML("afterbegin",html);
+  list.querySelectorAll(".notif-appr-card [data-act]").forEach(function(btn){
+    btn.onclick=async function(){
+      const card=btn.closest(".notif-appr-card"); if(!card) return;
+      const id=card.dataset.id, label=card.dataset.label||id, decision=btn.dataset.act==="approve"?"approve":"reject";
+      const msg=card.querySelector(".apprMsg");
+      card.querySelectorAll("[data-act]").forEach(b=>b.disabled=true);
+      const r=await postJSON("/approval_decide",{id:id,decision:decision});
+      if(r){
+        toast((decision==="approve"?"✓ อนุมัติแล้ว: ":"✗ ปฏิเสธแล้ว: ")+label);
+        card.remove();
+        refreshApprovalBadge();
+        if(!list.querySelector(".notif-appr-card")){ const sep=list.querySelector(".notif-appr-sep"); if(sep) sep.remove(); }
+      } else {
+        card.querySelectorAll("[data-act]").forEach(b=>b.disabled=false);
+        if(msg) msg.textContent="ยังไม่มี backend endpoint /approval_decide — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้";
+        toast("ยังไม่มี backend endpoint /approval_decide");
+      }
+    };
+  });
+}
 function notifOpen(){
   const panel=document.getElementById("notifPanel"), btn=document.getElementById("notifBell");
   if(!panel||!btn) return;
@@ -1512,6 +1556,7 @@ function notifOpen(){
   panel.classList.add("on");
   btn.setAttribute("aria-expanded","true");
   notifMarkAllRead();
+  notifRenderApprovalsInline();
   document.addEventListener("mousedown",notifOutsideClick,true);
 }
 function notifClose(){
