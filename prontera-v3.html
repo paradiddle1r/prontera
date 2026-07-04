@@ -294,6 +294,20 @@ input:disabled{opacity:.4}
 .agmem-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:var(--glass-3);border:1px solid var(--hair);display:grid;place-items:center;color:var(--muted);font-size:14px;line-height:1;box-shadow:var(--shadow)}
 .agmem-close:hover{color:var(--accent)}
 
+/* ── Approval Policy Rules modal (project × risk-tier auto/manual matrix) ── */
+.apprpol-overlay{position:fixed;inset:0;z-index:210;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,14,24,.42);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.apprpol-overlay.on{display:flex}
+.apprpol-modal{position:relative;width:100%;max-width:560px;max-height:86vh;overflow-y:auto;border-radius:22px;padding:22px;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid rgba(10,132,255,.28);box-shadow:0 24px 70px rgba(10,132,255,.16),0 8px 26px rgba(0,0,0,.32)}
+.apprpol-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:var(--glass-3);border:1px solid var(--hair);display:grid;place-items:center;color:var(--muted);font-size:14px;line-height:1;box-shadow:var(--shadow)}
+.apprpol-close:hover{color:var(--accent)}
+.apprpol-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+.apprpol-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--faint);padding:6px 8px;border-bottom:1px solid var(--line)}
+.apprpol-table td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.apprpol-tier-toggle{display:inline-flex;border:1px solid var(--hair);border-radius:999px;overflow:hidden;cursor:pointer;font-size:11.5px}
+.apprpol-tier-toggle span{padding:4px 9px;color:var(--muted)}
+.apprpol-tier-toggle span.sel{background:var(--accent);color:#fff;font-weight:600}
+.apprpol-badge-auto{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--glass-2);color:var(--muted);border:1px solid var(--hair);margin-left:6px}
+
 /* ── Task Detail drawer (Live Task Console m1) — opened from a Kanban card click ── */
 .taskdetail-overlay{position:fixed;inset:0;z-index:210;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,14,24,.42);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .taskdetail-overlay.on{display:flex}
@@ -382,6 +396,16 @@ input:disabled{opacity:.4}
     <div class="taskm-fld"><label for="taDue">กำหนดส่ง</label><input type="date" id="taDue"/></div>
     <div class="taskm-fld"><label for="taTitle">หัวข้อ/รายละเอียดงาน</label><textarea id="taTitle" rows="3" placeholder="เช่น เพิ่มปุ่ม New Task บน Kanban board…"></textarea></div>
     <div class="ctl" style="margin-top:6px"><button class="btn pri" id="taSubmit">＋ สร้างงาน</button><span class="sub" id="taMsg"></span></div>
+  </div>
+</div>
+
+<div class="apprpol-overlay" id="apprPolicyOverlay" role="dialog" aria-modal="true" aria-label="กฎการอนุมัติ">
+  <div class="apprpol-modal">
+    <button class="apprpol-close" id="apprPolicyClose" type="button" aria-label="ปิด">✕</button>
+    <div class="hd">⚙ กฎการอนุมัติ (Policy Rules)</div>
+    <div class="sub" style="margin-top:4px">กำหนดว่าโปรเจค × ระดับความเสี่ยงไหน "อนุมัติอัตโนมัติ" ได้ (ค่าเริ่มต้นคือ "ต้องอนุมัติ" ทุกช่อง) — บันทึกไว้ในเบราว์เซอร์นี้เท่านั้น ยังไม่มี backend บังคับใช้จริง</div>
+    <div id="apprPolicyBody"></div>
+    <div class="ctl" style="margin-top:14px"><button class="btn pri" id="apprPolicySave">บันทึก</button><span class="sub" id="apprPolicyMsg"></span></div>
   </div>
 </div>
 
@@ -1411,10 +1435,76 @@ function renderOffice(){
 
 /* ── Approval Gates epic — Milestone 1: human-in-the-loop Approval Queue ──────────────────────────
    Reads /approvals_list (not implemented on the backend yet — renders the not-wired-yet empty state
-   until it exists), decides via /approval_decide (CEO-gated, see CEORE regex above). */
+   until it exists), decides via /approval_decide (CEO-gated, see CEORE regex above).
+   Milestone 1b — Policy Rules (config UI only, no backend yet): lets the CEO/PMs mark which
+   project × risk-tier combos are safe to auto-approve, so the queue can eventually surface only
+   what actually needs a human (per the roadmap gap). Persisted client-side in localStorage
+   (APPR_POLICY_KEY) since there is no backend for this yet — matching queue items below are only
+   *labeled* "จะอนุมัติอัตโนมัติ", never hidden or actually auto-decided.
+   TODO(backend): add a real GET/SET /approval_policy endpoint so the server can enforce this policy
+   (actually auto-decide low-risk items) instead of the UI merely labeling them. Once that exists,
+   this localStorage copy should become a cache of the server config, not the source of truth. */
 function apprRiskColor(t){ t=String(t||"").toLowerCase(); return t==="high"?"var(--bad)":t==="med"||t==="medium"?"var(--warn)":"var(--okdot)"; }
+const APPR_POLICY_KEY="prontera_approval_policy";
+const APPR_POLICY_PROJECTS=["prontera","geffen","payon","izlude","morroc","alberta","aldebaran"];
+const APPR_POLICY_TIERS=["low","med","high"];
+function apprPolicyLoad(){
+  try{ const v=JSON.parse(localStorage.getItem(APPR_POLICY_KEY)||"{}"); return (v&&typeof v==="object")?v:{}; }catch(_){ return {}; }
+}
+function apprPolicyIsAuto(project,riskTier){
+  const cfg=apprPolicyLoad();
+  let t=String(riskTier||"").toLowerCase(); if(t==="medium") t="med";
+  const p=cfg[project]; if(!p) return false;
+  return p[t]==="auto";
+}
+let apprPolicyDraft={};
+function apprPolicyToggleHTML(proj,tier,cur){
+  return '<span class="apprpol-tier-toggle" data-proj="'+esc(proj)+'" data-tier="'+tier+'">'
+    +'<span class="opt'+(cur!=="auto"?" sel":"")+'" data-v="manual">ต้องอนุมัติ</span>'
+    +'<span class="opt'+(cur==="auto"?" sel":"")+'" data-v="auto">อนุมัติอัตโนมัติ</span>'
+    +'</span>';
+}
+function apprPolicyRenderBody(){
+  const body=document.getElementById("apprPolicyBody"); if(!body) return;
+  const cfg=apprPolicyDraft, tierLabel={low:"ต่ำ",med:"กลาง",high:"สูง"};
+  body.innerHTML='<table class="apprpol-table"><thead><tr><th>โปรเจค</th>'
+    +APPR_POLICY_TIERS.map(t=>'<th>'+tierLabel[t]+'</th>').join("")+'</tr></thead><tbody>'
+    +APPR_POLICY_PROJECTS.map(function(proj){
+      return '<tr><td style="font-weight:600">'+esc(proj)+'</td>'
+        +APPR_POLICY_TIERS.map(function(tier){
+          const cur=(cfg[proj]&&cfg[proj][tier])||"manual";
+          return '<td>'+apprPolicyToggleHTML(proj,tier,cur)+'</td>';
+        }).join("")+'</tr>';
+    }).join("")+'</tbody></table>';
+}
+function openApprPolicyModal(){
+  apprPolicyDraft=JSON.parse(JSON.stringify(apprPolicyLoad()));
+  apprPolicyRenderBody();
+  const ov=document.getElementById("apprPolicyOverlay"); if(!ov) return;
+  const msg=document.getElementById("apprPolicyMsg"); if(msg) msg.textContent="";
+  ov.classList.add("on");
+}
+function closeApprPolicyModal(){ const ov=document.getElementById("apprPolicyOverlay"); if(ov) ov.classList.remove("on"); }
+document.getElementById("apprPolicyClose").onclick=closeApprPolicyModal;
+document.getElementById("apprPolicyOverlay").addEventListener("mousedown",function(e){ if(e.target.id==="apprPolicyOverlay") closeApprPolicyModal(); });
+document.getElementById("apprPolicyBody").addEventListener("click",function(e){
+  const opt=e.target.closest(".apprpol-tier-toggle .opt"); if(!opt) return;
+  const wrap=opt.closest(".apprpol-tier-toggle"); const proj=wrap.dataset.proj, tier=wrap.dataset.tier, v=opt.dataset.v;
+  if(!apprPolicyDraft[proj]) apprPolicyDraft[proj]={};
+  apprPolicyDraft[proj][tier]=v;
+  apprPolicyRenderBody();
+});
+document.getElementById("apprPolicySave").onclick=function(){
+  // NOTE: writes only to localStorage — there is no /approval_policy SET endpoint yet.
+  try{ localStorage.setItem(APPR_POLICY_KEY,JSON.stringify(apprPolicyDraft)); }catch(_){}
+  const msg=document.getElementById("apprPolicyMsg"); if(msg) msg.textContent="✓ บันทึกแล้ว";
+  toast("✓ บันทึกกฎการอนุมัติแล้ว");
+  if(typeof CUR!=="undefined"&&CUR==="approvals") renderApprovals();
+};
+document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("apprPolicyOverlay"); if(ov&&ov.classList.contains("on")) closeApprPolicyModal(); } });
 async function renderApprovals(){
-  V().innerHTML='<div class="wrap"><div class="hd">คำขออนุมัติ (Approval Queue)</div><div id="apprList"><div class="empty">กำลังโหลด…</div></div></div>';
+  V().innerHTML='<div class="wrap"><div class="hd" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>คำขออนุมัติ (Approval Queue)</span><button class="btn sm" id="apprPolicyBtn" type="button">⚙ กฎการอนุมัติ</button></div><div id="apprList"><div class="empty">กำลังโหลด…</div></div></div>';
+  const polBtn=document.getElementById("apprPolicyBtn"); if(polBtn) polBtn.onclick=openApprPolicyModal;
   const list=document.getElementById("apprList");
   const d=await getJSON("/approvals_list");
   if(!Array.isArray(d)){
@@ -1428,6 +1518,7 @@ async function renderApprovals(){
       +'<span class="chip">'+esc(item.project||"–")+'</span>'
       +'<span class="chip">'+esc(item.agent||"–")+'</span>'
       +'<span class="chip" style="background:'+apprRiskColor(item.risk_tier)+';color:#fff;border-color:transparent">'+esc(item.risk_tier||"?")+'</span>'
+      +(apprPolicyIsAuto(item.project,item.risk_tier)?'<span class="apprpol-badge-auto" title="ตามกฎการอนุมัติที่ตั้งไว้ — backend ยังไม่รองรับการอนุมัติอัตโนมัติจริง">จะอนุมัติอัตโนมัติ</span>':'')
       +'</div>'
       +'<div style="margin-top:10px;font-weight:600;font-size:14px">'+esc(item.action_type||"")+'</div>'
       +'<div class="sub" style="margin-top:4px">'+esc(item.summary||"")+'</div>'
