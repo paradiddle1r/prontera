@@ -386,7 +386,7 @@ input:disabled{opacity:.4}
 const KEY=(function(){try{const u=new URLSearchParams(location.search).get("key");if(u)localStorage.setItem("prontera_gkey",u);return u||localStorage.getItem("prontera_gkey")||"";}catch(_){return"";}})();
 const LOCAL=["localhost","127.0.0.1",""];
 const BACKEND=(location.protocol==="file:"||LOCAL.includes(location.hostname))?"":"https://pornchais-mac-mini.tail62b220.ts.net:8443";
-const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|roadmap_set|roadmap_clear|roadmap_auto|project_create|no_claude|pause|brief|agent|iris_run|vera_run)(\?|$)/;
+const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|task_reassign|task_retry|roadmap_set|roadmap_clear|roadmap_auto|project_create|no_claude|pause|brief|agent|iris_run|vera_run)(\?|$)/;
 function url(p){ if(KEY&&CEORE.test(p)&&p.indexOf("key=")<0) p+=(p.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(KEY); return BACKEND+p; }
 async function getJSON(p){ try{const r=await fetch(url(p));return r.ok?await r.json():null;}catch(_){return null;} }
 async function postJSON(p,body){ try{const r=await fetch(url(p),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});return r.ok?await r.json().catch(()=>({ok:true})):null;}catch(_){return null;} }
@@ -1150,9 +1150,11 @@ function _boardProject(p,v){
    without requiring another frontend change */
 /* m1 (Live Task Console): Task Detail drawer — click/Enter/Space on a .kcard opens it with the full
    task object captured in window._boardTasks at render time (no extra fetch, /board already has it all) */
+let currentDetailTask=null; // closure state for the drawer's action bar (retry/reassign/cancel read the open task from here)
 function openTaskDetail(t){
   const ov=document.getElementById("taskdetailOverlay"), body=document.getElementById("taskdetailBody");
   if(!ov||!body||!t) return;
+  currentDetailTask=t;
   const statusCls=t.status==="กำลังทำ"?"live":"";
   const rows=[];
   if(t.phase) rows.push(["เฟส",t.phase]);
@@ -1297,7 +1299,7 @@ function _wireTaskDetailActions(t){
     }
   };
 }
-function closeTaskDetail(){ const ov=document.getElementById("taskdetailOverlay"); if(ov) ov.classList.remove("on"); }
+function closeTaskDetail(){ const ov=document.getElementById("taskdetailOverlay"); if(ov) ov.classList.remove("on"); currentDetailTask=null; }
 document.getElementById("taskdetailClose").onclick=closeTaskDetail;
 document.getElementById("taskdetailOverlay").addEventListener("mousedown",function(e){ if(e.target.id==="taskdetailOverlay") closeTaskDetail(); });
 document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("taskdetailOverlay"); if(ov&&ov.classList.contains("on")) closeTaskDetail(); } });
