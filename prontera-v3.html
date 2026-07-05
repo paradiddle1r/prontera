@@ -236,6 +236,18 @@ input:disabled{opacity:.4}
 .taskm-fld label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px;font-weight:500}
 .taskm-fld select,.taskm-fld input,.taskm-fld textarea{width:100%}
 
+/* ── Brief Composer modal — same overlay/panel pattern as .taskm-* above, wider for the order textarea ── */
+.briefm-modal{max-width:520px}
+.briefm-fld{position:relative;margin-bottom:4px}
+.briefm-fld textarea{width:100%;resize:vertical;min-height:96px;padding:12px 46px 12px 13px;border-radius:14px;border:1px solid var(--hair);background:var(--glass-2);color:var(--text);font:inherit;font-size:14px;line-height:1.45}
+.briefm-fld textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.briefm-mic{position:absolute;right:8px;bottom:8px;width:32px;height:32px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:15px}
+.briefm-mic.on{background:var(--bad);color:#fff;border-color:transparent}
+.briefm-hint{font-size:11.5px;color:var(--faint);margin:5px 2px 0}
+.briefm-routing{margin-top:14px}
+.briefm-routing .chip+.chip{margin-left:6px}
+.briefm-routing .why{margin-top:9px;font-size:13px;line-height:1.5;color:var(--text)}
+
 .page{display:none}.page.on{display:block}
 
 .mtop{display:none}
@@ -261,6 +273,13 @@ input:disabled{opacity:.4}
 }
 @media (min-width:861px){ .mnav{display:none} }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+
+/* ── Brief Composer — "+ New Brief" topbar entry point (Brief Command Center m1) ── */
+.newbrief-btn{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);color:#fff;border:1px solid transparent;padding:9px 16px 9px 14px;border-radius:999px;font-size:13.5px;font-weight:600;box-shadow:0 6px 18px rgba(10,132,255,.38);transition:transform .12s,box-shadow .15s}
+.newbrief-btn:hover{box-shadow:0 8px 22px rgba(10,132,255,.48);transform:translateY(-1px)}
+.newbrief-btn:active{transform:scale(.97)}
+.newbrief-btn svg{width:16px;height:16px}
+@media(max-width:860px){ .newbrief-btn span{display:none} .newbrief-btn{padding:9px 12px} }
 
 /* ── command palette (⌘K) ── */
 .cmdk-openbtn{display:flex;align-items:center;gap:6px;background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);color:var(--muted);padding:7px 12px;border-radius:999px;box-shadow:var(--shadow);font:inherit;font-size:12.5px;transition:color .15s}
@@ -369,6 +388,7 @@ input:disabled{opacity:.4}
 
 <main class="main">
   <div class="topbar"><h1 id="ttl">ภาพรวม</h1><span class="sub" id="tsub"></span><span class="spacer"></span>
+    <button class="newbrief-btn" id="newBriefBtn" type="button" aria-label="สั่งงานใหม่ (New Brief)" title="สั่งงานใหม่ — ให้ Iris ช่วยกระจายงาน"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>สั่งงานใหม่</span></button>
     <button class="cmdk-openbtn" id="cmdkOpenBtn" type="button" aria-label="เปิด command palette (⌘K)" title="Command palette — ⌘K / Ctrl+K"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>ค้นหา/ไปที่…</span><b>⌘K</b></button>
     <span class="tk"><span class="ring" id="tkring"></span><span id="tktxt">tokens</span></span>
     <button class="tbtn" id="notifBell" type="button" aria-haspopup="true" aria-expanded="false" aria-label="การแจ้งเตือน" title="การแจ้งเตือน"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-badge" id="notifBadge" style="display:none"></span></button>
@@ -421,6 +441,21 @@ input:disabled{opacity:.4}
     <div class="taskm-fld"><label for="taDue">กำหนดส่ง</label><input type="date" id="taDue"/></div>
     <div class="taskm-fld"><label for="taTitle">หัวข้อ/รายละเอียดงาน</label><textarea id="taTitle" rows="3" placeholder="เช่น เพิ่มปุ่ม New Task บน Kanban board…"></textarea></div>
     <div class="ctl" style="margin-top:6px"><button class="btn pri" id="taSubmit">＋ สร้างงาน</button><span class="sub" id="taMsg"></span></div>
+  </div>
+</div>
+
+<div class="taskm-overlay briefm-overlay" id="briefmOverlay" role="dialog" aria-modal="true" aria-label="สั่งงานใหม่">
+  <div class="taskm-modal briefm-modal">
+    <button class="taskm-close" id="briefmClose" type="button" aria-label="ปิด">✕</button>
+    <div class="hd">+ สั่งงานใหม่ (New Brief)</div>
+    <div class="sub" style="margin:2px 0 12px">พิมพ์คำสั่งเดียว (หรือกดไมค์พูด) — Iris จะช่วยกระจายงานให้โปรเจค/agent ที่เกี่ยวข้อง</div>
+    <div class="briefm-fld">
+      <textarea id="briefmText" rows="4" placeholder="เช่น เช็คราคาห้องคู่แข่งย่านสุขุมวิทแล้วสรุปให้ Cass…"></textarea>
+      <button class="btn briefm-mic" id="briefmMic" type="button" title="พูดสั่งงาน (ไมค์)" aria-label="พูดสั่งงาน (ไมค์)">🎤</button>
+    </div>
+    <div class="briefm-hint">Enter เพื่อส่ง · Shift+Enter ขึ้นบรรทัดใหม่</div>
+    <div class="ctl" style="margin-top:10px"><button class="btn pri" id="briefmSubmit">➤ ส่งคำสั่ง</button><span class="sub" id="briefmMsg"></span></div>
+    <div id="briefmRouting" class="briefm-routing" style="display:none"></div>
   </div>
 </div>
 
@@ -1514,6 +1549,106 @@ document.getElementById("taskmClose").onclick=closeTaskModal;
 document.getElementById("taskmOverlay").addEventListener("mousedown",function(e){ if(e.target.id==="taskmOverlay") closeTaskModal(); });
 document.getElementById("taSubmit").onclick=submitTaskModal;
 document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("taskmOverlay"); if(ov&&ov.classList.contains("on")) closeTaskModal(); } });
+
+/* ── Brief Composer — "+ New Brief" modal (Brief Command Center m1). Front door for giving orders,
+   replacing the raw agent-picker chat as the primary entry point (Chat tab stays as-is). Open/close/
+   focus/Escape/backdrop-click mechanics reuse the exact Task Assignment Hub pattern above
+   (openTaskModal/closeTaskModal/#taskmOverlay). Submit posts to the same /brief?task= endpoint
+   renderChat's "iris" path already calls (~line 717-718), parses the same r.text/r.summary/r.reply
+   fields plus best-effort project/agent fields into a routing card shown INSIDE the modal, then lets
+   the user confirm to /queue_add it onto the Board — reusing toast()+boardReload() exactly like
+   submitTaskModal (~line 1543). ── */
+let _briefRouting=null;
+function openBriefModal(){
+  const ov=document.getElementById("briefmOverlay"); if(!ov) return;
+  document.getElementById("briefmText").value="";
+  document.getElementById("briefmMsg").textContent="";
+  const routing=document.getElementById("briefmRouting"); routing.style.display="none"; routing.innerHTML="";
+  _briefRouting=null;
+  ov.classList.add("on");
+  setTimeout(function(){ const t=document.getElementById("briefmText"); if(t) t.focus(); },0);
+}
+function closeBriefModal(){
+  const ov=document.getElementById("briefmOverlay"); if(ov) ov.classList.remove("on");
+  briefStopMic();
+}
+async function submitBriefModal(){
+  const ta=document.getElementById("briefmText"), msg=document.getElementById("briefmMsg"),
+    btn=document.getElementById("briefmSubmit"), routing=document.getElementById("briefmRouting");
+  const t=ta.value.trim();
+  if(!t){ msg.textContent="พิมพ์คำสั่งก่อน"; return; }
+  btn.disabled=true; msg.textContent="Iris กำลังพิจารณา…"; routing.style.display="none"; routing.innerHTML=""; _briefRouting=null;
+  const r=await getJSON("/brief?task="+encodeURIComponent(t));
+  btn.disabled=false;
+  if(!r){ msg.textContent="✕ เชื่อมต่อ backend ไม่ได้"; return; }
+  msg.textContent="";
+  renderBriefRouting(r,t);
+}
+function renderBriefRouting(r,briefText){
+  const routing=document.getElementById("briefmRouting");
+  const proj=r.project||r.proj||r.room||"";
+  let agentsRaw=r.agents||r.agent||r.assigned_to||r.routed_to||r.who||"";
+  if(Array.isArray(agentsRaw)) agentsRaw=agentsRaw.join(", ");
+  const why=r.reason||r.why||r.text||r.summary||r.reply||JSON.stringify(r);
+  const firstAgent=(Array.isArray(r.agents)?r.agents[0]:String(agentsRaw||"").split(",")[0].trim())||"iris";
+  _briefRouting={project:proj,agent:firstAgent,text:briefText};
+  const chips=(proj?'<span class="chip mdl">'+esc(proj)+'</span>':'')
+    +(agentsRaw?String(agentsRaw).split(",").map(function(a){return '<span class="chip">'+esc(a.trim())+'</span>';}).join(""):'<span class="chip">iris</span>');
+  routing.innerHTML='<div class="card">'
+    +'<div class="sub" style="margin-bottom:6px">ผลการกระจายงาน</div>'
+    +'<div>'+chips+'</div>'
+    +'<div class="why">'+esc(why)+'</div>'
+    +'<div class="ctl" style="margin-top:12px"><button class="btn pri" id="briefmConfirm">✓ ยืนยัน สร้างเป็นงานติดตาม</button><button class="btn" id="briefmDiscard" type="button">ยกเลิก</button><span class="sub" id="briefmConfirmMsg"></span></div>'
+    +'</div>';
+  routing.style.display="block";
+  document.getElementById("briefmConfirm").onclick=confirmBriefTask;
+  document.getElementById("briefmDiscard").onclick=closeBriefModal;
+}
+async function confirmBriefTask(){
+  if(!_briefRouting) return;
+  const btn=document.getElementById("briefmConfirm"), msg=document.getElementById("briefmConfirmMsg");
+  const proj=_briefRouting.project||(PROJ[0]&&PROJ[0][0])||"prontera", agent=_briefRouting.agent||"iris", title=_briefRouting.text;
+  btn.disabled=true; msg.textContent="กำลังสร้าง…";
+  const r=await getJSON("/queue_add?name="+encodeURIComponent(title)+"&project="+encodeURIComponent(proj)+"&agent="+encodeURIComponent(agent)+"&priority=med&due=&title="+encodeURIComponent(title));
+  btn.disabled=false;
+  if(r&&r.ok){
+    closeBriefModal();
+    toast("✓ สั่งงานแล้ว: "+title);
+    if(boardReload) boardReload(); else if(CUR==="board") renderBoard();
+  } else {
+    msg.textContent="✕ "+((r&&(r.error||r.message))||"สร้างงานไม่สำเร็จ");
+  }
+}
+/* mic affordance — best-effort voice input; no-ops gracefully with a toast when SpeechRecognition
+   isn't available in this browser, never blocks typing/submit. */
+let _briefRec=null, _briefRecOn=false;
+function briefStopMic(){ if(_briefRec&&_briefRecOn){ try{ _briefRec.stop(); }catch(_){} } }
+function briefToggleMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const btn=document.getElementById("briefmMic");
+  if(!SR){ toast("เบราว์เซอร์นี้ไม่รองรับการพูดสั่งงาน (Speech Recognition) — พิมพ์แทนได้เลย"); return; }
+  if(_briefRecOn){ briefStopMic(); return; }
+  try{
+    _briefRec=new SR();
+    _briefRec.lang="th-TH"; _briefRec.interimResults=false; _briefRec.maxAlternatives=1;
+    _briefRec.onstart=function(){ _briefRecOn=true; if(btn){ btn.classList.add("on"); btn.title="กำลังฟัง… คลิกเพื่อหยุด"; } };
+    _briefRec.onerror=function(){ toast("ฟังเสียงไม่สำเร็จ ลองพิมพ์แทน"); };
+    _briefRec.onend=function(){ _briefRecOn=false; if(btn){ btn.classList.remove("on"); btn.title="พูดสั่งงาน (ไมค์)"; } };
+    _briefRec.onresult=function(e){
+      const ta=document.getElementById("briefmText");
+      const txt=(e.results&&e.results[0]&&e.results[0][0])?e.results[0][0].transcript:"";
+      if(ta&&txt) ta.value=(ta.value?ta.value+" ":"")+txt;
+    };
+    _briefRec.start();
+  }catch(_){ toast("เปิดไมค์ไม่สำเร็จ"); }
+}
+document.getElementById("newBriefBtn").onclick=openBriefModal;
+document.getElementById("briefmClose").onclick=closeBriefModal;
+document.getElementById("briefmOverlay").addEventListener("mousedown",function(e){ if(e.target.id==="briefmOverlay") closeBriefModal(); });
+document.getElementById("briefmSubmit").onclick=submitBriefModal;
+document.getElementById("briefmMic").onclick=briefToggleMic;
+document.getElementById("briefmText").addEventListener("keydown",function(e){ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); submitBriefModal(); } });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("briefmOverlay"); if(ov&&ov.classList.contains("on")) closeBriefModal(); } });
 
 function renderOffice(){
   V().innerHTML='<div class="office"><div class="oframe">'
