@@ -1453,6 +1453,10 @@ function renderOffice(){
    (actually auto-decide low-risk items) instead of the UI merely labeling them. Once that exists,
    this localStorage copy should become a cache of the server config, not the source of truth. */
 function apprRiskColor(t){ t=String(t||"").toLowerCase(); return t==="high"?"var(--bad)":t==="med"||t==="medium"?"var(--warn)":"var(--okdot)"; }
+// m1 'Today' feed: last-seen /approvals_list payload, kept fresh by renderApprovals()/refreshApprovalBadge()
+// below (both already poll /approvals_list) so buildTodayFeed() further down has no /approvals_list of
+// its own to fetch — it just reads whatever the existing approvals plumbing last saw.
+let approvalsQueueCache=[];
 const APPR_POLICY_KEY="prontera_approval_policy";
 const APPR_POLICY_PROJECTS=["prontera","geffen","payon","izlude","morroc","alberta","aldebaran"];
 const APPR_POLICY_TIERS=["low","med","high"];
@@ -1515,6 +1519,7 @@ async function renderApprovals(){
   const polBtn=document.getElementById("apprPolicyBtn"); if(polBtn) polBtn.onclick=openApprPolicyModal;
   const list=document.getElementById("apprList");
   const d=await getJSON("/approvals_list");
+  approvalsQueueCache=Array.isArray(d)?d:[];
   if(!Array.isArray(d)){
     list.innerHTML='<div class="empty">ยังไม่มี backend endpoint /approvals_list — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้ (จะคืนรายการ pending approvals: {id, project, agent, action_type, risk_tier, summary, ts})</div>';
     return;
@@ -1556,6 +1561,7 @@ async function renderApprovals(){
 }
 async function refreshApprovalBadge(){
   const d=await getJSON("/approvals_list");
+  approvalsQueueCache=Array.isArray(d)?d:[];
   const b=document.getElementById("approvalsBadge"); if(!b) return;
   const c=Array.isArray(d)?d.length:0;
   if(c>0){ b.textContent=c>99?"99+":String(c); b.style.display="block"; } else { b.style.display="none"; }
@@ -1675,6 +1681,84 @@ function notifToggle(){
   if(panel&&panel.classList.contains("on")) notifClose(); else notifOpen();
 }
 notifRenderBadge();
+
+/* ── m1 (roadmap): "Today" attention-feed data aggregation — pure data only, no UI here (a later
+   task adds the view). Merges three state sources that already exist in this file into one
+   prioritized array: {type, title, project, ts, priority, actionable}.
+     1) Approval Queue — approvalsQueueCache (see "Approval Gates" section above), kept fresh by
+        renderApprovals()/refreshApprovalBadge() polling /approvals_list. Every item in it is by
+        definition still pending (decided items are removed from the list immediately on decide),
+        so all of it counts as "needs action" — highest priority.
+     2) Blocked/failed tasks — window._boardTasks (populated by _pushBoardTask() while the Board/
+        renderBoard() renders /board). The backend doesn't emit a literal "blocked"/"failed" status
+        yet, so this infers it from signals already computed elsewhere in-file: a "done" task whose
+        verdict reads like a failure (same fail-like regex Audit Trail's verdictBadge() uses), or a
+        "กำลังทำ" (in-progress) task whose agent is stale in the /activity snapshot (same >180s
+        heuristic renderActivity()/pollActivityGlobal() already use for "อาจค้าง"/stuck).
+     3) Notification bell — notifStore entries with read:false (the bell already tracks read/unread
+        per entry; nothing new needed there).
+   Sorted by priority (0=approval, 1=blocked/failed task, 2=unread notification) then by recency
+   (newest first) within each tier.
+   TODO(backend): once /approvals_list and /board settle on real status enums, replace the
+   staleness/verdict-text inference in _taskLooksBlocked/_taskLooksFailed with the real fields. */
+function _feedTs(x){ const t=Date.parse(x); return isNaN(t)?0:t; }
+function _taskLooksFailed(t){
+  if(!t) return false;
+  const vs=String(t.verdict||"");
+  if(/^fix$|ไม่ผ่าน|fail/i.test(vs)) return true;
+  const st=String(t.status||t.state||"").toLowerCase();
+  return st==="failed"||st==="fail"||st==="error";
+}
+function _taskLooksBlocked(t){
+  if(!t) return false;
+  const st=String(t.status||t.state||"").toLowerCase();
+  if(st==="blocked"||st==="stuck"||t.blocked===true) return true;
+  // no explicit "blocked" status from the backend yet — reuse the same /activity staleness signal
+  // pollActivityGlobal() already tracks per-agent (bgActSeen[agent].stale, >180s since updated_at)
+  if(t.status==="กำลังทำ"&&t.agent&&bgActSeen&&bgActSeen[t.agent]) return !!bgActSeen[t.agent].stale;
+  return false;
+}
+function buildTodayFeed(){
+  const items=[];
+  (Array.isArray(approvalsQueueCache)?approvalsQueueCache:[]).forEach(function(a){
+    if(!a) return;
+    items.push({
+      type:"approval",
+      title:a.action_type||a.summary||"คำขออนุมัติ",
+      project:a.project||"",
+      ts:_feedTs(a.ts)||Date.now(),
+      priority:0,
+      actionable:true
+    });
+  });
+  (Array.isArray(window._boardTasks)?window._boardTasks:[]).forEach(function(t){
+    if(!t) return;
+    const failed=_taskLooksFailed(t), blocked=!failed&&_taskLooksBlocked(t);
+    if(!failed&&!blocked) return;
+    items.push({
+      type:failed?"task_failed":"task_blocked",
+      title:t.title||"(ไม่มีชื่อ)",
+      project:t.project||"",
+      ts:_feedTs(t.updated_at||t.started_at||t.ts)||0,
+      priority:1,
+      actionable:true
+    });
+  });
+  (Array.isArray(notifStore)?notifStore:[]).forEach(function(n){
+    if(!n||n.read) return;
+    items.push({
+      type:"notification",
+      title:n.text||"",
+      project:"",
+      ts:_feedTs(n.ts)||0,
+      priority:2,
+      actionable:false
+    });
+  });
+  items.sort(function(a,b){ return a.priority-b.priority || b.ts-a.ts; });
+  return items;
+}
+window.buildTodayFeed=buildTodayFeed; // stub hook for the next task's "Today" view to consume
 
 let toEl=null;
 function toast(t){ notifAdd(t); if(!toEl){toEl=document.createElement("div");toEl.style.cssText="position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);color:var(--text);padding:10px 18px;border-radius:999px;font-size:13.5px;z-index:99;box-shadow:var(--shadow);transition:opacity .3s";document.body.appendChild(toEl);} toEl.textContent=t; toEl.style.opacity="1"; clearTimeout(toEl._t); toEl._t=setTimeout(()=>toEl.style.opacity="0",2600); }
