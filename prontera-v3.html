@@ -319,6 +319,23 @@ input:disabled{opacity:.4}
 .tdrow .tdk{min-width:96px;flex:0 0 96px;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;padding-top:2px}
 .tdrow .tdv{font-size:13.5px;color:var(--text);word-break:break-word}
 
+/* ── "Today" view (roadmap m1 home screen) — one prioritized feed combining pending approvals,
+   blocked/failed tasks and unread notifications; see buildTodayFeed() further down for the data
+   side. Rows reuse .chip/.btn/.sub and the --glass-2/--glass-3/--hair vars, so light/dark both
+   already match the rest of the dashboard with no extra dark-mode overrides needed here. ── */
+.today-feed{display:flex;flex-direction:column;gap:10px}
+.today-row{display:flex;align-items:flex-start;gap:12px;background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.today-ic{flex:0 0 34px;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:16px;background:var(--glass-3);color:var(--muted)}
+.today-ic svg{width:17px;height:17px}
+.today-ic-approval{color:var(--accent);background:rgba(10,132,255,.14)}
+.today-ic-fail{color:var(--bad);background:rgba(229,72,77,.14)}
+.today-ic-blocked{color:var(--warn);background:rgba(224,134,0,.14)}
+.today-body{flex:1;min-width:0}
+.today-title{font-size:14px;font-weight:600;color:var(--text);word-break:break-word}
+.today-meta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+.today-act{flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;padding-top:1px}
+.today-empty{margin-top:4px}
+
 :root[data-theme="dark"]{--text:#f2f3f5;--muted:#a4a7b0;--faint:#7e828c;--line:rgba(255,255,255,.12);
   --glass:rgba(28,30,38,.5);--glass-2:rgba(28,30,38,.62);--glass-3:rgba(44,46,56,.66);
   --hair:rgba(255,255,255,.14);--shadow:0 10px 34px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);--accent:#0a84ff}
@@ -430,6 +447,7 @@ function avColor(s){const h=[...String(s)].reduce((a,c)=>a+c.charCodeAt(0),0)%36
 const fmtK=n=>n>=1e6?(n/1e6).toFixed(n>=1e7?0:1)+"M":n>=1e3?Math.round(n/1e3)+"k":""+Math.round(n);
 
 const ICON={
+  today:'<path d="M3 10.5L12 3l9 7.5M5 9.5V21h5v-6h4v6h5V9.5"/>',
   overview:'<path d="M3 13h8V3H3zM13 21h8V3h-8zM3 21h8v-6H3z"/>',
   projects:'<path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7"/>',
   activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
@@ -456,6 +474,7 @@ const ICON={
 function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'+(c?' style="color:'+c+'"':'')+' aria-hidden="true">'+(ICON[n]||"")+'</svg>';}
 
 const NAV=[
+  ["today","วันนี้","today"],
   ["overview","ภาพรวม","overview"],
   ["board","บอร์ดงาน","work"],
   ["approvals","คำขออนุมัติ","check"],
@@ -474,7 +493,7 @@ const NAV_HIDDEN=[
   ["models","โมเดล & Token","models"],["search","ค้นหาประวัติงาน","search"]
 ];
 const MNAV=NAV.map(function(n){return n[0];});   // mobile bottom-nav: all tabs, horizontally scrollable
-let CUR="overview";
+let CUR="today";
 function buildNav(){
   document.getElementById("nav").innerHTML=NAV.map(n=>'<button data-v="'+n[0]+'">'+ic(n[2])+'<span>'+n[1]+'</span>'+(n[0]==="approvals"?'<span class="notif-badge" id="approvalsBadge" style="display:none"></span>':'')+'</button>').join("");
   document.getElementById("mnav").innerHTML=MNAV.map(v=>{const n=NAV.find(x=>x[0]===v);return '<button data-v="'+v+'">'+ic(n[2])+'<span>'+n[1].split(" ")[0]+'</span></button>';}).join("");
@@ -485,7 +504,7 @@ function go(v){
   document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   const n=NAV.find(x=>x[0]===v)||NAV_HIDDEN.find(x=>x[0]===v)||NAV[0];
   document.getElementById("ttl").textContent=n[1];
-  const R={overview:renderOverview,board:renderBoard,approvals:renderApprovals,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,recall:renderRecall,skills:renderSkills,profile:renderProfile,team:renderTeam,models:renderModels,work:renderWork,analytics:renderAnalytics,invest:renderInvest,office:renderOffice};
+  const R={today:renderToday,overview:renderOverview,board:renderBoard,approvals:renderApprovals,projects:renderProjects,activity:renderActivity,pipelines:renderPipelines,chat:renderChat,search:renderSearch,recall:renderRecall,skills:renderSkills,profile:renderProfile,team:renderTeam,models:renderModels,work:renderWork,analytics:renderAnalytics,invest:renderInvest,office:renderOffice};
   (R[v]||renderOverview)();
 }
 const V=()=>document.getElementById("view");
@@ -1610,6 +1629,10 @@ function notifMarkAllRead(){
   notifStore.forEach(n=>{ if(!n.read){ n.read=true; changed=true; } });
   if(changed){ notifSave(); notifRenderBadge(); notifRenderList(); }
 }
+function notifMarkRead(id){
+  const n=notifStore.find(x=>x.id===id);
+  if(n&&!n.read){ n.read=true; notifSave(); notifRenderBadge(); notifRenderList(); }
+}
 async function notifRenderApprovalsInline(){
   const list=document.getElementById("notifList"); if(!list) return;
   list.querySelectorAll(".notif-appr-card,.notif-appr-sep").forEach(el=>el.remove());
@@ -1728,7 +1751,9 @@ function buildTodayFeed(){
       project:a.project||"",
       ts:_feedTs(a.ts)||Date.now(),
       priority:0,
-      actionable:true
+      actionable:true,
+      id:a.id, // consumed by the Today view's Approve/Deny buttons (→ /approval_decide)
+      raw:a
     });
   });
   (Array.isArray(window._boardTasks)?window._boardTasks:[]).forEach(function(t){
@@ -1741,7 +1766,9 @@ function buildTodayFeed(){
       project:t.project||"",
       ts:_feedTs(t.updated_at||t.started_at||t.ts)||0,
       priority:1,
-      actionable:true
+      actionable:true,
+      id:t.id, // consumed by the Today view's Retry button (→ /task_retry)
+      raw:t     // full task object, so Reassign can reopen the Task Detail drawer (openTaskDetail(raw))
     });
   });
   (Array.isArray(notifStore)?notifStore:[]).forEach(function(n){
@@ -1752,13 +1779,119 @@ function buildTodayFeed(){
       project:"",
       ts:_feedTs(n.ts)||0,
       priority:2,
-      actionable:false
+      actionable:false,
+      id:n.id, // consumed by the Today view's "mark read" button
+      icon:n.icon
     });
   });
   items.sort(function(a,b){ return a.priority-b.priority || b.ts-a.ts; });
   return items;
 }
 window.buildTodayFeed=buildTodayFeed; // stub hook for the next task's "Today" view to consume
+
+/* ── "Today" view — the one-glance "something needs OMAN" home screen (roadmap m1). Renders
+   buildTodayFeed() above as a single prioritized list: pending approvals, blocked/failed tasks,
+   unread notifications. Each row's action button reuses the SAME endpoints/flows as the source
+   feature (approve/deny → /approval_decide as in the notif-bell dropdown & Approval Queue; retry →
+   /task_retry as in the Task Detail drawer; reassign → reopens that same drawer so its existing
+   agent-picker flow handles it, rather than duplicating it inline; mark read → notifStore). */
+function todayRelTime(ts){
+  const t=_feedTs(ts)||ts;
+  if(!t) return "";
+  const s=Math.max(0,Math.round((Date.now()-t)/1000));
+  if(s<45) return "เมื่อสักครู่";
+  if(s<3600) return Math.round(s/60)+" นาทีที่แล้ว";
+  if(s<86400) return Math.round(s/3600)+" ชม.ที่แล้ว";
+  return Math.round(s/86400)+" วันที่แล้ว";
+}
+let todayFeedCache=[];
+async function todayRefreshSources(){
+  // Same three sources buildTodayFeed() reads — refreshed here so the Today view doesn't depend on
+  // the Approvals/Board tabs having been opened first in this session.
+  const [appr,board]=await Promise.all([getJSON("/approvals_list"),getJSON("/board")]);
+  approvalsQueueCache=Array.isArray(appr)?appr:[];
+  refreshApprovalBadge();
+  window._boardTasks=[];
+  if(board&&typeof board==="object"){
+    Object.keys(board).forEach(function(p){
+      const v=board[p]||{};
+      const doingList=Array.isArray(v.doing)?v.doing:(v.doing?[v.doing]:[]);
+      doingList.forEach(dt=>_pushBoardTask(Object.assign({},dt,{project:p,status:"กำลังทำ"})));
+      (v.pending||[]).forEach(t=>_pushBoardTask(Object.assign({},t,{project:p,status:"ค้างอยู่"})));
+      (v.done||[]).forEach(t=>_pushBoardTask(Object.assign({},t,{project:p,status:"เสร็จ"})));
+    });
+  }
+}
+function todayRowIcon(item){
+  if(item.type==="approval") return '<span class="today-ic today-ic-approval">'+ic("check")+'</span>';
+  if(item.type==="task_failed") return '<span class="today-ic today-ic-fail">'+ic("x")+'</span>';
+  if(item.type==="task_blocked") return '<span class="today-ic today-ic-blocked">'+ic("clock")+'</span>';
+  return '<span class="today-ic today-ic-notif">'+esc(item.icon||"🔔")+'</span>';
+}
+function todayRowAction(item,i){
+  if(item.type==="approval"){
+    return '<button class="btn sm pri" data-todo="appr-approve" data-i="'+i+'" type="button">✓ อนุมัติ</button>'
+      +'<button class="btn sm" data-todo="appr-reject" data-i="'+i+'" type="button">✗ ปฏิเสธ</button>';
+  }
+  if(item.type==="task_failed"||item.type==="task_blocked"){
+    return '<button class="btn sm" data-todo="task-retry" data-i="'+i+'" type="button">'+ic("refresh")+'ลองใหม่</button>'
+      +'<button class="btn sm" data-todo="task-reassign" data-i="'+i+'" type="button">มอบหมายใหม่</button>';
+  }
+  return '<button class="btn sm" data-todo="notif-read" data-i="'+i+'" type="button">อ่านแล้ว</button>';
+}
+function todayRowHtml(item,i){
+  return '<div class="today-row" data-i="'+i+'">'+todayRowIcon(item)
+    +'<div class="today-body"><div class="today-title">'+esc(item.title||"")+'</div>'
+    +'<div class="today-meta">'+(item.project?'<span class="chip">'+esc(item.project)+'</span>':'')+'<span class="sub">'+esc(todayRelTime(item.ts))+'</span></div></div>'
+    +'<div class="today-act">'+(item.actionable?todayRowAction(item,i):"")+'</div></div>';
+}
+function todayRenderList(){
+  const box=document.getElementById("todayList"); if(!box) return;
+  if(!todayFeedCache.length){ box.innerHTML='<div class="empty today-empty">ไม่มีเรื่องรอดำเนินการ ✨</div>'; return; }
+  box.innerHTML='<div class="today-feed">'+todayFeedCache.map(todayRowHtml).join("")+'</div>';
+  box.querySelectorAll("[data-todo]").forEach(function(btn){
+    btn.onclick=function(){ todayHandleAction(btn.dataset.todo,+btn.dataset.i,btn); };
+  });
+}
+async function todayReloadFeed(){ todayFeedCache=buildTodayFeed(); todayRenderList(); }
+async function todayHandleAction(act,i,btn){
+  const item=todayFeedCache[i]; if(!item) return;
+  if(act==="appr-approve"||act==="appr-reject"){
+    const decision=act==="appr-approve"?"approve":"reject";
+    const row=btn.closest(".today-row"); if(row) row.querySelectorAll("button").forEach(b=>b.disabled=true);
+    const r=await postJSON("/approval_decide",{id:item.id,decision:decision});
+    if(r){
+      toast((decision==="approve"?"✓ อนุมัติแล้ว: ":"✗ ปฏิเสธแล้ว: ")+(item.title||item.id));
+      await todayRefreshSources(); todayReloadFeed();
+    } else {
+      if(row) row.querySelectorAll("button").forEach(b=>b.disabled=false);
+      toast("ยังไม่มี backend endpoint /approval_decide — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้");
+    }
+    return;
+  }
+  if(act==="task-retry"){
+    const t=item.raw||{}; if(!t.id) return;
+    btn.disabled=true;
+    const r=await postJSON("/task_retry",{id:t.id});
+    btn.disabled=false;
+    if(r){ toast("✓ ส่งคำสั่งลองใหม่: "+(t.title||t.id)); if(boardReload) boardReload(); await todayRefreshSources(); todayReloadFeed(); }
+    else toast("ยังไม่มี backend endpoint /task_retry — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้");
+    return;
+  }
+  if(act==="task-reassign"){
+    if(item.raw) openTaskDetail(item.raw); // reuse the Task Detail drawer's existing reassign flow
+    return;
+  }
+  if(act==="notif-read"){
+    notifMarkRead(item.id);
+    todayReloadFeed();
+  }
+}
+async function renderToday(){
+  V().innerHTML='<div class="wrap"><div class="hd">วันนี้ — สิ่งที่ต้องตัดสินใจ</div><div id="todayList"><div class="empty">กำลังโหลด…</div></div></div>';
+  await todayRefreshSources();
+  todayReloadFeed();
+}
 
 let toEl=null;
 function toast(t){ notifAdd(t); if(!toEl){toEl=document.createElement("div");toEl.style.cssText="position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--glass-3);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--hair);color:var(--text);padding:10px 18px;border-radius:999px;font-size:13.5px;z-index:99;box-shadow:var(--shadow);transition:opacity .3s";document.body.appendChild(toEl);} toEl.textContent=t; toEl.style.opacity="1"; clearTimeout(toEl._t); toEl._t=setTimeout(()=>toEl.style.opacity="0",2600); }
@@ -1888,7 +2021,7 @@ var _prb=document.getElementById("pauseResume"); if(_prb) _prb.onclick=togglePau
 refreshPause();
 document.getElementById("notifBell").onclick=e=>{ e.stopPropagation(); notifToggle(); };
 document.getElementById("notifMarkAll").onclick=e=>{ e.stopPropagation(); notifMarkAllRead(); };
-go("overview"); refreshTokens(); setInterval(refreshTokens,30000);
+go("today"); refreshTokens(); setInterval(refreshTokens,30000);
 refreshApprovalBadge(); setInterval(refreshApprovalBadge,30000);
 pollActivityGlobal(); setInterval(pollActivityGlobal,6000);
 
