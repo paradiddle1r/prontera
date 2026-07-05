@@ -1113,6 +1113,73 @@ async function renderProfile(tgt){
     else { msg.textContent="✕ บันทึกไม่สำเร็จ (endpoint ยังไม่พร้อม)"; }
   };
 }
+// ── m5 (Web Push): base64url VAPID public key → Uint8Array, the shape pushManager.subscribe() expects ──
+function urlB64ToUint8Array(base64String){
+  const padding="=".repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+  const raw=atob(base64);
+  const arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+// ── m5 (Web Push): subscribe/unsubscribe UI — reflects real Notification.permission even when the
+// /push/* backend endpoints 404 (they aren't wired up yet; server team lands them for m2's send-side) ──
+async function renderPush(tgt){
+  const host=tgt||V();
+  host.innerHTML='<div class="wrap"><div class="hd">การแจ้งเตือน Push <span class="sub">— รับแจ้งเตือนแม้ปิดแท็บ ผ่าน OS notification</span></div><div id="pushbox"><div class="empty">กำลังโหลด…</div></div></div>';
+  const box=document.getElementById("pushbox");
+  if(!("Notification" in window)||!("serviceWorker" in navigator)||!("PushManager" in window)){
+    box.innerHTML='<div class="empty">เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน Push</div>';
+    return;
+  }
+  const perm=Notification.permission; // 'default' | 'granted' | 'denied'
+  const permLabel=perm==="granted"?"อนุญาตแล้ว":perm==="denied"?"ถูกปฏิเสธ":"ยังไม่ได้ตั้งค่า";
+  const permChipCls=perm==="granted"?"live":perm==="denied"?"warn":"";
+  let sub=null;
+  try{ const reg=await navigator.serviceWorker.ready; sub=await reg.pushManager.getSubscription(); }catch(_){}
+  const subscribed=!!sub;
+  box.innerHTML='<div class="card" style="margin-bottom:12px">'
+      +'<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b>สิทธิ์การแจ้งเตือนของเบราว์เซอร์</b><span class="chip '+permChipCls+'">'+esc(permLabel)+'</span></div></div>'
+      +'<div class="qi" style="margin:6px 0"><div class="flex wrapflex"><b>สถานะการสมัครรับ Push</b><span class="chip '+(subscribed?"live":"")+'">'+(subscribed?"สมัครแล้ว":"ยังไม่ได้สมัคร")+'</span></div></div>'
+    +'</div>'
+    +'<div class="card"><div class="ctl">'
+    +(perm==="denied"
+      ? '<span class="sub">การแจ้งเตือนถูกบล็อกไว้ที่ระดับเบราว์เซอร์ — ต้องไปเปิดเองในตั้งค่าเว็บไซต์ของเบราว์เซอร์</span>'
+      : '<button class="btn pri" id="pushToggleBtn">'+ic("plus")+(subscribed?"ปิดการแจ้งเตือน":"เปิดการแจ้งเตือน")+'</button>')
+    +'<span class="sub" id="pushmsg"></span></div></div>';
+  const btn=document.getElementById("pushToggleBtn");
+  if(!btn) return;
+  btn.onclick=async function(){
+    const msg=document.getElementById("pushmsg");
+    btn.disabled=true;
+    try{
+      if(subscribed){
+        msg.textContent="กำลังยกเลิก…";
+        const endpoint=sub.endpoint;
+        try{ await sub.unsubscribe(); }catch(_){}
+        const r=await postJSON("/push/unsubscribe",{endpoint:endpoint});
+        toast("ปิดการแจ้งเตือนแล้ว");
+        if(!r) msg.textContent="ยกเลิกที่เครื่องแล้ว (ยังไม่เชื่อมต่อ backend)";
+      } else {
+        const perm2=await Notification.requestPermission();
+        if(perm2!=="granted"){ renderPush(host); return; }
+        const reg=await navigator.serviceWorker.ready;
+        let s=await reg.pushManager.getSubscription();
+        if(!s){
+          const vk=await getJSON("/push/vapid-public-key");
+          if(!vk||!vk.key){ msg.textContent="ยังไม่เชื่อมต่อ backend"; btn.disabled=false; renderPush(host); return; }
+          s=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8Array(vk.key)});
+        }
+        const r=await postJSON("/push/subscribe",s.toJSON?s.toJSON():s);
+        toast("เปิดการแจ้งเตือนแล้ว");
+        if(!r) msg.textContent="เปิดที่เครื่องแล้ว (ยังไม่เชื่อมต่อ backend)";
+      }
+    }catch(_){
+      msg.textContent="เกิดข้อผิดพลาด";
+    }
+    renderPush(host);
+  };
+}
 // ── m4: per-agent "Memory & learnings" panel — opened from the roster card (Overview) or the agent header row (Skills) ──
 async function openAgentMemory(agentId){
   const ov=document.getElementById("agmemOverlay"), body=document.getElementById("agmemBody");
@@ -1155,9 +1222,9 @@ document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=
 let teamTab="skills";
 function renderTeam(){
   V().innerHTML='<div style="padding:18px 24px 0"><div class="seg" id="tseg"></div></div><div id="teamc"><div class="empty">กำลังโหลด…</div></div>';
-  const segs=[["skills","สกิล & ความจำ"],["models","โมเดล & Token"],["profile","โปรไฟล์เจ้าของ"]];
+  const segs=[["skills","สกิล & ความจำ"],["models","โมเดล & Token"],["profile","โปรไฟล์เจ้าของ"],["push","การแจ้งเตือน Push"]];
   const seg=document.getElementById("tseg"), host=document.getElementById("teamc");
-  const subs={skills:renderSkills,models:renderModels,profile:renderProfile};
+  const subs={skills:renderSkills,models:renderModels,profile:renderProfile,push:renderPush};
   seg.innerHTML=segs.map(s=>'<button data-t="'+s[0]+'">'+esc(s[1])+'</button>').join("");
   const draw=t=>{ teamTab=t; seg.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); host.innerHTML=""; (subs[t]||renderSkills)(host); };
   seg.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>draw(b.dataset.t));
@@ -2063,11 +2130,17 @@ function setupPWAManifest(){
 function setupPWAServiceWorker(){
   try{
     if(!("serviceWorker" in navigator)) return;
+    var icon=pwaIconDataUri();
     var swSrc=""
       +"const CACHE='prontera-shell-v1';"
       +"self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.add(self.registration.scope).catch(()=>{})));});"
       +"self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});"
-      +"self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{});return res;}).catch(()=>caches.match(e.request)));});";
+      +"self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{});return res;}).catch(()=>caches.match(e.request)));});"
+      /* m5 (Web Push): push payload is optional/best-effort — some senders deliver a data-less
+         push just to wake the SW, so default to a generic title/body instead of throwing. */
+      +"self.addEventListener('push',e=>{var payload={};try{payload=e.data&&e.data.json?e.data.json():{};}catch(_){payload={};}"
+      +"e.waitUntil(self.registration.showNotification(payload.title||'Prontera HQ',{body:payload.body||'',icon:"+JSON.stringify(icon)+",data:{url:payload.url||'/'}}));});"
+      +"self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.openWindow(e.notification.data&&e.notification.data.url||'/'));});";
     var swBlob=new Blob([swSrc],{type:"text/javascript"});
     var swUrl=URL.createObjectURL(swBlob);
     navigator.serviceWorker.register(swUrl).catch(function(){});
