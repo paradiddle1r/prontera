@@ -223,6 +223,7 @@ input:disabled{opacity:.4}
 .agpick input{margin:0}
 .pausebar{display:flex;align-items:center;gap:12px;justify-content:center;background:rgba(255,159,10,.16);color:#c77700;border-bottom:1px solid rgba(255,159,10,.32);padding:9px 16px;font-size:13.5px;font-weight:600}
 .tbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.distrow{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.4}
 @media (max-width:860px){ .office{height:calc(100dvh - 122px);padding:8px} }
 
 /* ── Task Assignment Hub — "New Task" modal, modeled on the cmdk/agmem overlay pattern ── */
@@ -473,7 +474,7 @@ input:disabled{opacity:.4}
 const KEY=(function(){try{const u=new URLSearchParams(location.search).get("key");if(u)localStorage.setItem("prontera_gkey",u);return u||localStorage.getItem("prontera_gkey")||"";}catch(_){return"";}})();
 const LOCAL=["localhost","127.0.0.1",""];
 const BACKEND=(location.protocol==="file:"||LOCAL.includes(location.hostname))?"":"https://pornchais-mac-mini.tail62b220.ts.net:8443";
-const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|task_reassign|task_retry|roadmap_set|roadmap_clear|roadmap_auto|project_create|no_claude|pause|brief|agent|iris_run|vera_run|approval_decide)(\?|$)/;
+const CEORE=/\/(set_model|set_schedule|set_project_cron|run_project|queue_add|queue_remove|task_reassign|task_retry|roadmap_set|roadmap_clear|roadmap_auto|project_create|no_claude|pause|distribute|brief|agent|iris_run|vera_run|approval_decide)(\?|$)/;
 function url(p){ if(KEY&&CEORE.test(p)&&p.indexOf("key=")<0) p+=(p.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(KEY); return BACKEND+p; }
 async function getJSON(p){ try{const r=await fetch(url(p));return r.ok?await r.json():null;}catch(_){return null;} }
 async function postJSON(p,body){ try{const r=await fetch(url(p),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});return r.ok?await r.json().catch(()=>({ok:true})):null;}catch(_){return null;} }
@@ -1256,7 +1257,7 @@ document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=
 /* Team & Models — one tab folding Skills, Models/Token, Owner Profile under a segmented control */
 let teamTab="skills";
 function renderTeam(){
-  V().innerHTML='<div style="padding:18px 24px 0"><div class="seg" id="tseg"></div></div><div id="teamc"><div class="empty">กำลังโหลด…</div></div>';
+  V().innerHTML='<div style="padding:18px 24px 0"><div class="seg" id="tseg"></div><div id="distrow" class="distrow"></div></div><div id="teamc"><div class="empty">กำลังโหลด…</div></div>';
   const segs=[["skills","สกิล & ความจำ"],["models","โมเดล & Token"],["profile","โปรไฟล์เจ้าของ"],["push","การแจ้งเตือน Push"]];
   const seg=document.getElementById("tseg"), host=document.getElementById("teamc");
   const subs={skills:renderSkills,models:renderModels,profile:renderProfile,push:renderPush};
@@ -1264,6 +1265,15 @@ function renderTeam(){
   const draw=t=>{ teamTab=t; seg.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); host.innerHTML=""; (subs[t]||renderSkills)(host); };
   seg.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>draw(b.dataset.t));
   draw(teamTab);
+  renderDistribute();
+}
+async function renderDistribute(){
+  const row=document.getElementById("distrow"); if(!row) return;
+  const c=await getJSON("/config")||{}; const on=c.distribute_models!==false;
+  row.innerHTML='<label class="sw"><input type="checkbox" id="distchk"'+(on?" checked":"")+'/><span class="tr"></span></label>'
+    +'<span>กระจายงานที่ไม่ต้องแก้โค้ด (รีวิวของ Vera / การเรียนรู้ skill) ไป model อื่นตามความถนัด+โควตา — เก็บ Claude ไว้แก้โค้ด</span>';
+  const chk=document.getElementById("distchk");
+  if(chk) chk.onchange=async()=>{ await getJSON("/distribute?on="+(chk.checked?1:0)); toast(chk.checked?"กระจายงานไป model อื่นแล้ว":"ใช้ Claude อย่างเดียว"); };
 }
 
 /* Kanban board — the team's work grouped กำลังทำ / ค้าง / เสร็จ, แยกต่อโปรเจค (feeds /board) */
@@ -1296,7 +1306,7 @@ function _boardProject(p,v){
   });
   const done=(v.done||[]).map(t=>{
     const idx=_pushBoardTask(Object.assign({},t,{project:p,status:"เสร็จ"}));
-    return _kcard(t.title,t.agent,(t.verdict?("✓ "+t.verdict):"")+(t.commit?(" · "+t.commit):""),"done",idx);
+    return _kcard(t.title,t.agent,(t.verdict?("✓ "+t.verdict):"")+(t.commit?(" · "+t.commit):"")+(t.model?(" · รีวิวโดย "+t.model):""),"done",idx);
   });
   return '<div class="bproj">'+head+'<div class="kanban">'
     +_kcol("กำลังทำ"+(doingList.length>1?' ⚡ '+doingList.length+' พร้อมกัน':""),"doing",doing,"ทีมว่างอยู่")
