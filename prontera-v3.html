@@ -837,9 +837,9 @@ async function renderWork(){
 let anaTab="velocity";
 function renderAnalytics(){
   V().innerHTML='<div style="padding:18px 24px 0"><div class="seg" id="anaseg"></div></div><div id="anac"><div class="empty">กำลังโหลด…</div></div>';
-  const segs=[["velocity","Velocity"],["audit","Audit Trail"]];
+  const segs=[["velocity","Velocity"],["audit","Audit Trail"],["scorecard","Scorecard"]];
   const seg=document.getElementById("anaseg"), host=document.getElementById("anac");
-  const subs={velocity:renderAnalyticsVelocity,audit:renderAuditTrail};
+  const subs={velocity:renderAnalyticsVelocity,audit:renderAuditTrail,scorecard:renderScorecard};
   seg.innerHTML=segs.map(s=>'<button data-t="'+s[0]+'">'+esc(s[1])+'</button>').join("");
   const draw=t=>{ anaTab=t; seg.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); host.innerHTML=""; (subs[t]||renderAnalyticsVelocity)(host); };
   seg.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>draw(b.dataset.t));
@@ -962,6 +962,52 @@ async function renderAuditTrail(tgt){
     if(!row||!box.contains(row))return;
     e.preventDefault();toggle(row);
   });
+}
+
+/* Scorecard sub-view (Agent Performance & Reliability Intelligence, m1): groups every day's
+   /work_summary results by agent — total volume, verdict breakdown (reusing the same
+   ok/fix/unclear classification renderWork uses), and pass-rate = ok/total. Cross-references
+   /board (same endpoint the Kanban view consumes) to flag agents with a task currently in
+   "doing" anywhere. No new backend calls, no trend sparkline yet — that's m2. */
+async function renderScorecard(tgt){
+  const host=tgt||V();
+  host.innerHTML='<div class="wrap"><div class="hd">Scorecard — ผลงานรายเอเจนต์</div><div id="scbox"><div class="empty">กำลังโหลด…</div></div></div>';
+  const box=document.getElementById("scbox");
+  const [d,board]=await Promise.all([getJSON("/work_summary"),getJSON("/board")]);
+  const days=(d&&d.days)||[];
+  if(!days.length){ box.innerHTML='<div class="empty">ยังไม่มีสรุปงาน — จะปรากฏเมื่อทีมรันงานเสร็จ</div>'; return; }
+  const byAgent={};
+  days.forEach(day=>{
+    (day.results||[]).forEach(r=>{
+      const ag=r.agent||"–";
+      if(!byAgent[ag]) byAgent[ag]={agent:ag,total:0,ok:0,fix:0,unclear:0};
+      const s=byAgent[ag];
+      s.total++;
+      const v=r.review||{};
+      const vc=v.verdict==="ok"?"ok":v.verdict==="fix"?"fix":"unclear";
+      s[vc]++;
+    });
+  });
+  const activeLoad={};
+  const b=board||{};
+  Object.keys(b).forEach(p=>{
+    const v=b[p]||{};
+    const doingList=Array.isArray(v.doing)?v.doing:(v.doing?[v.doing]:[]);
+    doingList.forEach(dt=>{ const ag=dt.agent||"–"; activeLoad[ag]=(activeLoad[ag]||0)+1; });
+  });
+  const agents=Object.keys(byAgent).sort((a,b2)=>byAgent[b2].total-byAgent[a].total);
+  box.innerHTML='<div class="grid g-cards">'+agents.map(ag=>{
+    const s=byAgent[ag],active=activeLoad[ag]||0;
+    const passRate=s.total?Math.round(100*s.ok/s.total):0;
+    return '<div class="ag"><div class="ag-top"><div class="ag-av" style="background:'+avColor(ag)+'">'+esc((String(ag)[0]||"?").toUpperCase())+'</div>'
+      +'<div><div class="ag-nm">'+esc(ag)+'</div><div class="ag-rl">'+s.total+' งาน · pass rate '+passRate+'%</div></div>'
+      +(active?'<span class="chip live" style="margin-left:auto">● active now'+(active>1?" × "+active:"")+'</span>':'')
+      +'</div><div class="ag-meta">'
+      +'<span class="verdict v-ok">✓ ok '+s.ok+'</span>'
+      +'<span class="verdict v-fix">✕ fix '+s.fix+'</span>'
+      +'<span class="verdict v-unclear">? unclear '+s.unclear+'</span>'
+      +'</div></div>';
+  }).join("")+'</div>';
 }
 
 async function renderInvest(){
