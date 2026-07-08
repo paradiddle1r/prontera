@@ -1328,6 +1328,8 @@ function openTaskDetail(t){
     +'<div class="ag-meta" style="margin-bottom:18px"><span class="chip '+statusCls+'">'+esc(t.status||"")+'</span>'+(t.agent?'<span class="chip sm">'+esc(t.agent)+'</span>':'')+(t.model?'<span class="chip mdl">'+esc(t.model)+'</span>':'')+'</div>'
     +'<div class="hd" style="margin:0 0 6px">รายละเอียดงาน</div>'
     +(rows.length?'<div class="card" style="padding:4px 12px">'+rows.map(r=>'<div class="tdrow"><div class="tdk">'+esc(r[0])+'</div><div class="tdv">'+esc(r[1])+'</div></div>').join("")+'</div>':'<div class="empty">ไม่มีรายละเอียดเพิ่มเติม</div>')
+    +'<div class="hd" style="margin:18px 0 6px">บทสนทนางาน (Task Thread)</div>'
+    +'<div id="tdThreadBody" class="card" style="padding:10px 14px;max-height:280px;overflow-y:auto"><div class="empty">กำลังโหลดบทสนทนา…</div></div>'
     +(showDiff?(
       '<div class="hd" style="margin:18px 0 6px;display:flex;align-items:center;gap:8px"><span style="flex:1">Diff Preview</span>'
         +'<button class="btn chip" id="tdDiffToggle" type="button" aria-expanded="false" style="padding:5px 12px;font-size:12px"><span id="tdDiffChevron" style="display:inline-block;transition:transform .15s">▾</span>&nbsp;ดู diff</button>'
@@ -1346,6 +1348,7 @@ function openTaskDetail(t){
     ):'');
   ov.classList.add("on");
   _wireTaskDetailActions(t);
+  _wireTaskThread(t);
 }
 /* m2 (Task Control Center): action-bar handlers for the drawer opened above. Reuses the existing
    getJSON/postJSON helpers and .btn/.chip/.taskm-fld CSS — no new design language. Cancel hits the
@@ -1456,6 +1459,34 @@ function _wireTaskDetailActions(t){
       box.style.display="none"; box.innerHTML="";
     }
   };
+}
+/* m5 (Task Thread): read-only chronological conversation/event view for the open task — NOT a reply
+   box, that is a separate future milestone and no input/send control is built here. Backend TODO:
+   needs GET /task_thread?id=<taskId> returning {messages:[{author,role,ts,body}]}, likely backed by
+   the existing task-event log. A missing endpoint (404/null) and an empty messages array are shown
+   as two distinct empty states below. */
+function _wireTaskThread(t){
+  const box=document.getElementById("tdThreadBody");
+  if(!box) return;
+  if(!t.id){ box.innerHTML='<div class="empty">ยังไม่มีบทสนทนาสำหรับงานนี้</div>'; return; }
+  (async function(){
+    const r=await getJSON("/task_thread?id="+encodeURIComponent(t.id));
+    if(!r||!Array.isArray(r.messages)){
+      box.innerHTML='<div class="empty">ยังไม่รองรับบทสนทนาแบบเรียลไทม์ในระบบหลังบ้าน (ต้องเพิ่ม /task_thread endpoint)</div>';
+      return;
+    }
+    if(!r.messages.length){ box.innerHTML='<div class="empty">ยังไม่มีข้อความ</div>'; return; }
+    box.innerHTML=r.messages.map(function(m){
+      const author=m.author||"?";
+      return '<div class="flex" style="align-items:flex-start;gap:8px;margin-bottom:10px">'
+        +'<div class="ag-av" style="width:26px;height:26px;border-radius:8px;font-size:11px;flex:none;background:'+avColor(author)+'">'+esc((author[0]||"?").toUpperCase())+'</div>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div class="flex" style="gap:6px;align-items:center;margin-bottom:2px"><span style="font-weight:600;font-size:12.5px">'+esc(author)+'</span><span class="chip sm">'+esc(m.role||"")+'</span><span class="sub mono" style="font-size:11px">'+esc(notifFmtTs(m.ts))+'</span></div>'
+          +'<div style="font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">'+esc(m.body)+'</div>'
+        +'</div>'
+      +'</div>';
+    }).join("");
+  })();
 }
 function closeTaskDetail(){ const ov=document.getElementById("taskdetailOverlay"); if(ov) ov.classList.remove("on"); currentDetailTask=null; }
 document.getElementById("taskdetailClose").onclick=closeTaskDetail;
