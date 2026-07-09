@@ -1357,6 +1357,25 @@ async function renderDistribute(){
   wire("gemchk",v=>"/edit_distribute?gemini="+(v?1:0),"เปิด gemini แก้โค้ด","ปิด gemini แก้โค้ด");
 }
 
+/* m1 (Task Story Timeline epic, milestone 1): best-effort client-side capture of each task's phase
+   transitions across board polls, keyed by t.id (window._boardTasks' array index is NOT stable across
+   polls — load() rebuilds it from scratch every refresh, see load() below). Tasks with no id are skipped,
+   same as the existing !!t.id guards near openTaskDetail's canRetry/canReassign/canCancel.
+   BACKEND GAP: this is a bridge only — it is lossy across page reloads/tab closes and only captures a
+   transition when the Board tab happens to be polled while the change is visible on /board. A durable,
+   complete history needs the backend to eventually emit a phases[] array on /board (or a
+   /task_phases?id= endpoint); milestone 2 will merge that (or this bridge, until then) with Diff Preview /
+   Audit Trail / Task Thread into one unified task story view. */
+window._taskPhaseHistory = window._taskPhaseHistory||{};
+function _capturePhaseHistory(t){
+  if(!t||!t.id) return;
+  const hist=window._taskPhaseHistory[t.id];
+  const last=hist&&hist.length?hist[hist.length-1]:null;
+  if(last&&last.phase===t.phase) return; // no change — nothing to record
+  if(!hist) window._taskPhaseHistory[t.id]=[];
+  window._taskPhaseHistory[t.id].push({ts:new Date().toISOString(),phase:t.phase,detail:t.title||""});
+  if(window._taskPhaseHistory[t.id].length>20) window._taskPhaseHistory[t.id]=window._taskPhaseHistory[t.id].slice(-20);
+}
 /* Kanban board — the team's work grouped กำลังทำ / ค้าง / เสร็จ, แยกต่อโปรเจค (feeds /board) */
 function _pushBoardTask(t){
   if(!window._boardTasks) window._boardTasks=[];
@@ -1397,6 +1416,20 @@ function _boardProject(p,v){
 /* m4: /board's `doing` field is currently a single object server-side — the UI above now accepts
    either shape, so the backend can switch `doing` to an array (for real concurrent tasks) later
    without requiring another frontend change */
+/* m1 (Task Story Timeline epic): renders the client-captured phase history for one task id — data comes
+   from window._taskPhaseHistory, populated by _capturePhaseHistory() (see the Kanban board section above)
+   on every board poll. BACKEND GAP: best-effort/lossy client bridge only — see the comment above
+   _capturePhaseHistory() for details; milestone 2 merges this with Diff Preview / Audit Trail / Task
+   Thread into one unified story view. */
+function _renderPhaseHistory(t){
+  const hist=(t&&t.id&&window._taskPhaseHistory&&window._taskPhaseHistory[t.id])||[];
+  if(!hist.length) return '<div class="empty">ยังไม่มีประวัติเฟส (จะเริ่มบันทึกเมื่อบอร์ดรีเฟรชครั้งถัดไป)</div>';
+  const rows=hist.slice().reverse().map(function(h){
+    const time=new Date(h.ts).toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    return '<div class="tdrow"><div class="tdk">'+esc(time)+'</div><div class="tdv">'+esc(h.phase||"")+(h.detail?' <span class="sub"> · '+esc(h.detail)+'</span>':"")+'</div></div>';
+  }).join("");
+  return '<div class="card" style="padding:4px 12px">'+rows+'</div>';
+}
 /* m1 (Live Task Console): Task Detail drawer — click/Enter/Space on a .kcard opens it with the full
    task object captured in window._boardTasks at render time (no extra fetch, /board already has it all) */
 let currentDetailTask=null; // closure state for the drawer's action bar (retry/reassign/cancel read the open task from here)
@@ -1419,6 +1452,8 @@ function openTaskDetail(t){
     +'<div class="ag-meta" style="margin-bottom:18px"><span class="chip '+statusCls+'">'+esc(t.status||"")+'</span>'+(t.agent?'<span class="chip sm">'+esc(t.agent)+'</span>':'')+(t.model?'<span class="chip mdl">'+esc(t.model)+'</span>':'')+'</div>'
     +'<div class="hd" style="margin:0 0 6px">รายละเอียดงาน</div>'
     +(rows.length?'<div class="card" style="padding:4px 12px">'+rows.map(r=>'<div class="tdrow"><div class="tdk">'+esc(r[0])+'</div><div class="tdv">'+esc(r[1])+'</div></div>').join("")+'</div>':'<div class="empty">ไม่มีรายละเอียดเพิ่มเติม</div>')
+    +'<div class="hd" style="margin:18px 0 6px">ประวัติเฟส (Phase History)</div>'
+    +_renderPhaseHistory(t)
     +'<div class="hd" style="margin:18px 0 6px">บทสนทนางาน (Task Thread)</div>'
     +'<div id="tdThreadBody" class="card" style="padding:10px 14px;max-height:280px;overflow-y:auto"><div class="empty">กำลังโหลดบทสนทนา…</div></div>'
     +'<div class="card" style="padding:10px 12px;margin-top:8px"><div class="flex" style="gap:8px;align-items:flex-end"><textarea id="tdThreadInput" rows="1" placeholder="พิมพ์ข้อความถึงทีม แล้วกด Enter เพื่อส่ง (Shift+Enter ขึ้นบรรทัดใหม่)…" style="flex:1;resize:none;max-height:120px;min-height:38px"></textarea><button class="btn pri" id="tdThreadSend" type="button" style="flex:none;padding:9px 14px">'+ic("send")+'ส่ง</button></div><div id="tdThreadMsg" class="sub" style="margin-top:6px"></div></div>'
@@ -1668,6 +1703,14 @@ async function renderBoard(){
     const d=await getJSON("/board"+(proj?("?project="+encodeURIComponent(proj)):""));
     const wrap=document.getElementById("bwrap");
     if(!d){ wrap.innerHTML='<div class="empty">เชื่อมต่อ backend ไม่ได้</div>'; return; }
+    /* m1 (Task Story Timeline): capture phase transitions per task id before rebuilding window._boardTasks
+       below — see _capturePhaseHistory() near the Kanban board section for why (index isn't stable). */
+    Object.keys(d).forEach(function(p){
+      const v=d[p];
+      (Array.isArray(v.doing)?v.doing:(v.doing?[v.doing]:[])).forEach(_capturePhaseHistory);
+      (v.pending||[]).forEach(_capturePhaseHistory);
+      (v.done||[]).forEach(_capturePhaseHistory);
+    });
     const ks=Object.keys(d);
     wrap.innerHTML=ks.length?ks.map(p=>_boardProject(p,d[p])).join(""):'<div class="empty">ไม่มีข้อมูล</div>';
   }
