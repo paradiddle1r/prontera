@@ -505,7 +505,8 @@ const ICON={
   auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
   search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
   bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1V16h6v-.4c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3z"/>',
-  check:'<path d="M20 6L9 17l-5-5"/>'
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  send:'<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>'
 };
 function ic(n,c){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'+(c?' style="color:'+c+'"':'')+' aria-hidden="true">'+(ICON[n]||"")+'</svg>';}
 
@@ -1386,6 +1387,7 @@ function openTaskDetail(t){
     +(rows.length?'<div class="card" style="padding:4px 12px">'+rows.map(r=>'<div class="tdrow"><div class="tdk">'+esc(r[0])+'</div><div class="tdv">'+esc(r[1])+'</div></div>').join("")+'</div>':'<div class="empty">ไม่มีรายละเอียดเพิ่มเติม</div>')
     +'<div class="hd" style="margin:18px 0 6px">บทสนทนางาน (Task Thread)</div>'
     +'<div id="tdThreadBody" class="card" style="padding:10px 14px;max-height:280px;overflow-y:auto"><div class="empty">กำลังโหลดบทสนทนา…</div></div>'
+    +'<div class="card" style="padding:10px 12px;margin-top:8px"><div class="flex" style="gap:8px;align-items:flex-end"><textarea id="tdThreadInput" rows="1" placeholder="พิมพ์ข้อความถึงทีม แล้วกด Enter เพื่อส่ง (Shift+Enter ขึ้นบรรทัดใหม่)…" style="flex:1;resize:none;max-height:120px;min-height:38px"></textarea><button class="btn pri" id="tdThreadSend" type="button" style="flex:none;padding:9px 14px">'+ic("send")+'ส่ง</button></div><div id="tdThreadMsg" class="sub" style="margin-top:6px"></div></div>'
     +(showDiff?(
       '<div class="hd" style="margin:18px 0 6px;display:flex;align-items:center;gap:8px"><span style="flex:1">Diff Preview</span>'
         +'<button class="btn chip" id="tdDiffToggle" type="button" aria-expanded="false" style="padding:5px 12px;font-size:12px"><span id="tdDiffChevron" style="display:inline-block;transition:transform .15s">▾</span>&nbsp;ดู diff</button>'
@@ -1516,33 +1518,91 @@ function _wireTaskDetailActions(t){
     }
   };
 }
-/* m5 (Task Thread): read-only chronological conversation/event view for the open task — NOT a reply
-   box, that is a separate future milestone and no input/send control is built here. Backend TODO:
-   needs GET /task_thread?id=<taskId> returning {messages:[{author,role,ts,body}]}, likely backed by
-   the existing task-event log. A missing endpoint (404/null) and an empty messages array are shown
-   as two distinct empty states below. */
+/* m5 (Task Thread): chronological conversation/event view for the open task, plus an inline reply
+   box (m6). Backend TODO: needs GET /task_thread?id=<taskId> returning {messages:[{author,role,ts,
+   body}]}, likely backed by the existing task-event log. A missing endpoint (404/null) and an empty
+   messages array are shown as two distinct empty states below. The reply box POSTs to /task_reply
+   ({id,body}), which also doesn't exist server-side yet — same "not wired up" treatment as
+   /task_retry and /task_reassign in _wireTaskDetailActions above: a null/404 response shows a status
+   line + toast instead of breaking the optimistic bubble already rendered. */
 function _wireTaskThread(t){
   const box=document.getElementById("tdThreadBody");
+  const input=document.getElementById("tdThreadInput");
+  const sendBtn=document.getElementById("tdThreadSend");
+  const threadMsg=document.getElementById("tdThreadMsg");
   if(!box) return;
-  if(!t.id){ box.innerHTML='<div class="empty">ยังไม่มีบทสนทนาสำหรับงานนี้</div>'; return; }
+  let threadLoaded=false, pendingReplies=[];
+  if(!t.id){
+    box.innerHTML='<div class="empty">ยังไม่มีบทสนทนาสำหรับงานนี้</div>';
+    if(input) input.disabled=true;
+    if(sendBtn) sendBtn.disabled=true;
+    return;
+  }
   (async function(){
     const r=await getJSON("/task_thread?id="+encodeURIComponent(t.id));
     if(!r||!Array.isArray(r.messages)){
       box.innerHTML='<div class="empty">ยังไม่รองรับบทสนทนาแบบเรียลไทม์ในระบบหลังบ้าน (ต้องเพิ่ม /task_thread endpoint)</div>';
-      return;
+    } else if(!r.messages.length){
+      box.innerHTML='<div class="empty">ยังไม่มีข้อความ</div>';
+    } else {
+      box.innerHTML=r.messages.map(function(m){
+        const author=m.author||"?";
+        return '<div class="flex" style="align-items:flex-start;gap:8px;margin-bottom:10px">'
+          +'<div class="ag-av" style="width:26px;height:26px;border-radius:8px;font-size:11px;flex:none;background:'+avColor(author)+'">'+esc((author[0]||"?").toUpperCase())+'</div>'
+          +'<div style="flex:1;min-width:0">'
+            +'<div class="flex" style="gap:6px;align-items:center;margin-bottom:2px"><span style="font-weight:600;font-size:12.5px">'+esc(author)+'</span><span class="chip sm">'+esc(m.role||"")+'</span><span class="sub mono" style="font-size:11px">'+esc(notifFmtTs(m.ts))+'</span></div>'
+            +'<div style="font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">'+esc(m.body)+'</div>'
+          +'</div>'
+        +'</div>';
+      }).join("");
     }
-    if(!r.messages.length){ box.innerHTML='<div class="empty">ยังไม่มีข้อความ</div>'; return; }
-    box.innerHTML=r.messages.map(function(m){
-      const author=m.author||"?";
-      return '<div class="flex" style="align-items:flex-start;gap:8px;margin-bottom:10px">'
-        +'<div class="ag-av" style="width:26px;height:26px;border-radius:8px;font-size:11px;flex:none;background:'+avColor(author)+'">'+esc((author[0]||"?").toUpperCase())+'</div>'
-        +'<div style="flex:1;min-width:0">'
-          +'<div class="flex" style="gap:6px;align-items:center;margin-bottom:2px"><span style="font-weight:600;font-size:12.5px">'+esc(author)+'</span><span class="chip sm">'+esc(m.role||"")+'</span><span class="sub mono" style="font-size:11px">'+esc(notifFmtTs(m.ts))+'</span></div>'
-          +'<div style="font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">'+esc(m.body)+'</div>'
-        +'</div>'
-      +'</div>';
-    }).join("");
+    threadLoaded=true;
+    // re-apply any optimistic reply bubbles sent while this initial load was still in flight
+    pendingReplies.forEach(function(html){ box.insertAdjacentHTML("beforeend",html); });
+    pendingReplies=[];
+    box.scrollTop=box.scrollHeight;
   })();
+  function replyBubbleHtml(text){
+    return '<div class="flex" style="align-items:flex-start;gap:8px;margin-bottom:10px;flex-direction:row-reverse">'
+      +'<div class="ag-av" style="width:26px;height:26px;border-radius:8px;font-size:11px;flex:none;background:'+avColor("OMAN")+'">O</div>'
+      +'<div style="flex:1;min-width:0;text-align:right">'
+        +'<div class="flex" style="gap:6px;align-items:center;margin-bottom:2px;justify-content:flex-end"><span style="font-weight:600;font-size:12.5px">จาก OMAN</span><span class="sub mono" style="font-size:11px">'+esc(notifFmtTs(Date.now()))+'</span></div>'
+        +'<div style="display:inline-block;text-align:left;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word;background:var(--accent);color:#fff;padding:8px 12px;border-radius:14px;border-bottom-right-radius:4px;max-width:85%">'+esc(text)+'</div>'
+      +'</div>'
+    +'</div>';
+  }
+  async function sendThreadReply(){
+    if(!input||!sendBtn) return;
+    const text=input.value.trim();
+    if(!text) return;
+    input.value="";
+    const html=replyBubbleHtml(text);
+    if(!threadLoaded){
+      // initial /task_thread fetch hasn't resolved yet — it will overwrite box.innerHTML once it
+      // does, so stash this bubble and it gets re-appended right after that happens.
+      pendingReplies.push(html);
+    } else {
+      const emptyEl=box.querySelector(".empty");
+      if(emptyEl) emptyEl.remove();
+    }
+    box.insertAdjacentHTML("beforeend",html);
+    box.scrollTop=box.scrollHeight;
+    sendBtn.disabled=true; input.disabled=true;
+    if(threadMsg) threadMsg.textContent="กำลังส่ง…";
+    const r=await postJSON("/task_reply",{id:t.id,body:text});
+    sendBtn.disabled=false; input.disabled=false; input.focus();
+    if(r){
+      if(threadMsg) threadMsg.textContent="✓ ส่งข้อความแล้ว";
+      toast("✓ ส่งข้อความในบทสนทนางานแล้ว");
+    } else {
+      if(threadMsg) threadMsg.textContent="ยังไม่มี backend endpoint /task_reply — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้";
+      toast("ยังไม่มี backend endpoint /task_reply");
+    }
+  }
+  if(sendBtn) sendBtn.onclick=sendThreadReply;
+  if(input) input.onkeydown=function(e){
+    if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendThreadReply(); }
+  };
 }
 function closeTaskDetail(){ const ov=document.getElementById("taskdetailOverlay"); if(ov) ov.classList.remove("on"); currentDetailTask=null; }
 document.getElementById("taskdetailClose").onclick=closeTaskDetail;
