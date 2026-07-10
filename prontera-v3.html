@@ -220,6 +220,8 @@ input:disabled{opacity:.4}
 .kt{font-size:13px;font-weight:550;line-height:1.36;margin-bottom:6px;word-break:break-word}
 .km{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .kmeta{font-size:11px;color:var(--muted)}
+/* m1 (Task Risk & SLA Radar epic): small amber/red staleness dot on Kanban cards — see computeTaskRisk() */
+.riskdot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;display:inline-block;box-shadow:0 0 0 2px var(--glass-3)}
 .kempty{color:var(--faint);font-size:12px;padding:10px 6px;text-align:center}
 .chip.sm{font-size:10.5px;padding:1px 7px}
 .chip.warn{background:rgba(255,159,10,.16);color:#c77700;border-color:rgba(255,159,10,.3)}
@@ -1388,9 +1390,17 @@ function _pushBoardTask(t){
   window._boardTasks.push(t);
   return window._boardTasks.length-1;
 }
-function _kcard(title,agent,meta,cls,idx){
+function _kcard(title,agent,meta,cls,idx,riskHtml){
   const clickAttrs=idx==null?"":' data-idx="'+idx+'" role="button" tabindex="0"';
-  return '<div class="kcard '+(cls||"")+'"'+clickAttrs+'><div class="kt">'+esc(title||"(ไม่มีชื่อ)")+'</div><div class="km">'+(agent?'<span class="chip sm">'+esc(agent)+'</span>':'')+(meta?'<span class="kmeta">'+esc(meta)+'</span>':'')+'</div></div>';
+  return '<div class="kcard '+(cls||"")+'"'+clickAttrs+'><div class="kt">'+esc(title||"(ไม่มีชื่อ)")+(riskHtml||"")+'</div><div class="km">'+(agent?'<span class="chip sm">'+esc(agent)+'</span>':'')+(meta?'<span class="kmeta">'+esc(meta)+'</span>':'')+'</div></div>';
+}
+/* m1 (Task Risk & SLA Radar epic): amber/red dot markup for a Kanban card's title row — green (unknown or
+   healthy) tasks get no badge at all, keeping cards clean per design. See computeTaskRisk() above. */
+function _riskDotHtml(risk){
+  if(!risk||risk.tier==="green") return "";
+  const col=risk.tier==="red"?"var(--bad)":"var(--warn)";
+  const label="ค้างในเฟสนี้ "+risk.ageLabel;
+  return ' <span class="riskdot" style="background:'+col+'" title="'+esc(label)+'" aria-label="'+esc(label)+'"></span>';
 }
 function _kcol(title,cls,items,emptyTxt){
   return '<div class="kcol '+cls+'"><div class="kh"><span>'+esc(title)+'</span><span class="kn">'+items.length+'</span></div>'+(items.length?items.join(""):'<div class="kempty">'+esc(emptyTxt)+'</div>')+'</div>';
@@ -1403,12 +1413,14 @@ function _boardProject(p,v){
      (future shape for concurrent work) — normalize to a list and render one live card each */
   const doingList=Array.isArray(v.doing)?v.doing:(v.doing?[v.doing]:[]);
   doingList.forEach(dt=>{
-    const idx=_pushBoardTask(Object.assign({},dt,{project:p,status:"กำลังทำ"}));
-    doing.push(_kcard(dt.title,dt.agent,"● "+(dt.phase||"ทำงาน"),"live",idx));
+    const bt=Object.assign({},dt,{project:p,status:"กำลังทำ"});
+    const idx=_pushBoardTask(bt);
+    doing.push(_kcard(dt.title,dt.agent,"● "+(dt.phase||"ทำงาน"),"live",idx,_riskDotHtml(computeTaskRisk(bt))));
   });
   const pend=(v.pending||[]).map(t=>{
-    const idx=_pushBoardTask(Object.assign({},t,{project:p,status:"ค้างอยู่"}));
-    return _kcard(t.title,t.agent,t.ms?("milestone "+t.ms):(t.model||""),"",idx);
+    const bt=Object.assign({},t,{project:p,status:"ค้างอยู่"});
+    const idx=_pushBoardTask(bt);
+    return _kcard(t.title,t.agent,t.ms?("milestone "+t.ms):(t.model||""),"",idx,_riskDotHtml(computeTaskRisk(bt)));
   });
   const done=(v.done||[]).map(t=>{
     const idx=_pushBoardTask(Object.assign({},t,{project:p,status:"เสร็จ"}));
@@ -1422,6 +1434,46 @@ function _boardProject(p,v){
 /* m4: /board's `doing` field is currently a single object server-side — the UI above now accepts
    either shape, so the backend can switch `doing` to an array (for real concurrent tasks) later
    without requiring another frontend change */
+/* m1 (Task Risk & SLA Radar epic): default staleness thresholds (minutes) per task status — how long a
+   task may sit in its current phase before it's flagged amber ("keep an eye on it") or red ("probably
+   stuck"). 'เสร็จ' (done) tasks are never scored — see computeTaskRisk() below. */
+var SLA_THRESHOLDS={ doing:{amberMin:30,redMin:90}, pending:{amberMin:60,redMin:180} };
+/* Per-project override slot — trivially extensible: add a project name key with the same {doing,pending}
+   shape as SLA_THRESHOLDS above and computeTaskRisk() will prefer it over the default. Left mostly empty;
+   real per-project tuning (which projects run hotter/cooler SLAs) is a later refinement. Example:
+   SLA_PROJECT_OVERRIDES = { payon: { doing:{amberMin:20,redMin:60}, pending:{amberMin:45,redMin:120} } }; */
+var SLA_PROJECT_OVERRIDES={ /* projectName: {doing:{amberMin,redMin}, pending:{amberMin,redMin}} */ };
+/* m1 (Task Risk & SLA Radar epic): best-effort, client-side staleness score for one task, derived from
+   the same window._taskPhaseHistory bridge _renderPhaseHistory() reads (see _capturePhaseHistory() above
+   for how/when entries get recorded). This is NOT a real backend timer — it only knows what this browser
+   tab happened to observe across board polls, same caveat as the rest of the m1 Task Story Timeline work.
+   milestone m2 will add a dedicated Risk Radar tab that calls this across every task in every project,
+   instead of the minimal per-card/detail-drawer surfacing added here. */
+function computeTaskRisk(t){
+  const unknown={tier:"green",ageMs:null,ageLabel:""};
+  if(!t) return unknown;
+  if(t.status==="เสร็จ") return {tier:"green",ageMs:null,ageLabel:""}; // done tasks never go stale
+  const hist=(t.id&&window._taskPhaseHistory&&window._taskPhaseHistory[t.id])||[];
+  if(!hist.length) return unknown; // no captured history yet — don't fabricate an age
+  const lastPhase=hist[hist.length-1].phase;
+  let startIdx=hist.length-1;
+  while(startIdx>0&&hist[startIdx-1].phase===lastPhase) startIdx--;
+  const enteredTs=Date.parse(hist[startIdx].ts);
+  if(!enteredTs||isNaN(enteredTs)) return unknown;
+  const ageMs=Date.now()-enteredTs;
+  const ageMin=ageMs/60000;
+  const statusKey=t.status==="กำลังทำ"?"doing":t.status==="ค้างอยู่"?"pending":null;
+  if(!statusKey) return {tier:"green",ageMs,ageLabel:_ageLabelTh(ageMs)};
+  const cfg=(SLA_PROJECT_OVERRIDES[t.project]&&SLA_PROJECT_OVERRIDES[t.project][statusKey])||SLA_THRESHOLDS[statusKey];
+  const tier=ageMin>=cfg.redMin?"red":ageMin>=cfg.amberMin?"amber":"green";
+  return {tier:tier,ageMs:ageMs,ageLabel:_ageLabelTh(ageMs)};
+}
+function _ageLabelTh(ageMs){
+  const totalMin=Math.max(0,Math.round(ageMs/60000));
+  const h=Math.floor(totalMin/60), m=totalMin%60;
+  if(h>0) return h+" ชม."+(m>0?" "+m+" นาที":"");
+  return m+" นาที";
+}
 /* m1 (Task Story Timeline epic): renders the client-captured phase history for one task id — data comes
    from window._taskPhaseHistory, populated by _capturePhaseHistory() (see the Kanban board section above)
    on every board poll. BACKEND GAP: best-effort/lossy client bridge only — see the comment above
@@ -1450,6 +1502,10 @@ function openTaskDetail(t){
   if(t.ms) rows.push(["Milestone",t.ms]);
   if(t.verdict) rows.push(["ผลตรวจ","✓ "+t.verdict]);
   if(t.commit) rows.push(["Commit",t.commit]);
+  /* m1 (Task Risk & SLA Radar epic): only surface a row when the task is actually stale — green/unknown
+     stays silent so the drawer doesn't get noisy for the common case. See computeTaskRisk() above. */
+  const risk=computeTaskRisk(t);
+  if(risk.tier==="amber"||risk.tier==="red") rows.push(["ความเสี่ยง",(risk.tier==="red"?"🔴":"🟡")+" เสี่ยงค้าง · "+risk.ageLabel+" ในเฟสนี้"]);
   const canCancel=t.status==="ค้างอยู่"&&!!t.id;
   const canRetry=!!t.id;
   const canReassign=!!t.id&&t.status!=="เสร็จ";
