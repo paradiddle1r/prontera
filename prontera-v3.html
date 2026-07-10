@@ -338,6 +338,12 @@ input:disabled{opacity:.4}
 .apprpol-tier-toggle span{padding:4px 9px;color:var(--muted)}
 .apprpol-tier-toggle span.sel{background:var(--accent);color:#fff;font-weight:600}
 .apprpol-badge-auto{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--glass-2);color:var(--muted);border:1px solid var(--hair);margin-left:6px}
+.appr-bulkbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.appr-check{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:500}
+.appr-check input[type=checkbox],.appr-card-check input[type=checkbox]{width:16px;height:16px;margin:0;padding:0;border-radius:4px;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.appr-card-top{display:flex;align-items:flex-start;gap:10px}
+.appr-card-top .ag-meta{flex:1;min-width:0}
+.appr-card-check{display:inline-flex;padding-top:1px}
 
 /* ── Task Detail drawer (Live Task Console m1) — opened from a Kanban card click ── */
 .taskdetail-overlay{position:fixed;inset:0;z-index:210;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,14,24,.42);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
@@ -1960,30 +1966,92 @@ document.getElementById("apprPolicySave").onclick=function(){
 };
 document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ const ov=document.getElementById("apprPolicyOverlay"); if(ov&&ov.classList.contains("on")) closeApprPolicyModal(); } });
 async function renderApprovals(){
-  V().innerHTML='<div class="wrap"><div class="hd" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>คำขออนุมัติ (Approval Queue)</span><button class="btn sm" id="apprPolicyBtn" type="button">⚙ กฎการอนุมัติ</button></div><div id="apprList"><div class="empty">กำลังโหลด…</div></div></div>';
+  V().innerHTML='<div class="wrap"><div class="hd" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>คำขออนุมัติ (Approval Queue)</span><button class="btn sm" id="apprPolicyBtn" type="button">⚙ กฎการอนุมัติ</button><div class="appr-bulkbar"><label class="appr-check"><input type="checkbox" id="apprSelectAll">เลือกทั้งหมด</label><button class="btn sm" data-appr-tier="high" type="button">สูง</button><button class="btn sm" data-appr-tier="med" type="button">กลาง</button><button class="btn sm" data-appr-tier="low" type="button">ต่ำ</button><span class="chip" id="apprSelectedCount">เลือก 0</span><button class="btn sm pri" id="apprBulkApprove" type="button" disabled>✓ อนุมัติที่เลือก (0)</button><button class="btn sm" id="apprBulkReject" type="button" disabled>✗ ปฏิเสธที่เลือก (0)</button><button class="btn sm" id="apprAutoApprove" type="button">⚡ อนุมัติอัตโนมัติตามกฎ</button></div></div><div id="apprList"><div class="empty">กำลังโหลด…</div></div></div>';
   const polBtn=document.getElementById("apprPolicyBtn"); if(polBtn) polBtn.onclick=openApprPolicyModal;
   const list=document.getElementById("apprList");
+  const selAll=document.getElementById("apprSelectAll"), selCount=document.getElementById("apprSelectedCount");
+  const bulkApprove=document.getElementById("apprBulkApprove"), bulkReject=document.getElementById("apprBulkReject"), autoApprove=document.getElementById("apprAutoApprove");
+  const normTier=function(t){ t=String(t||"").toLowerCase(); return t==="medium"?"med":t; };
+  const selectedCards=function(){ return Array.from(list.querySelectorAll(".card[data-id]")).filter(c=>{ const cb=c.querySelector(".apprSel"); return cb&&cb.checked; }); };
+  const updateBulkUI=function(){
+    const cards=Array.from(list.querySelectorAll(".card[data-id]")), n=selectedCards().length;
+    if(selCount) selCount.textContent="เลือก "+n;
+    if(bulkApprove){ bulkApprove.disabled=n===0; bulkApprove.textContent="✓ อนุมัติที่เลือก ("+n+")"; }
+    if(bulkReject){ bulkReject.disabled=n===0; bulkReject.textContent="✗ ปฏิเสธที่เลือก ("+n+")"; }
+    if(selAll){
+      selAll.disabled=cards.length===0;
+      selAll.checked=cards.length>0&&n===cards.length;
+      selAll.indeterminate=n>0&&n<cards.length;
+    }
+  };
+  const setChecked=function(cards,on){ cards.forEach(c=>{ const cb=c.querySelector(".apprSel"); if(cb&&!cb.disabled) cb.checked=on; }); updateBulkUI(); };
+  const bulkDecide=async function(cards,decision){
+    cards=(cards||[]).filter(Boolean);
+    if(!cards.length){ updateBulkUI(); return; }
+    let ok=0, fail=0;
+    for(const card of cards){
+      if(!card.isConnected) continue;
+      const id=card.dataset.id, msg=card.querySelector(".apprMsg");
+      card.querySelectorAll("[data-act],.apprSel").forEach(b=>b.disabled=true);
+      const r=await postJSON("/approval_decide",{id:id,decision:decision});
+      if(r){
+        ok++;
+        card.remove();
+      } else {
+        fail++;
+        card.querySelectorAll("[data-act],.apprSel").forEach(b=>b.disabled=false);
+        if(msg) msg.textContent="ยังไม่มี backend endpoint /approval_decide — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้";
+      }
+    }
+    if(!list.querySelector("[data-id]")) list.innerHTML='<div class="empty">ไม่มีคำขออนุมัติที่ค้างอยู่</div>';
+    refreshApprovalBadge();
+    updateBulkUI();
+    let txt=(decision==="approve"?"อนุมัติแล้ว ":"ปฏิเสธแล้ว ")+ok+" รายการ";
+    if(fail) txt+=" — ล้มเหลว "+fail+" รายการ";
+    toast(fail&&ok===0?"ยังไม่มี backend endpoint /approval_decide":txt);
+  };
+  if(selAll) selAll.onchange=function(){ setChecked(Array.from(list.querySelectorAll(".card[data-id]")),selAll.checked); };
+  document.querySelectorAll("[data-appr-tier]").forEach(function(btn){
+    btn.onclick=function(){
+      const tier=btn.dataset.apprTier;
+      const cards=Array.from(list.querySelectorAll('.card[data-tier="'+tier+'"]'));
+      const allOn=cards.length>0&&cards.every(c=>{ const cb=c.querySelector(".apprSel"); return cb&&cb.checked; });
+      setChecked(cards,!allOn);
+    };
+  });
+  if(bulkApprove) bulkApprove.onclick=function(){ bulkDecide(selectedCards(),"approve"); };
+  if(bulkReject) bulkReject.onclick=function(){ bulkDecide(selectedCards(),"reject"); };
+  if(autoApprove) autoApprove.onclick=function(){
+    const cards=Array.from(list.querySelectorAll('.card[data-auto="1"]'));
+    setChecked(cards,true);
+    bulkDecide(cards,"approve");
+  };
+  updateBulkUI();
   const d=await getJSON("/approvals_list");
   approvalsQueueCache=Array.isArray(d)?d:[];
   if(!Array.isArray(d)){
     list.innerHTML='<div class="empty">ยังไม่มี backend endpoint /approvals_list — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้ (จะคืนรายการ pending approvals: {id, project, agent, action_type, risk_tier, summary, ts})</div>';
+    updateBulkUI();
     return;
   }
-  if(!d.length){ list.innerHTML='<div class="empty">ไม่มีคำขออนุมัติที่ค้างอยู่</div>'; return; }
+  if(!d.length){ list.innerHTML='<div class="empty">ไม่มีคำขออนุมัติที่ค้างอยู่</div>'; updateBulkUI(); return; }
   list.innerHTML='<div class="grid g-cards">'+d.map(item=>{
-    return '<div class="card" data-id="'+esc(item.id)+'" data-label="'+esc(item.action_type||item.id)+'">'
-      +'<div class="ag-meta" style="margin-top:0">'
+    const tier=normTier(item.risk_tier), isAuto=apprPolicyIsAuto(item.project,item.risk_tier);
+    return '<div class="card" data-id="'+esc(item.id)+'" data-label="'+esc(item.action_type||item.id)+'" data-tier="'+esc(tier)+'" data-auto="'+(isAuto?'1':'0')+'">'
+      +'<div class="appr-card-top"><label class="appr-card-check"><input class="apprSel" type="checkbox" aria-label="เลือกคำขออนุมัติ"></label><div class="ag-meta" style="margin-top:0">'
       +'<span class="chip">'+esc(item.project||"–")+'</span>'
       +'<span class="chip">'+esc(item.agent||"–")+'</span>'
       +'<span class="chip" style="background:'+apprRiskColor(item.risk_tier)+';color:#fff;border-color:transparent">'+esc(item.risk_tier||"?")+'</span>'
-      +(apprPolicyIsAuto(item.project,item.risk_tier)?'<span class="apprpol-badge-auto" title="ตามกฎการอนุมัติที่ตั้งไว้ — backend ยังไม่รองรับการอนุมัติอัตโนมัติจริง">จะอนุมัติอัตโนมัติ</span>':'')
-      +'</div>'
+      +(isAuto?'<span class="apprpol-badge-auto" title="ตามกฎการอนุมัติที่ตั้งไว้ — backend ยังไม่รองรับการอนุมัติอัตโนมัติจริง">จะอนุมัติอัตโนมัติ</span>':'')
+      +'</div></div>'
       +'<div style="margin-top:10px;font-weight:600;font-size:14px">'+esc(item.action_type||"")+'</div>'
       +'<div class="sub" style="margin-top:4px">'+esc(item.summary||"")+'</div>'
       +'<div class="ctl" style="margin-top:12px;display:flex;gap:8px"><button class="btn pri" data-act="approve" type="button">✓ อนุมัติ</button><button class="btn" data-act="reject" type="button">✗ ปฏิเสธ</button></div>'
       +'<div class="sub apprMsg" style="margin-top:8px"></div>'
       +'</div>';
   }).join("")+'</div>';
+  list.querySelectorAll(".apprSel").forEach(function(cb){ cb.onchange=updateBulkUI; });
+  updateBulkUI();
   list.querySelectorAll("[data-act]").forEach(function(btn){
     btn.onclick=async function(){
       const card=btn.closest("[data-id]"); if(!card) return;
@@ -1996,6 +2064,7 @@ async function renderApprovals(){
         card.remove();
         refreshApprovalBadge();
         if(!list.querySelector("[data-id]")) list.innerHTML='<div class="empty">ไม่มีคำขออนุมัติที่ค้างอยู่</div>';
+        updateBulkUI();
       } else {
         card.querySelectorAll("[data-act]").forEach(b=>b.disabled=false);
         if(msg) msg.textContent="ยังไม่มี backend endpoint /approval_decide — UI พร้อมใช้เมื่อ backend เพิ่ม endpoint นี้";
